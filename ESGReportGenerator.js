@@ -221,6 +221,15 @@ function genererRapportESG(
     profil
   );
 
+  /*
+   * QUALITY GATE WHITE-LABEL :
+   * aucun nom de plateforme ou provider IA ne doit apparaître
+   * dans l'artefact appartenant au porteur de projet.
+   */
+  validerWhiteLabelDocumentESG_(
+    document
+  );
+
   document.saveAndClose();
 
   Utilities.sleep(
@@ -2110,6 +2119,173 @@ function ajouterPiedDePageESG_(
 
 
 /**
+ * ============================================================
+ * QUALITY GATE — DOCUMENT 100 % WHITE-LABEL
+ * ============================================================
+ *
+ * Ce contrôle porte sur le contenu visible du document.
+ * Les métadonnées internes du système restent hors document.
+ */
+function validerWhiteLabelDocumentESG_(
+  document
+) {
+  if (!document) {
+    throw new Error(
+      "Document absent pour contrôle white-label."
+    );
+  }
+
+  var textes = [];
+
+  try {
+    textes.push(
+      document
+        .getBody()
+        .getText()
+    );
+  } catch (_) {}
+
+  try {
+    var header =
+      document.getHeader();
+
+    if (header) {
+      textes.push(
+        header.getText()
+      );
+    }
+  } catch (_) {}
+
+  try {
+    var footer =
+      document.getFooter();
+
+    if (footer) {
+      textes.push(
+        footer.getText()
+      );
+    }
+  } catch (_) {}
+
+  var contenu =
+    textes
+      .join("\n")
+      .toLowerCase();
+
+  var interdits = [
+    "afrigreen24",
+    "openai",
+    "humbleos"
+  ];
+
+  var trouves =
+    interdits.filter(
+      function(terme) {
+        return (
+          contenu.indexOf(
+            terme
+          ) !== -1
+        );
+      }
+    );
+
+  if (trouves.length) {
+    throw new Error(
+      "WHITE_LABEL_QC_FAILED: mention(s) interdite(s) dans le document : " +
+      trouves.join(
+        ", "
+      )
+    );
+  }
+
+  return {
+    success:
+      true,
+
+    checkedAt:
+      new Date()
+        .toISOString()
+  };
+}
+
+
+function TEST_ESG_WHITE_LABEL_TEXT_LOCAL() {
+  var tests = [
+    {
+      text:
+        "Rapport ESG — Organisation Test",
+      expected:
+        true
+    },
+    {
+      text:
+        "Rapport généré par AfriGreen24",
+      expected:
+        false
+    },
+    {
+      text:
+        "Traitement OpenAI",
+      expected:
+        false
+    },
+    {
+      text:
+        "Fallback HumbleOS",
+      expected:
+        false
+    }
+  ];
+
+  var forbidden = [
+    "afrigreen24",
+    "openai",
+    "humbleos"
+  ];
+
+  var errors = [];
+
+  tests.forEach(
+    function(test) {
+      var normalized =
+        String(
+          test.text || ""
+        ).toLowerCase();
+
+      var safe =
+        forbidden.every(
+          function(term) {
+            return (
+              normalized.indexOf(
+                term
+              ) === -1
+            );
+          }
+        );
+
+      if (
+        safe !==
+        test.expected
+      ) {
+        errors.push(
+          test.text
+        );
+      }
+    }
+  );
+
+  return {
+    success:
+      errors.length ===
+      0,
+
+    errors:
+      errors
+  };
+}
+
+
+/**
  * Conversion du document en PDF.
  */
 function creerPDFFromDocumentESG_(
@@ -3102,6 +3278,15 @@ function genererRapportInvestisseurESGV3(
     document,
     identifiantRapport,
     profil
+  );
+
+  /*
+   * QUALITY GATE WHITE-LABEL :
+   * aucun nom de plateforme ou provider IA ne doit apparaître
+   * dans l'artefact appartenant au porteur de projet.
+   */
+  validerWhiteLabelDocumentESG_(
+    document
   );
 
   document.saveAndClose();
@@ -4463,7 +4648,7 @@ function ajouterEnjeuxMaterielsInvestisseurESG_(
 
   ajouterParagrapheESG_(
     corps,
-    "Cette section concentre la lecture sur les sujets les plus significatifs issus du moteur AfriGreen24. Le terme « matériel » désigne ici les enjeux prioritaires au regard du diagnostic et ne constitue pas une déclaration formelle de matérialité au sens d’un référentiel externe."
+    "Cette section concentre la lecture sur les sujets les plus significatifs issus du diagnostic ESG. Le terme « matériel » désigne ici les enjeux prioritaires au regard de l’évaluation et ne constitue pas une déclaration formelle de matérialité au sens d’un référentiel externe."
   );
 
   var faiblesses =
@@ -5340,7 +5525,7 @@ function ajouterAnnexeMethodologieInvestisseurESG_(
 
   ajouterParagrapheESG_(
     corps,
-    "Le diagnostic AfriGreen24 repose sur 50 questions structurées autour des piliers Environnement, Social, Gouvernance et Préparation ESG. Les réponses sont converties en scores déterministes selon la grille de maturité du moteur, puis pondérées selon les règles configurées dans l’application."
+    "Le présent diagnostic repose sur 50 questions structurées autour des piliers Environnement, Social, Gouvernance et Préparation ESG. Les réponses sont converties en scores déterministes selon la grille de maturité applicable, puis pondérées selon les règles méthodologiques configurées pour l’évaluation."
   );
 
   ajouterParagrapheESG_(
