@@ -75,3 +75,13 @@ Les modèles d'extraction et de réécriture peuvent être changés sans modifie
 - `OPENAI_ESG_REWRITE_MODEL`
 
 Le système conserve HumbleOS comme fallback et un fallback déterministe final pour garantir la continuité du rapport.
+
+
+## Moteur documentaire
+
+Le nouveau Snapshot V1 est isolé derrière une feature flag Apps Script :
+
+- `ESG_REPORT_ENGINE_MODE=LEGACY_V3` — comportement par défaut / production actuelle.
+- `ESG_REPORT_ENGINE_MODE=SNAPSHOT_V1` — nouveau Document Engine 7 pages.
+
+Le passage à `SNAPSHOT_V1` ne doit être fait qu'après validation des smoke tests OpenAI, fallback HumbleOS, Google Doc/PDF et quality gates.
