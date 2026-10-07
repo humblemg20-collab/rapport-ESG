@@ -89,6 +89,24 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "BLOCK_REGISTRY",
+      run:
+        TEST_ESG_BLOCK_REGISTRY_V1_LOCAL
+    },
+    {
+      name:
+        "VISUALIZATION_RULES",
+      run:
+        TEST_ESG_VISUALIZATION_RULES_V1_LOCAL
+    },
+    {
+      name:
+        "SNAPSHOT_COMPOSITION",
+      run:
+        TEST_ESG_SNAPSHOT_COMPOSITION_V1_LOCAL
+    },
+    {
+      name:
         "IMPORT_SCHEMA",
       run:
         TEST_ESG_IMPORT_SCHEMA_LOCAL
