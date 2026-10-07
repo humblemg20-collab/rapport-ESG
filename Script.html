@@ -3371,6 +3371,10 @@ function construireProvenanceQuestionClientESG_(
           )
         : null,
 
+    evidenceMatchedSource:
+      item.evidenceMatchedSource ===
+        true,
+
     userConfirmed:
       !!(
         card &&
@@ -3536,6 +3540,10 @@ function construireProvenanceProfilClientESG_() {
                   item.extractionConfidence
                 )
               : null,
+
+          evidenceMatchedSource:
+            item.evidenceMatchedSource ===
+              true,
 
           userConfirmed:
             !sameValue
