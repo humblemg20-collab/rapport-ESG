@@ -16,7 +16,9 @@
  *      ↓
  * construction des 65 fieldDefinitions
  *      ↓
- * HumbleOS /extract-esg
+ * OpenAI Responses API (PRIMARY)
+ *      ↓
+ * HumbleOS /extract-esg (FALLBACK uniquement)
  *      ↓
  * Fact Guard
  *      ↓
@@ -148,36 +150,16 @@ function analyserFichierESGImporte(payload) {
      * Le Worker sera adapté à l'étape suivante pour utiliser
      * cette information.
      */
-    var resultatHumbleOS =
-      appelerHumbleOS_(
-        "/extract-esg",
-        "post",
-        {
-          sourceText:
-            sourceText,
-
-          fieldDefinitions:
-            definitions,
-
-          documentMode:
-            documentMode
-        }
+    var aiExtraction =
+      extraireChampsESGAvecAIGateway_(
+        sourceText,
+        definitions,
+        documentMode
       );
-
-
-    if (
-      !resultatHumbleOS ||
-      !resultatHumbleOS.content ||
-      !resultatHumbleOS.content.fields
-    ) {
-      throw new Error(
-        "HumbleOS n’a pas retourné une extraction ESG exploitable."
-      );
-    }
 
 
     var fields =
-      resultatHumbleOS.content.fields;
+      aiExtraction.fields;
 
 
     /*
@@ -202,6 +184,78 @@ function analyserFichierESGImporte(payload) {
 
     resultat.extractionMethod =
       extraction.method || "";
+
+
+    /*
+     * ----------------------------------------------------------
+     * 7. PROVENANCE DOCUMENTAIRE
+     * ----------------------------------------------------------
+     *
+     * Le fichier sert au préremplissage ET pourra devenir
+     * une source de preuve canonique.
+     */
+    var sourceDocumentId =
+      "SOURCE-" +
+      Utilities.getUuid();
+
+
+    resultat.sourceDocument = {
+      sourceDocumentId:
+        sourceDocumentId,
+
+      name:
+        String(
+          payload.fileName ||
+          "Document ESG"
+        ),
+
+      mimeType:
+        String(
+          payload.mimeType ||
+          ""
+        ),
+
+      sizeBytes:
+        Number(
+          payload.fileSize ||
+          0
+        ) || null,
+
+      extractionMethod:
+        extraction.method ||
+        "",
+
+      aiProvider:
+        aiExtraction.providerUsed ||
+        "",
+
+      aiFallbackUsed:
+        aiExtraction.fallbackUsed ===
+        true,
+
+      importedAt:
+        new Date()
+          .toISOString()
+    };
+
+
+    resultat.aiProvider =
+      aiExtraction.providerUsed ||
+      "";
+
+    resultat.aiFallbackUsed =
+      aiExtraction.fallbackUsed ===
+      true;
+
+    resultat.aiAttempts =
+      aiExtraction.attempts ||
+      [];
+
+
+    ajouterProvenanceResultatImportESG_(
+      resultat,
+      resultat.sourceDocument
+    );
 
 
     return resultat;
@@ -1740,6 +1794,97 @@ function normaliserTexteComparaisonESG_(
       " "
     )
     .trim();
+}
+
+
+/**
+ * ============================================================
+ * PROVENANCE DU PRÉREMPLISSAGE
+ * ============================================================
+ */
+function ajouterProvenanceResultatImportESG_(
+  resultat,
+  sourceDocument
+) {
+  resultat =
+    resultat || {};
+
+  sourceDocument =
+    sourceDocument || {};
+
+  function enrichirCollection_(collection) {
+    Object.keys(
+      collection || {}
+    ).forEach(
+      function(id) {
+        var item =
+          collection[id];
+
+        if (!item) {
+          return;
+        }
+
+        item.inputMethod =
+          "DOCUMENT_EXTRACTION";
+
+        item.extractionStatus =
+          String(
+            item.status ||
+            ""
+          );
+
+        item.sourceDocumentId =
+          String(
+            sourceDocument
+              .sourceDocumentId ||
+            ""
+          );
+
+        item.sourceName =
+          String(
+            sourceDocument.name ||
+            resultat.sourceName ||
+            ""
+          );
+
+        item.sourceExcerpt =
+          String(
+            item.evidence ||
+            ""
+          );
+
+        item.extractionConfidence =
+          Number(
+            item.confidence
+          );
+
+        if (
+          !isFinite(
+            item.extractionConfidence
+          )
+        ) {
+          item.extractionConfidence =
+            null;
+        }
+
+        /*
+         * FOUND = extraction exploitable, PAS validation humaine.
+         */
+        item.userConfirmed =
+          false;
+      }
+    );
+  }
+
+  enrichirCollection_(
+    resultat.profile
+  );
+
+  enrichirCollection_(
+    resultat.questions
+  );
+
+  return resultat;
 }
 
 
