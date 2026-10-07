@@ -81,7 +81,8 @@ document.addEventListener(
  * fichier(s)
  * → Apps Script
  * → extraction texte
- * → HumbleOS /extract-esg
+ * → OpenAI (PRIMARY)
+ * → HumbleOS (FALLBACK uniquement)
  * → normalisation Apps Script
  * → FOUND / TO_CONFIRM / MISSING
  * → préremplissage du questionnaire
@@ -370,6 +371,11 @@ async function lancerImportDocumentsESG(
           mimeType:
             file.type || "",
 
+          fileSize:
+            Number(
+              file.size || 0
+            ),
+
           base64:
             base64
         });
@@ -590,6 +596,8 @@ function fusionnerResultatsImportESG_(
 
     sources: [],
 
+    sourceDocuments: [],
+
     analysis: {
       questions: {
         total: 0,
@@ -619,6 +627,16 @@ function fusionnerResultatsImportESG_(
       ) {
         merged.sources.push(
           resultat.sourceName
+        );
+      }
+
+
+      if (
+        resultat &&
+        resultat.sourceDocument
+      ) {
+        merged.sourceDocuments.push(
+          resultat.sourceDocument
         );
       }
 
@@ -3074,15 +3092,18 @@ function collecterReponsesESG() {
           question.question_id;
 
 
-        resultat[id] = {
+        var value =
+          document
+            .getElementById(
+              "esg-" + id
+            )
+            .value;
+
+
+        var response = {
 
           value:
-
-            document
-              .getElementById(
-                "esg-" + id
-              )
-              .value,
+            value,
 
 
           evidenceLevel:
@@ -3105,12 +3126,467 @@ function collecterReponsesESG() {
 
         };
 
+
+        var provenance =
+          construireProvenanceQuestionClientESG_(
+            id,
+            value
+          );
+
+
+        Object.keys(
+          provenance
+        ).forEach(
+          function(key) {
+            response[key] =
+              provenance[key];
+          }
+        );
+
+
+        resultat[id] =
+          response;
+
       }
 
     );
 
 
   return resultat;
+
+}
+
+
+/**
+ * Détermine si une réponse finale provient réellement
+ * d'un document ou d'une saisie/correction manuelle.
+ */
+function construireProvenanceQuestionClientESG_(
+  questionId,
+  currentValue
+) {
+
+  if (
+    appState.entryMode !==
+      "import" ||
+    !appState.esgImport ||
+    !appState.esgImport.merged
+  ) {
+    return {
+      inputMethod:
+        "MANUAL",
+
+      extractionStatus:
+        "",
+
+      sourceDocumentId:
+        "",
+
+      sourceName:
+        "",
+
+      sourceExcerpt:
+        "",
+
+      extractionConfidence:
+        null,
+
+      userConfirmed:
+        true
+    };
+  }
+
+
+  var item =
+    appState
+      .esgImport
+      .merged
+      .questions[
+        questionId
+      ];
+
+
+  if (!item) {
+    return {
+      inputMethod:
+        "MANUAL",
+
+      extractionStatus:
+        "",
+
+      sourceDocumentId:
+        "",
+
+      sourceName:
+        "",
+
+      sourceExcerpt:
+        "",
+
+      extractionConfidence:
+        null,
+
+      userConfirmed:
+        true
+    };
+  }
+
+
+  var importedValue =
+    item.canonicalValue !==
+      null &&
+    item.canonicalValue !==
+      undefined &&
+    item.canonicalValue !==
+      ""
+      ? item.canonicalValue
+      : item.value;
+
+
+  var sameValue =
+    String(
+      currentValue ===
+        undefined ||
+      currentValue ===
+        null
+        ? ""
+        : currentValue
+    ) ===
+    String(
+      importedValue ===
+        undefined ||
+      importedValue ===
+        null
+        ? ""
+        : importedValue
+    );
+
+
+  var status =
+    String(
+      item.status ||
+      "MISSING"
+    ).toUpperCase();
+
+
+  /*
+   * MISSING complété ou valeur importée modifiée :
+   * la valeur canonique finale est une saisie utilisateur.
+   */
+  if (
+    status === "MISSING" ||
+    !sameValue
+  ) {
+    return {
+      inputMethod:
+        "MANUAL",
+
+      extractionStatus:
+        status,
+
+      sourceDocumentId:
+        String(
+          item.sourceDocumentId ||
+          ""
+        ),
+
+      sourceName:
+        String(
+          item.sourceName ||
+          ""
+        ),
+
+      sourceExcerpt:
+        String(
+          item.sourceExcerpt ||
+          item.evidence ||
+          ""
+        ),
+
+      extractionConfidence:
+        Number.isFinite(
+          Number(
+            item.extractionConfidence
+          )
+        )
+          ? Number(
+              item.extractionConfidence
+            )
+          : null,
+
+      userConfirmed:
+        true
+    };
+  }
+
+
+  var select =
+    document.getElementById(
+      "esg-" +
+      questionId
+    );
+
+  var card =
+    select
+      ? select.closest(
+          ".question-card"
+        )
+      : null;
+
+
+  return {
+    inputMethod:
+      "DOCUMENT_EXTRACTION",
+
+    extractionStatus:
+      status,
+
+    sourceDocumentId:
+      String(
+        item.sourceDocumentId ||
+        ""
+      ),
+
+    sourceName:
+      String(
+        item.sourceName ||
+        ""
+      ),
+
+    sourceExcerpt:
+      String(
+        item.sourceExcerpt ||
+        item.evidence ||
+        ""
+      ),
+
+    extractionConfidence:
+      Number.isFinite(
+        Number(
+          item.extractionConfidence
+        )
+      )
+        ? Number(
+            item.extractionConfidence
+          )
+        : null,
+
+    userConfirmed:
+      !!(
+        card &&
+        card.dataset &&
+        card.dataset
+          .esgImportConfirmed ===
+          "true"
+      )
+  };
+
+}
+
+
+/**
+ * Métadonnées de provenance du profil.
+ */
+function construireProvenanceProfilClientESG_() {
+
+  var sortie = {};
+
+
+  if (
+    !appState ||
+    !appState.data ||
+    !appState.data.questionnaire
+  ) {
+    return sortie;
+  }
+
+
+  var imported =
+    appState.entryMode ===
+      "import" &&
+    appState.esgImport &&
+    appState.esgImport.merged
+      ? appState
+          .esgImport
+          .merged
+          .profile ||
+        {}
+      : {};
+
+
+  appState
+    .data
+    .questionnaire
+    .profileFields
+    .forEach(
+      function(field) {
+
+        var item =
+          imported[
+            field.id
+          ] || null;
+
+
+        if (!item) {
+          sortie[
+            field.id
+          ] = {
+            inputMethod:
+              "MANUAL",
+
+            userConfirmed:
+              true
+          };
+
+          return;
+        }
+
+
+        var element =
+          document.getElementById(
+            "profile-" +
+            field.id
+          );
+
+
+        var currentValue;
+
+
+        if (
+          field.type ===
+            "multiselect" &&
+          element
+        ) {
+          currentValue =
+            Array.from(
+              element.querySelectorAll(
+                'input[type="checkbox"]:checked'
+              )
+            ).map(
+              function(input) {
+                return input.value;
+              }
+            );
+        } else {
+          currentValue =
+            element
+              ? element.value
+              : "";
+        }
+
+
+        var importedValue =
+          item.canonicalValue !==
+            null &&
+          item.canonicalValue !==
+            undefined &&
+          item.canonicalValue !==
+            ""
+            ? item.canonicalValue
+            : item.value;
+
+
+        var sameValue =
+          JSON.stringify(
+            currentValue
+          ) ===
+          JSON.stringify(
+            importedValue
+          );
+
+
+        sortie[
+          field.id
+        ] = {
+          inputMethod:
+            sameValue
+              ? "DOCUMENT_EXTRACTION"
+              : "MANUAL",
+
+          extractionStatus:
+            String(
+              item.status ||
+              ""
+            ),
+
+          sourceDocumentId:
+            String(
+              item.sourceDocumentId ||
+              ""
+            ),
+
+          sourceName:
+            String(
+              item.sourceName ||
+              ""
+            ),
+
+          sourceExcerpt:
+            String(
+              item.sourceExcerpt ||
+              item.evidence ||
+              ""
+            ),
+
+          confidence:
+            Number.isFinite(
+              Number(
+                item.extractionConfidence
+              )
+            )
+              ? Number(
+                  item.extractionConfidence
+                )
+              : null,
+
+          userConfirmed:
+            !sameValue
+        };
+
+      }
+    );
+
+
+  return sortie;
+
+}
+
+
+/**
+ * Contexte d'entrée transmis au backend sans aucun contenu
+ * binaire : uniquement métadonnées et provenance.
+ */
+function construireContexteIntakeClientESG_() {
+
+  var merged =
+    appState &&
+    appState.esgImport
+      ? appState
+          .esgImport
+          .merged
+      : null;
+
+
+  return {
+    entryMode:
+      appState.entryMode ||
+      "manual",
+
+    capturedAt:
+      new Date()
+        .toISOString(),
+
+    sourceDocuments:
+      merged &&
+      Array.isArray(
+        merged.sourceDocuments
+      )
+        ? merged.sourceDocuments
+        : [],
+
+    profileProvenance:
+      construireProvenanceProfilClientESG_()
+  };
 
 }
 
@@ -3311,6 +3787,10 @@ function soumettreDiagnostic() {
 
     reponsesDigitales:
       collecterReponsesDigitales(),
+
+
+    intake:
+      construireContexteIntakeClientESG_(),
 
 
     consentements: {
