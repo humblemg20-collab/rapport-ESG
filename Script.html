@@ -1633,14 +1633,14 @@ function afficherResumeImportESG_(
           total
         ) +
         '</strong>. ' +
-        'Les éléments déjà sûrs sont validés automatiquement ; ' +
+        'Les éléments suffisamment établis sont préremplis automatiquement ; ' +
         'les autres sont présentés sous forme de validation rapide.' +
       '</p>' +
 
       '<div class="esg-import-result-stats">' +
 
         construireStatImportESG_(
-          "Validées automatiquement",
+          "Préremplies avec forte confiance",
           found,
           "#EAF6EE",
           "#0B6B3A"
@@ -4526,7 +4526,7 @@ function mettreAJourExperienceImportESG_() {
   ) {
 
     texte =
-      '<strong>Les informations détectées ont été validées.</strong>' +
+      '<strong>Les informations détectées ont été revues.</strong>' +
       '<p>Il reste seulement <strong>' +
         escapeHtml(
           missing
@@ -4543,7 +4543,7 @@ function mettreAJourExperienceImportESG_() {
 
     texte =
       '<strong>Votre diagnostic ESG est prêt à poursuivre.</strong>' +
-      '<p>Toutes les informations issues de l’import ont été validées.</p>';
+      '<p>Toutes les informations issues de l’import ont été traitées.</p>';
 
   }
 
@@ -4576,7 +4576,7 @@ function mettreAJourExperienceImportESG_() {
                 'type="button" ' +
                 'id="esgImportToggleFoundButton" ' +
                 'class="button button-secondary">' +
-                'Examiner les réponses validées automatiquement' +
+                'Examiner les réponses préremplies' +
               '</button>'
             )
 
