@@ -140,15 +140,13 @@ function analyserFichierESGImporte(payload) {
 
     /*
      * ----------------------------------------------------------
-     * 5. APPEL HUMBLEOS
+     * 5. AI GATEWAY
      * ----------------------------------------------------------
      *
-     * À partir de maintenant Apps Script transmet également :
-     *
-     * documentMode
-     *
-     * Le Worker sera adapté à l'étape suivante pour utiliser
-     * cette information.
+     * OpenAI est le provider principal.
+     * HumbleOS n'est appelé qu'en fallback.
+     * Le contrat de sortie reste identique pour la suite
+     * déterministe du pipeline.
      */
     var aiExtraction =
       extraireChampsESGAvecAIGateway_(
@@ -194,32 +192,113 @@ function analyserFichierESGImporte(payload) {
      * Le fichier sert au préremplissage ET pourra devenir
      * une source de preuve canonique.
      */
-    var sourceDocumentId =
-      "SOURCE-" +
-      Utilities.getUuid();
+    var sourcePersistence;
+
+    try {
+      sourcePersistence =
+        persisterDocumentSourceESGV1_(
+          blob,
+          {
+            originalName:
+              payload.fileName ||
+              "Document ESG",
+
+            mimeType:
+              payload.mimeType ||
+              blob.getContentType() ||
+              ""
+          }
+        );
+
+    } catch (
+      persistenceError
+    ) {
+      console.error(
+        "Persistance source ESG impossible : " +
+        (
+          persistenceError &&
+          persistenceError.message
+            ? persistenceError.message
+            : persistenceError
+        )
+      );
+
+      sourcePersistence = {
+        sourceDocumentId:
+          "EPHEMERAL-" +
+          Utilities.getUuid(),
+
+        originalName:
+          String(
+            payload.fileName ||
+            "Document ESG"
+          ),
+
+        mimeType:
+          String(
+            payload.mimeType ||
+            blob.getContentType() ||
+            ""
+          ),
+
+        sizeBytes:
+          Number(
+            payload.fileSize ||
+            blob.getBytes().length ||
+            0
+          ) || null,
+
+        sha256:
+          "",
+
+        persisted:
+          false,
+
+        reused:
+          false,
+
+        persistedAt:
+          null
+      };
+    }
 
 
     resultat.sourceDocument = {
       sourceDocumentId:
-        sourceDocumentId,
+        sourcePersistence
+          .sourceDocumentId,
 
       name:
-        String(
-          payload.fileName ||
-          "Document ESG"
-        ),
+        sourcePersistence
+          .originalName,
 
       mimeType:
-        String(
-          payload.mimeType ||
-          ""
-        ),
+        sourcePersistence
+          .mimeType,
 
       sizeBytes:
-        Number(
-          payload.fileSize ||
-          0
-        ) || null,
+        sourcePersistence
+          .sizeBytes,
+
+      sha256:
+        sourcePersistence
+          .sha256 ||
+        "",
+
+      persisted:
+        sourcePersistence
+          .persisted ===
+        true,
+
+      reused:
+        sourcePersistence
+          .reused ===
+        true,
+
+      persistedAt:
+        sourcePersistence
+          .persistedAt ||
+        null,
 
       extractionMethod:
         extraction.method ||
@@ -1243,6 +1322,15 @@ function construireChampImportESG_(
     ).trim();
 
 
+  var evidenceMatchedSource =
+    evidence
+      ? preuvePresenteDansSourceESG_(
+          evidence,
+          sourceText
+        )
+      : false;
+
+
   /*
    * ==========================================================
    * PROTECTION CONTRE LES FAUX ZÉROS TECHNIQUES
@@ -1267,6 +1355,8 @@ function construireChampImportESG_(
       canonicalValue: "",
       confidence: 0,
       evidence: "",
+      evidenceMatchedSource:
+        false,
       status:
         ESG_IMPORT_STATUS.MISSING
     };
@@ -1300,10 +1390,7 @@ function construireChampImportESG_(
     ) &&
     evidence &&
     confidence > 0 &&
-    preuvePresenteDansSourceESG_(
-      evidence,
-      sourceText
-    )
+    evidenceMatchedSource
   ) {
     return {
       value: "",
@@ -1312,6 +1399,8 @@ function construireChampImportESG_(
         confidence,
       evidence:
         evidence,
+      evidenceMatchedSource:
+        evidenceMatchedSource,
       status:
         ESG_IMPORT_STATUS.TO_CONFIRM
     };
@@ -1333,6 +1422,8 @@ function construireChampImportESG_(
       canonicalValue: "",
       confidence: 0,
       evidence: "",
+      evidenceMatchedSource:
+        false,
       status:
         ESG_IMPORT_STATUS.MISSING
     };
@@ -1349,10 +1440,7 @@ function construireChampImportESG_(
    */
   if (
     !evidence ||
-    !preuvePresenteDansSourceESG_(
-      evidence,
-      sourceText
-    )
+    !evidenceMatchedSource
   ) {
     return {
       value:
@@ -1366,6 +1454,9 @@ function construireChampImportESG_(
 
       evidence:
         evidence,
+
+      evidenceMatchedSource:
+        evidenceMatchedSource,
 
       status:
         ESG_IMPORT_STATUS.TO_CONFIRM
@@ -1421,6 +1512,9 @@ function construireChampImportESG_(
       evidence:
         evidence,
 
+      evidenceMatchedSource:
+        evidenceMatchedSource,
+
       status:
         ESG_IMPORT_STATUS.TO_CONFIRM
     };
@@ -1457,6 +1551,9 @@ function construireChampImportESG_(
 
     evidence:
       evidence,
+
+    evidenceMatchedSource:
+      evidenceMatchedSource,
 
     status:
       status
