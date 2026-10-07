@@ -71,6 +71,24 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "EVIDENCE_REPOSITORY_HASH",
+      run:
+        TEST_ESG_EVIDENCE_REPOSITORY_HASH_LOCAL
+    },
+    {
+      name:
+        "EVIDENCE_ENGINE_RULES",
+      run:
+        TEST_ESG_EVIDENCE_ENGINE_RULES_LOCAL
+    },
+    {
+      name:
+        "DATA_QUALITY_ENGINE",
+      run:
+        TEST_ESG_DATA_QUALITY_ENGINE_V1_LOCAL
+    },
+    {
+      name:
         "IMPORT_SCHEMA",
       run:
         TEST_ESG_IMPORT_SCHEMA_LOCAL
