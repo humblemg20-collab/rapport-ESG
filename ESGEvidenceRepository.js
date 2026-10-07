@@ -311,6 +311,110 @@ function resoudreDocumentSourceESGV1_(
 }
 
 
+/**
+ * Résout plusieurs sourceDocumentId en un seul parcours Drive.
+ * Évite N scans du dossier lorsqu'un document soutient
+ * plusieurs réponses ESG.
+ */
+function resoudreDocumentsSourcesESGV1_(
+  sourceDocumentIds
+) {
+  var wanted = {};
+  var result = {};
+
+  (sourceDocumentIds || [])
+    .forEach(
+      function(id) {
+        id =
+          String(
+            id || ""
+          ).trim();
+
+        if (id) {
+          wanted[id] =
+            true;
+        }
+      }
+    );
+
+  var ids =
+    Object.keys(
+      wanted
+    );
+
+  if (!ids.length) {
+    return result;
+  }
+
+  var folder;
+
+  try {
+    folder =
+      obtenirOuCreerDossierSourcesESGV1_();
+  } catch (_) {
+    return result;
+  }
+
+  var files =
+    folder.getFiles();
+
+  while (
+    files.hasNext() &&
+    Object.keys(
+      result
+    ).length <
+      ids.length
+  ) {
+    var file =
+      files.next();
+
+    var name =
+      String(
+        file.getName() ||
+        ""
+      );
+
+    for (
+      var i = 0;
+      i < ids.length;
+      i++
+    ) {
+      var id =
+        ids[i];
+
+      if (
+        !result[id] &&
+        name.indexOf(
+          id
+        ) === 0
+      ) {
+        result[id] = {
+          sourceDocumentId:
+            id,
+
+          fileId:
+            file.getId(),
+
+          name:
+            name,
+
+          mimeType:
+            file.getMimeType(),
+
+          sizeBytes:
+            file.getSize(),
+
+          persisted:
+            true
+        };
+      }
+    }
+  }
+
+  return result;
+}
+
+
 function calculerSHA256ESG_(
   bytes
 ) {
