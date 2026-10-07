@@ -1,0 +1,2709 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <base target="_top">
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    AfriGreen24 — Diagnostic ESG
+  </title>
+
+  <?!= include("Styles"); ?>
+
+
+  <style>
+    /* =====================================================
+       AFRIGREEN24 — REPRISE DE DIAGNOSTIC ESG
+       Styles isolés pour ne pas modifier Styles.html
+    ====================================================== */
+
+    .esg-resume-card {
+      margin: 34px 0 10px;
+      padding: 24px;
+      border: 1px solid #DDE8E2;
+      border-radius: 18px;
+      background: #F7FBF9;
+    }
+
+    .esg-resume-card h3 {
+      margin: 0 0 8px;
+      color: #1F2937;
+      font-size: 20px;
+    }
+
+    .esg-resume-card p {
+      margin: 0;
+      color: #5B6470;
+      line-height: 1.6;
+    }
+
+    .esg-resume-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .esg-resume-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: end;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid #DDE8E2;
+    }
+
+    .esg-resume-field label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    .esg-resume-field input {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 1px solid #CBD5E1;
+      border-radius: 10px;
+      background: #FFFFFF;
+      font: inherit;
+    }
+
+    .esg-resume-status,
+    .esg-draft-status {
+      margin-top: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .esg-resume-status.is-success,
+    .esg-draft-status.is-success {
+      color: #166534;
+    }
+
+    .esg-resume-status.is-error,
+    .esg-draft-status.is-error {
+      color: #B91C1C;
+    }
+
+    .esg-draft-tools {
+      margin-top: 24px;
+      padding: 18px;
+      border: 1px solid #DDE8E2;
+      border-radius: 14px;
+      background: #F8FBF9;
+    }
+
+    .esg-draft-tools-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .esg-draft-tools-copy strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #1F2937;
+    }
+
+    .esg-draft-tools-copy span {
+      color: #6B7280;
+      font-size: 13px;
+    }
+
+    .esg-draft-code-panel {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #ECFDF3;
+      border: 1px solid #BBE7C9;
+    }
+
+    .esg-draft-code-panel small {
+      display: block;
+      margin-bottom: 5px;
+      color: #4B5563;
+    }
+
+    .esg-draft-code-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .esg-draft-code-line code {
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: #FFFFFF;
+      border: 1px solid #D1E7D8;
+      color: #166534;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+
+    @media (max-width: 760px) {
+      .esg-resume-form {
+        grid-template-columns: 1fr;
+      }
+
+      .esg-resume-form .button {
+        width: 100%;
+      }
+
+      .esg-draft-tools-row .button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div
+    id="loadingScreen"
+    class="loading-screen"
+  >
+    <div class="loader"></div>
+
+    <p>
+      Chargement du diagnostic AfriGreen24…
+    </p>
+  </div>
+
+
+  <div
+    id="app"
+    class="app hidden"
+  >
+
+    <!-- ================================================= -->
+    <!-- ACCUEIL — CHOIX DU PARCOURS ESG -->
+    <!-- ================================================= -->
+
+    <section
+      id="esgLandingPage"
+      class="esg-landing-page"
+    >
+
+      <div class="esg-landing-brand">
+
+        <img
+          src="https://img-thumb.mailinblue.com/10710656/images/content_library/original/6a681091b6fce5ac97246779.jpeg"
+          alt="Logo AfriGreen24"
+          class="esg-landing-logo"
+        >
+
+        <div class="esg-landing-brand-copy">
+          <strong>AfriGreen24</strong>
+          <span>L’Afrique verte en action</span>
+        </div>
+
+      </div>
+
+
+      <div class="esg-landing-hero">
+
+        <span class="esg-landing-kicker">
+          ESG Intelligence Score &amp; Report
+        </span>
+
+        <h1>
+          Transformez votre démarche ESG
+          en un rapport clair et exploitable
+        </h1>
+
+        <p>
+          Structurez vos pratiques environnementales,
+          sociales et de gouvernance, identifiez vos priorités
+          et préparez un rapport ESG personnalisé pour mieux
+          présenter votre organisation à vos partenaires,
+          investisseurs et financeurs.
+        </p>
+
+      </div>
+
+
+      <section
+        class="esg-importance-section"
+        aria-labelledby="esgImportanceTitle"
+      >
+
+        <div class="esg-importance-heading">
+
+          <span class="eyebrow">
+            Pourquoi ce rapport ?
+          </span>
+
+          <h2 id="esgImportanceTitle">
+            Un diagnostic utile pour comprendre,
+            piloter et présenter votre démarche ESG
+          </h2>
+
+        </div>
+
+
+        <div class="esg-importance-grid">
+
+          <article class="esg-importance-card">
+            <span class="esg-importance-number">01</span>
+            <h3>Structurer</h3>
+            <p>
+              Rassemblez vos pratiques ESG dans un cadre cohérent
+              et compréhensible.
+            </p>
+          </article>
+
+          <article class="esg-importance-card">
+            <span class="esg-importance-number">02</span>
+            <h3>Prioriser</h3>
+            <p>
+              Identifiez vos points forts, vos écarts
+              et les actions qui méritent votre attention.
+            </p>
+          </article>
+
+          <article class="esg-importance-card">
+            <span class="esg-importance-number">03</span>
+            <h3>Présenter</h3>
+            <p>
+              Disposez d’un rapport plus lisible pour dialoguer
+              avec vos partenaires, investisseurs et financeurs.
+            </p>
+          </article>
+
+        </div>
+
+      </section>
+
+
+      <div class="esg-path-intro">
+
+        <span class="eyebrow">
+          Choisissez votre parcours
+        </span>
+
+        <h2>
+          Commencez de zéro ou appuyez-vous
+          sur vos documents existants
+        </h2>
+
+      </div>
+
+
+      <div class="esg-landing-options">
+
+        <article class="esg-path-card">
+
+          <div class="esg-path-card-content">
+
+            <span class="esg-path-tag">
+              Parcours complet
+            </span>
+
+            <h2>
+              Générer mon rapport ESG
+            </h2>
+
+            <p class="esg-path-lead">
+              Vous partez de zéro ?
+            </p>
+
+            <p>
+              Répondez au diagnostic complet afin d’évaluer
+              votre maturité ESG et de générer votre rapport
+              personnalisé.
+            </p>
+
+            <ul class="esg-path-points">
+              <li>Profil de votre organisation</li>
+              <li>50 questions ESG structurées</li>
+              <li>Transparence et outils numériques</li>
+              <li>Rapport final personnalisé</li>
+            </ul>
+
+          </div>
+
+          <div class="esg-path-actions">
+
+            <button
+              id="esgManualStartButton"
+              type="button"
+              class="button button-primary esg-path-primary-button"
+            >
+              Générer mon rapport ESG
+            </button>
+
+            <span class="esg-path-note">
+              Parcours complet, étape par étape.
+            </span>
+
+          </div>
+
+        </article>
+
+
+        <article class="esg-path-card esg-path-card-import">
+
+          <div class="esg-path-card-content">
+
+            <span class="esg-path-tag">
+              Import intelligent
+            </span>
+
+            <h2>
+              Vous avez déjà un document
+              sur lequel vous appuyer ?
+            </h2>
+
+            <p class="esg-path-lead">
+              Gagnez du temps avec ce que vous avez déjà.
+            </p>
+
+            <p>
+              Chargez un rapport, une politique, une procédure
+              ou un autre document existant. AfriGreen24 analyse
+              son contenu et préremplit les informations
+              suffisamment établies.
+            </p>
+
+            <div class="esg-import-benefit">
+              AfriGreen24 distingue ce qui est déjà validé,
+              ce qui est présent mais demande une vérification,
+              et ce qui manque réellement. Les informations
+              détectées sont ensuite présentées en validation
+              rapide afin d’éviter de refaire le questionnaire.
+            </div>
+
+          </div>
+
+
+          <div
+            id="esgImportSection"
+            class="esg-import-section"
+          >
+
+            <div
+              id="esgImportDropzone"
+              class="esg-import-dropzone"
+            >
+
+              <input
+                id="esgImportFile"
+                type="file"
+                accept=".pdf,.doc,.docx,.txt"
+                multiple
+                class="hidden"
+              >
+
+              <button
+                id="esgImportButton"
+                type="button"
+                class="button button-primary esg-path-primary-button"
+              >
+                Charger mon document
+              </button>
+
+              <p>
+                PDF, Word ou texte · Plusieurs documents possibles.
+                L’analyse démarre après la sélection.
+              </p>
+
+            </div>
+
+
+            <div
+              id="esgImportFilesList"
+              class="esg-import-files-list hidden"
+            ></div>
+
+
+            <div
+              id="esgImportProgress"
+              class="esg-import-progress hidden"
+              aria-live="polite"
+            ></div>
+
+
+            <div
+              id="esgImportError"
+              class="esg-import-error hidden"
+              role="alert"
+            ></div>
+
+
+            <div
+              id="esgImportSummary"
+              class="esg-import-summary hidden"
+            >
+
+              <div
+                id="esgImportSummaryStats"
+              ></div>
+
+            </div>
+
+          </div>
+
+        </article>
+
+      </div>
+
+
+
+
+      <!-- ================================================= -->
+      <!-- REPRISE D'UN DIAGNOSTIC EXISTANT -->
+      <!-- ================================================= -->
+
+      <section
+        id="esgResumeCard"
+        class="esg-resume-card"
+        aria-labelledby="esgResumeTitle"
+      >
+
+        <span class="eyebrow">
+          Déjà commencé ?
+        </span>
+
+        <h3 id="esgResumeTitle">
+          Reprendre un diagnostic sauvegardé
+        </h3>
+
+        <p>
+          Utilisez l’adresse email professionnelle et le code
+          de reprise reçus lors de votre sauvegarde.
+        </p>
+
+        <div class="esg-resume-actions">
+          <button
+            id="esgResumeOpenButton"
+            type="button"
+            class="button button-secondary"
+          >
+            J’ai déjà un code de reprise
+          </button>
+        </div>
+
+        <div
+          id="esgResumeForm"
+          class="esg-resume-form hidden"
+        >
+
+          <div class="esg-resume-field">
+            <label for="esgResumeEmail">
+              Email professionnel
+            </label>
+
+            <input
+              id="esgResumeEmail"
+              type="email"
+              autocomplete="email"
+              placeholder="vous@organisation.org"
+            >
+          </div>
+
+          <div class="esg-resume-field">
+            <label for="esgResumeCode">
+              Code de reprise
+            </label>
+
+            <input
+              id="esgResumeCode"
+              type="text"
+              autocomplete="off"
+              maxlength="20"
+              placeholder="ESG-XXXX-XXXX"
+            >
+          </div>
+
+          <button
+            id="esgResumeButton"
+            type="button"
+            class="button button-primary"
+          >
+            Reprendre mon diagnostic
+          </button>
+
+        </div>
+
+        <div
+          id="esgResumeStatus"
+          class="esg-resume-status"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+      </section>
+
+      <p class="esg-landing-disclaimer">
+        Le diagnostic est une aide à la structuration.
+        Il ne constitue ni un audit, ni une certification ESG,
+        ni une garantie de financement.
+      </p>
+
+    </section>
+
+
+    <div
+      id="diagnosticWorkspace"
+      class="diagnostic-workspace hidden"
+    >
+    <header class="main-header">
+
+      <div>
+
+        <div class="brand">
+
+          <img
+            src="https://img-thumb.mailinblue.com/10710656/images/content_library/original/6a681091b6fce5ac97246779.jpeg"
+            alt="Logo AfriGreen24"
+            class="brand-logo"
+          >
+
+        </div>
+
+
+        <h1>
+          ESG Intelligence Score & Report
+        </h1>
+
+
+        <p>
+          Évaluez votre maturité ESG,
+          identifiez vos priorités
+          et générez votre rapport personnalisé.
+        </p>
+
+      </div>
+
+
+      <div class="version-badge">
+        Version 2.0
+      </div>
+
+    </header>
+
+
+
+    <section class="progress-wrapper">
+
+      <div class="steps">
+
+        <button
+          class="step-indicator active"
+          data-step="0"
+          type="button"
+        >
+          1. Profil
+        </button>
+
+
+        <button
+          class="step-indicator"
+          data-step="1"
+          type="button"
+        >
+          2. ESG
+        </button>
+
+
+        <button
+          class="step-indicator"
+          data-step="2"
+          type="button"
+        >
+          3. Numérique
+        </button>
+
+
+        <button
+          class="step-indicator"
+          data-step="3"
+          type="button"
+        >
+          4. Validation
+        </button>
+
+      </div>
+
+
+      <div class="progress-track">
+
+        <div
+          id="progressBar"
+          class="progress-bar"
+        ></div>
+
+      </div>
+
+    </section>
+
+
+
+    <main class="main-card">
+
+
+      <!-- ================================================= -->
+      <!-- ÉTAPE 1 — PROFIL -->
+      <!-- ================================================= -->
+
+      <section
+        id="step-0"
+        class="form-step active"
+      >
+
+        <div class="section-heading">
+
+          <span class="eyebrow">
+            Étape 1
+          </span>
+
+
+          <h2>
+            Profil de l’organisation
+          </h2>
+
+
+          <p>
+            Ces informations permettront
+            de personnaliser votre diagnostic
+            et votre rapport.
+          </p>
+
+        </div>
+
+
+        <div
+          id="profileFields"
+          class="form-grid"
+        ></div>
+
+
+
+
+        <!-- =================================================
+             IDENTITÉ VISUELLE DU RAPPORT
+        ================================================== -->
+
+        <div
+          class="branding-report-section"
+          style="
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #E5E7EB;
+          "
+        >
+
+          <h3
+            style="
+              margin: 0 0 6px;
+              color: #1F2937;
+              font-size: 17px;
+            "
+          >
+            Identité visuelle du rapport
+          </h3>
+
+
+          <p
+            style="
+              margin: 0 0 18px;
+              color: #6B7280;
+              font-size: 13px;
+            "
+          >
+            Ajoutez votre logo et, si vous le souhaitez,
+            votre slogan ou devise. Ces éléments serviront
+            uniquement à personnaliser votre rapport ESG.
+          </p>
+
+
+          <?!= include("LogoUpload"); ?>
+
+
+          <div
+            class="field"
+            style="margin-top: 18px;"
+          >
+
+            <label
+              for="organizationSlogan"
+              style="
+                display: block;
+                margin-bottom: 7px;
+                font-weight: 700;
+              "
+            >
+              Slogan / devise
+            </label>
+
+
+            <input
+              id="organizationSlogan"
+              name="organizationSlogan"
+              type="text"
+              maxlength="160"
+              placeholder="Ex. Transformer les ambitions en résultats durables"
+              autocomplete="off"
+              style="
+                width: 100%;
+                padding: 11px 12px;
+                border: 1px solid #D1D5DB;
+                border-radius: 10px;
+                font: inherit;
+              "
+            >
+
+
+            <small
+              style="
+                display: block;
+                margin-top: 6px;
+                color: #6B7280;
+              "
+            >
+              Optionnel. S’il est renseigné,
+              il pourra apparaître dans le pied de page
+              du rapport ESG.
+            </small>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- ================================================= -->
+      <!-- ÉTAPE 2 — ESG -->
+      <!-- ================================================= -->
+
+      <section
+        id="step-1"
+        class="form-step"
+      >
+
+        <div class="section-heading">
+
+          <span class="eyebrow">
+            Étape 2
+          </span>
+
+
+          <h2>
+            Questionnaire ESG
+          </h2>
+
+
+          <p>
+            Évaluez chaque pratique
+            sur une échelle de maturité
+            et précisez le niveau de preuve disponible.
+          </p>
+
+        </div>
+
+
+        <div class="legend">
+
+          <strong>
+            Échelle :
+          </strong>
+
+          0 Inexistant ·
+          1 Informel ·
+          2 Initié ·
+          3 Défini ·
+          4 Mesuré ·
+          5 Mature
+
+        </div>
+
+
+        <div id="esgQuestions"></div>
+
+      </section>
+
+
+
+      <!-- ================================================= -->
+      <!-- ÉTAPE 3 — NUMÉRIQUE -->
+      <!-- ================================================= -->
+
+      <section
+        id="step-2"
+        class="form-step"
+      >
+
+        <div class="section-heading">
+
+          <span class="eyebrow">
+            Étape 3
+          </span>
+
+
+          <h2>
+            Transparence et outils numériques
+          </h2>
+
+
+          <p>
+            Cette partie évalue
+            la visibilité de vos engagements
+            et votre capacité à suivre les données ESG.
+          </p>
+
+        </div>
+
+
+        <div
+          id="digitalQuestions"
+          class="digital-list"
+        ></div>
+
+      </section>
+
+
+
+      <!-- ================================================= -->
+      <!-- ÉTAPE 4 — VALIDATION -->
+      <!-- ================================================= -->
+
+      <section
+        id="step-3"
+        class="form-step"
+      >
+
+        <div class="section-heading">
+
+          <span class="eyebrow">
+            Étape 4
+          </span>
+
+
+          <h2>
+            Validation et consentements
+          </h2>
+
+
+          <p>
+            Vérifiez vos informations
+            avant de générer le rapport.
+          </p>
+
+        </div>
+
+
+        <div
+          id="reviewBox"
+          class="review-box"
+        ></div>
+
+
+
+        <div class="consent-list">
+
+
+          <label
+            class="consent-card required"
+          >
+
+            <input
+              id="consentDiagnostic"
+              type="checkbox"
+            >
+
+
+            <span>
+
+              <strong>
+                Consentement obligatoire
+              </strong>
+
+              J’accepte que mes réponses
+              soient traitées afin de calculer
+              mon diagnostic, générer mon rapport
+              et conserver les résultats
+              dans la base AfriGreen24.
+
+            </span>
+
+          </label>
+
+
+
+          <label
+            class="consent-card required"
+          >
+
+            <input
+              id="consentPrivacy"
+              type="checkbox"
+            >
+
+
+            <span>
+
+              <strong>
+                Notice de confidentialité
+              </strong>
+
+              Je confirme avoir compris
+              que ce diagnostic repose
+              sur les informations déclarées
+              et ne constitue ni un audit,
+              ni une certification ESG.
+
+            </span>
+
+          </label>
+
+
+
+          <label
+            class="consent-card"
+          >
+
+            <input
+              id="consentAfriGreen"
+              type="checkbox"
+            >
+
+
+            <span>
+
+              <strong>
+                Informations AfriGreen24
+              </strong>
+
+              J’accepte de recevoir séparément
+              des informations sur le Guide,
+              les opportunités
+              et les accompagnements proposés
+              par AfriGreen24.
+
+            </span>
+
+          </label>
+
+
+
+          <label
+            class="consent-card"
+          >
+
+            <input
+              id="consentMBDigital"
+              type="checkbox"
+            >
+
+
+            <span>
+
+              <strong>
+                Solutions numériques MB Digital
+              </strong>
+
+              J’accepte d’être contacté séparément
+              au sujet de solutions numériques
+              pouvant correspondre aux besoins
+              déclarés dans ce questionnaire.
+
+            </span>
+
+          </label>
+
+
+        </div>
+
+      </section>
+
+
+
+      <!-- ================================================= -->
+      <!-- RÉSULTAT -->
+      <!-- ================================================= -->
+
+      <section
+        id="step-4"
+        class="form-step"
+      >
+
+        <div id="resultContainer"></div>
+
+      </section>
+
+
+
+      <div
+        id="formError"
+        class="error-message hidden"
+      ></div>
+
+
+
+
+
+      <!-- ================================================= -->
+      <!-- SAUVEGARDE / CODE DE REPRISE -->
+      <!-- ================================================= -->
+
+      <div
+        id="esgDraftTools"
+        class="esg-draft-tools"
+      >
+
+        <div class="esg-draft-tools-row">
+
+          <div class="esg-draft-tools-copy">
+            <strong>
+              Vous souhaitez continuer plus tard ?
+            </strong>
+
+            <span>
+              Sauvegardez votre progression et recevez un code
+              de reprise valable 30 jours.
+            </span>
+          </div>
+
+          <button
+            id="esgSaveDraftButton"
+            type="button"
+            class="button button-secondary"
+          >
+            Sauvegarder et reprendre plus tard
+          </button>
+
+        </div>
+
+        <div
+          id="esgDraftSaveStatus"
+          class="esg-draft-status"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+        <div
+          id="esgDraftCodePanel"
+          class="esg-draft-code-panel hidden"
+        >
+
+          <small>
+            Votre code de reprise — conservez-le de manière confidentielle.
+          </small>
+
+          <div class="esg-draft-code-line">
+            <code id="esgDraftCodeValue"></code>
+
+            <button
+              id="esgCopyDraftCodeButton"
+              type="button"
+              class="button button-secondary"
+            >
+              Copier le code
+            </button>
+          </div>
+
+          <small id="esgDraftExpiryText"></small>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="navigation"
+        class="navigation"
+      >
+
+        <button
+          id="previousButton"
+          class="button button-secondary hidden"
+          type="button"
+        >
+          Retour
+        </button>
+
+
+        <button
+          id="nextButton"
+          class="button button-primary"
+          type="button"
+        >
+          Continuer
+        </button>
+
+
+        <button
+          id="submitButton"
+          class="button button-primary hidden"
+          type="button"
+        >
+          Générer mon rapport
+        </button>
+
+      </div>
+
+
+    </main>
+
+    </div>
+
+
+
+    <footer>
+
+      <strong>
+        AfriGreen24
+      </strong>
+
+
+      <span>
+        Diagnostic indicatif —
+        aucune certification
+        ou garantie de financement.
+      </span>
+
+    </footer>
+
+
+  </div>
+
+
+
+  <div
+    id="submissionOverlay"
+    class="submission-overlay hidden"
+  >
+
+    <div class="submission-card">
+
+      <div class="loader"></div>
+
+
+      <h3>
+        Génération de votre rapport
+      </h3>
+
+
+      <p>
+        Analyse des réponses,
+        création du document
+        et génération du PDF…
+      </p>
+
+    </div>
+
+  </div>
+
+
+
+  <?!= include("Script"); ?>
+
+
+  <script>
+  (function () {
+    "use strict";
+
+    var ESG_DRAFT_STORAGE_KEY =
+      "afrigreen24_esg_draft_credentials";
+
+    var draftSession = null;
+    var autosaveTimer = null;
+    var autosaveRunning = false;
+    var autosavePending = false;
+
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      function () {
+
+        initialiserInterfaceRepriseESG_();
+        preRemplirRepriseLocaleESG_();
+        initialiserAutosaveESG_();
+        brancherFinalisationBrouillonESG_();
+
+      }
+    );
+
+
+    function initialiserInterfaceRepriseESG_() {
+
+      var openButton =
+        document.getElementById(
+          "esgResumeOpenButton"
+        );
+
+      var resumeButton =
+        document.getElementById(
+          "esgResumeButton"
+        );
+
+      var saveButton =
+        document.getElementById(
+          "esgSaveDraftButton"
+        );
+
+      var copyButton =
+        document.getElementById(
+          "esgCopyDraftCodeButton"
+        );
+
+
+      if (openButton) {
+        openButton.addEventListener(
+          "click",
+          function () {
+
+            var form =
+              document.getElementById(
+                "esgResumeForm"
+              );
+
+            if (!form) {
+              return;
+            }
+
+            form.classList.toggle(
+              "hidden"
+            );
+
+            if (
+              !form.classList.contains(
+                "hidden"
+              )
+            ) {
+              var email =
+                document.getElementById(
+                  "esgResumeEmail"
+                );
+
+              if (email) {
+                email.focus();
+              }
+            }
+
+          }
+        );
+      }
+
+
+      if (resumeButton) {
+        resumeButton.addEventListener(
+          "click",
+          reprendreDiagnosticESG_
+        );
+      }
+
+
+      if (saveButton) {
+        saveButton.addEventListener(
+          "click",
+          sauvegarderOuCreerBrouillonESG_
+        );
+      }
+
+
+      if (copyButton) {
+        copyButton.addEventListener(
+          "click",
+          copierCodeRepriseESG_
+        );
+      }
+
+    }
+
+
+    function preRemplirRepriseLocaleESG_() {
+
+      var saved =
+        lireIdentifiantsBrouillonLocalESG_();
+
+      if (!saved) {
+        return;
+      }
+
+      var email =
+        document.getElementById(
+          "esgResumeEmail"
+        );
+
+      var code =
+        document.getElementById(
+          "esgResumeCode"
+        );
+
+      if (email && saved.email) {
+        email.value = saved.email;
+      }
+
+      if (code && saved.code) {
+        code.value = saved.code;
+      }
+
+    }
+
+
+    function sauvegarderOuCreerBrouillonESG_() {
+
+      effacerStatutDraftESG_();
+
+      if (
+        !window.appState ||
+        !appState.data
+      ) {
+        afficherStatutDraftESG_(
+          "Le diagnostic est encore en cours de chargement.",
+          "error"
+        );
+        return;
+      }
+
+
+      var etat =
+        construireEtatBrouillonESG_();
+
+      var email =
+        String(
+          etat.profil.professionalEmail || ""
+        ).trim().toLowerCase();
+
+
+      if (
+        !email ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+          email
+        )
+      ) {
+
+        afficherStatutDraftESG_(
+          "Renseignez d’abord votre email professionnel dans l’étape Profil.",
+          "error"
+        );
+
+        if (
+          typeof window.afficherEspaceDiagnosticESG_ ===
+          "function"
+        ) {
+          afficherEspaceDiagnosticESG_(0);
+        }
+
+        var emailField =
+          document.getElementById(
+            "profile-professionalEmail"
+          );
+
+        if (emailField) {
+          emailField.focus();
+        }
+
+        return;
+      }
+
+
+      if (draftSession) {
+        sauvegarderBrouillonExistantESG_(
+          etat,
+          true
+        );
+        return;
+      }
+
+
+      var saveButton =
+        document.getElementById(
+          "esgSaveDraftButton"
+        );
+
+      if (saveButton) {
+        saveButton.disabled = true;
+        saveButton.textContent =
+          "Création du code…";
+      }
+
+
+      afficherStatutDraftESG_(
+        "Sauvegarde de votre progression…",
+        ""
+      );
+
+
+      google.script.run
+        .withSuccessHandler(
+          function (resultat) {
+
+            if (
+              !resultat ||
+              resultat.success !== true
+            ) {
+              gererErreurDraftESG_({
+                message:
+                  "Impossible de créer le code de reprise."
+              });
+              return;
+            }
+
+
+            draftSession = {
+              draftId:
+                resultat.draftId,
+              email:
+                resultat.email,
+              code:
+                resultat.code
+            };
+
+
+            enregistrerIdentifiantsBrouillonLocalESG_(
+              draftSession
+            );
+
+
+            afficherCodeRepriseESG_(
+              resultat.code,
+              resultat.expiresAt
+            );
+
+
+            afficherStatutDraftESG_(
+              resultat.emailSent === false
+                ? "Progression sauvegardée. Conservez le code affiché : l’email n’a pas pu être envoyé."
+                : "Progression sauvegardée. Le code a également été envoyé par email.",
+              "success"
+            );
+
+
+            restaurerBoutonSauvegardeESG_();
+
+          }
+        )
+        .withFailureHandler(
+          gererErreurDraftESG_
+        )
+        .creerCodeRepriseESG({
+          email:
+            email,
+
+          organization:
+            etat.profil.organizationName || "",
+
+          state:
+            etat,
+
+          currentStep:
+            normaliserEtapeDraftESG_(
+              appState.currentStep
+            ),
+
+          progress:
+            calculerProgressionBrouillonESG_(
+              etat
+            )
+        });
+
+    }
+
+
+    function sauvegarderBrouillonExistantESG_(
+      etat,
+      manuel
+    ) {
+
+      if (!draftSession) {
+        return;
+      }
+
+
+      if (autosaveRunning) {
+        autosavePending = true;
+        return;
+      }
+
+
+      autosaveRunning = true;
+
+
+      if (manuel) {
+        var saveButton =
+          document.getElementById(
+            "esgSaveDraftButton"
+          );
+
+        if (saveButton) {
+          saveButton.disabled = true;
+          saveButton.textContent =
+            "Sauvegarde…";
+        }
+
+        afficherStatutDraftESG_(
+          "Sauvegarde de votre progression…",
+          ""
+        );
+      }
+
+
+      google.script.run
+        .withSuccessHandler(
+          function (resultat) {
+
+            autosaveRunning = false;
+
+            if (manuel) {
+              afficherStatutDraftESG_(
+                "Progression sauvegardée.",
+                "success"
+              );
+              restaurerBoutonSauvegardeESG_();
+            } else if (
+              resultat &&
+              resultat.savedAt
+            ) {
+              afficherStatutDraftESG_(
+                "✓ Progression sauvegardée automatiquement.",
+                "success"
+              );
+            }
+
+
+            if (autosavePending) {
+              autosavePending = false;
+              programmerAutosaveESG_(300);
+            }
+
+          }
+        )
+        .withFailureHandler(
+          function (erreur) {
+
+            autosaveRunning = false;
+
+            if (manuel) {
+              gererErreurDraftESG_(
+                erreur
+              );
+            } else {
+              afficherStatutDraftESG_(
+                "Sauvegarde automatique momentanément indisponible.",
+                "error"
+              );
+            }
+
+            restaurerBoutonSauvegardeESG_();
+
+          }
+        )
+        .sauvegarderBrouillonESG({
+          draftId:
+            draftSession.draftId,
+
+          email:
+            draftSession.email,
+
+          code:
+            draftSession.code,
+
+          state:
+            etat,
+
+          currentStep:
+            normaliserEtapeDraftESG_(
+              appState.currentStep
+            ),
+
+          progress:
+            calculerProgressionBrouillonESG_(
+              etat
+            )
+        });
+
+    }
+
+
+    function reprendreDiagnosticESG_() {
+
+      var emailField =
+        document.getElementById(
+          "esgResumeEmail"
+        );
+
+      var codeField =
+        document.getElementById(
+          "esgResumeCode"
+        );
+
+      var button =
+        document.getElementById(
+          "esgResumeButton"
+        );
+
+
+      var email =
+        String(
+          emailField ? emailField.value : ""
+        ).trim().toLowerCase();
+
+      var code =
+        String(
+          codeField ? codeField.value : ""
+        ).trim().toUpperCase();
+
+
+      effacerStatutRepriseESG_();
+
+
+      if (!email || !code) {
+        afficherStatutRepriseESG_(
+          "Renseignez votre email et votre code de reprise.",
+          "error"
+        );
+        return;
+      }
+
+
+      if (button) {
+        button.disabled = true;
+        button.textContent =
+          "Récupération…";
+      }
+
+
+      afficherStatutRepriseESG_(
+        "Récupération de votre progression…",
+        ""
+      );
+
+
+      google.script.run
+        .withSuccessHandler(
+          function (resultat) {
+
+            if (
+              !resultat ||
+              resultat.success !== true
+            ) {
+              afficherStatutRepriseESG_(
+                "Impossible de reprendre ce diagnostic.",
+                "error"
+              );
+              restaurerBoutonRepriseESG_();
+              return;
+            }
+
+
+            draftSession = {
+              draftId:
+                resultat.draftId,
+              email:
+                email,
+              code:
+                code
+            };
+
+
+            enregistrerIdentifiantsBrouillonLocalESG_(
+              draftSession
+            );
+
+
+            restaurerEtatBrouillonESG_(
+              resultat.state || {}
+            );
+
+
+            afficherCodeRepriseESG_(
+              code,
+              resultat.expiresAt
+            );
+
+
+            if (
+              typeof window.afficherEspaceDiagnosticESG_ ===
+              "function"
+            ) {
+              afficherEspaceDiagnosticESG_(
+                normaliserEtapeDraftESG_(
+                  resultat.currentStep
+                )
+              );
+            } else {
+              appState.currentStep =
+                normaliserEtapeDraftESG_(
+                  resultat.currentStep
+                );
+
+              if (
+                typeof window.afficherEtape ===
+                "function"
+              ) {
+                afficherEtape();
+              }
+            }
+
+
+            if (
+              normaliserEtapeDraftESG_(
+                resultat.currentStep
+              ) === 3 &&
+              typeof window.construireRevision ===
+                "function"
+            ) {
+              construireRevision();
+            }
+
+
+            afficherStatutDraftESG_(
+              "Diagnostic restauré. Vos prochaines modifications seront sauvegardées automatiquement.",
+              "success"
+            );
+
+
+            afficherStatutRepriseESG_(
+              "Diagnostic retrouvé.",
+              "success"
+            );
+
+
+            restaurerBoutonRepriseESG_();
+
+          }
+        )
+        .withFailureHandler(
+          function (erreur) {
+
+            afficherStatutRepriseESG_(
+              erreur && erreur.message
+                ? erreur.message
+                : "Email ou code de reprise incorrect.",
+              "error"
+            );
+
+            restaurerBoutonRepriseESG_();
+
+          }
+        )
+        .reprendreBrouillonESG({
+          email:
+            email,
+          code:
+            code
+        });
+
+    }
+
+
+    function construireEtatBrouillonESG_() {
+
+      var profil =
+        typeof window.collecterProfil ===
+          "function"
+          ? collecterProfil()
+          : {};
+
+      var reponsesESG =
+        typeof window.collecterReponsesESG ===
+          "function"
+          ? collecterReponsesESG()
+          : {};
+
+      var reponsesDigitales =
+        typeof window.collecterReponsesDigitales ===
+          "function"
+          ? collecterReponsesDigitales()
+          : {};
+
+
+      return {
+        profil:
+          profil,
+
+        reponsesESG:
+          reponsesESG,
+
+        reponsesDigitales:
+          reponsesDigitales,
+
+        consentements: {
+          diagnostic:
+            lireCheckboxESG_(
+              "consentDiagnostic"
+            ),
+
+          privacyNoticeAccepted:
+            lireCheckboxESG_(
+              "consentPrivacy"
+            ),
+
+          afriGreen24:
+            lireCheckboxESG_(
+              "consentAfriGreen"
+            ),
+
+          mbDigital:
+            lireCheckboxESG_(
+              "consentMBDigital"
+            )
+        },
+
+        entryMode:
+          appState.entryMode ||
+          "manual"
+      };
+
+    }
+
+
+    function restaurerEtatBrouillonESG_(
+      state
+    ) {
+
+      state = state || {};
+
+      restaurerProfilBrouillonESG_(
+        state.profil || {}
+      );
+
+      restaurerReponsesESGBrouillon_(
+        state.reponsesESG || {}
+      );
+
+      restaurerReponsesDigitalesBrouillon_(
+        state.reponsesDigitales || {}
+      );
+
+      restaurerConsentementsBrouillonESG_(
+        state.consentements || {}
+      );
+
+      if (state.entryMode) {
+        appState.entryMode =
+          state.entryMode;
+      }
+
+    }
+
+
+    function restaurerProfilBrouillonESG_(
+      profil
+    ) {
+
+      var fields =
+        appState &&
+        appState.data &&
+        appState.data.questionnaire
+          ? appState.data.questionnaire.profileFields || []
+          : [];
+
+
+      fields.forEach(
+        function (field) {
+
+          var element =
+            document.getElementById(
+              "profile-" + field.id
+            );
+
+          if (!element) {
+            return;
+          }
+
+
+          var valeur =
+            profil[field.id];
+
+
+          if (
+            field.type ===
+            "multiselect"
+          ) {
+
+            var valeurs =
+              Array.isArray(valeur)
+                ? valeur.map(String)
+                : [];
+
+            Array.from(
+              element.querySelectorAll(
+                'input[type="checkbox"]'
+              )
+            ).forEach(
+              function (input) {
+                input.checked =
+                  valeurs.indexOf(
+                    String(input.value)
+                  ) !== -1;
+              }
+            );
+
+          } else {
+
+            element.value =
+              valeur === null ||
+              valeur === undefined
+                ? ""
+                : String(valeur);
+
+          }
+
+        }
+      );
+
+
+      var slogan =
+        document.getElementById(
+          "organizationSlogan"
+        );
+
+      if (slogan) {
+        slogan.value =
+          profil.organizationSlogan ||
+          (
+            profil.branding &&
+            profil.branding.slogan
+              ? profil.branding.slogan
+              : ""
+          );
+      }
+
+    }
+
+
+    function restaurerReponsesESGBrouillon_(
+      reponses
+    ) {
+
+      Object.keys(
+        reponses || {}
+      ).forEach(
+        function (questionId) {
+
+          var valeur =
+            reponses[questionId];
+
+          var reponse =
+            valeur &&
+            typeof valeur === "object"
+              ? valeur
+              : {
+                  value: valeur
+                };
+
+
+          var select =
+            document.getElementById(
+              "esg-" + questionId
+            );
+
+          var evidence =
+            document.getElementById(
+              "evidence-" + questionId
+            );
+
+          var comment =
+            document.getElementById(
+              "comment-" + questionId
+            );
+
+
+          if (select) {
+            select.value =
+              reponse.value === null ||
+              reponse.value === undefined
+                ? ""
+                : String(reponse.value);
+          }
+
+          if (evidence) {
+            evidence.value =
+              reponse.evidenceLevel ||
+              "NONE";
+          }
+
+          if (comment) {
+            comment.value =
+              reponse.comment ||
+              "";
+          }
+
+        }
+      );
+
+    }
+
+
+    function restaurerReponsesDigitalesBrouillon_(
+      reponses
+    ) {
+
+      Object.keys(
+        reponses || {}
+      ).forEach(
+        function (questionId) {
+
+          var valeur =
+            reponses[questionId];
+
+          var valeurs =
+            Array.isArray(valeur)
+              ? valeur.map(String)
+              : valeur === null ||
+                valeur === undefined ||
+                valeur === ""
+                ? []
+                : [String(valeur)];
+
+
+          Array.from(
+            document.querySelectorAll(
+              'input[name="' +
+              cssEscape(questionId) +
+              '"]'
+            )
+          ).forEach(
+            function (input) {
+              input.checked =
+                valeurs.indexOf(
+                  String(input.value)
+                ) !== -1;
+            }
+          );
+
+        }
+      );
+
+    }
+
+
+    function restaurerConsentementsBrouillonESG_(
+      consentements
+    ) {
+
+      ecrireCheckboxESG_(
+        "consentDiagnostic",
+        consentements.diagnostic === true
+      );
+
+      ecrireCheckboxESG_(
+        "consentPrivacy",
+        consentements.privacyNoticeAccepted === true
+      );
+
+      ecrireCheckboxESG_(
+        "consentAfriGreen",
+        consentements.afriGreen24 === true
+      );
+
+      ecrireCheckboxESG_(
+        "consentMBDigital",
+        consentements.mbDigital === true
+      );
+
+    }
+
+
+    function calculerProgressionBrouillonESG_(
+      etat
+    ) {
+
+      var total = 0;
+      var complete = 0;
+
+      var profil =
+        etat.profil || {};
+
+      var profileFields =
+        appState &&
+        appState.data &&
+        appState.data.questionnaire
+          ? appState.data.questionnaire.profileFields || []
+          : [];
+
+
+      profileFields.forEach(
+        function (field) {
+          total++;
+
+          var valeur =
+            profil[field.id];
+
+          if (
+            Array.isArray(valeur)
+              ? valeur.length > 0
+              : valeur !== "" &&
+                valeur !== null &&
+                valeur !== undefined
+          ) {
+            complete++;
+          }
+        }
+      );
+
+
+      Object.keys(
+        etat.reponsesESG || {}
+      ).forEach(
+        function (id) {
+          total++;
+
+          var reponse =
+            etat.reponsesESG[id];
+
+          var valeur =
+            reponse &&
+            typeof reponse === "object"
+              ? reponse.value
+              : reponse;
+
+          if (
+            valeur !== "" &&
+            valeur !== null &&
+            valeur !== undefined
+          ) {
+            complete++;
+          }
+        }
+      );
+
+
+      Object.keys(
+        etat.reponsesDigitales || {}
+      ).forEach(
+        function (id) {
+          total++;
+
+          var valeur =
+            etat.reponsesDigitales[id];
+
+          if (
+            Array.isArray(valeur)
+              ? valeur.length > 0
+              : valeur !== "" &&
+                valeur !== null &&
+                valeur !== undefined
+          ) {
+            complete++;
+          }
+        }
+      );
+
+
+      return total > 0
+        ? Math.round(
+            complete / total * 100
+          )
+        : 0;
+
+    }
+
+
+    function initialiserAutosaveESG_() {
+
+      var workspace =
+        document.getElementById(
+          "diagnosticWorkspace"
+        );
+
+      if (!workspace) {
+        return;
+      }
+
+
+      workspace.addEventListener(
+        "input",
+        function () {
+          programmerAutosaveESG_(
+            1800
+          );
+        }
+      );
+
+
+      workspace.addEventListener(
+        "change",
+        function () {
+          programmerAutosaveESG_(
+            900
+          );
+        }
+      );
+
+
+      [
+        "nextButton",
+        "previousButton"
+      ].forEach(
+        function (id) {
+
+          var button =
+            document.getElementById(
+              id
+            );
+
+          if (button) {
+            button.addEventListener(
+              "click",
+              function () {
+                programmerAutosaveESG_(
+                  600
+                );
+              }
+            );
+          }
+
+        }
+      );
+
+    }
+
+
+    function programmerAutosaveESG_(
+      delay
+    ) {
+
+      if (!draftSession) {
+        return;
+      }
+
+      if (autosaveTimer) {
+        clearTimeout(
+          autosaveTimer
+        );
+      }
+
+      autosaveTimer =
+        setTimeout(
+          function () {
+
+            if (
+              !draftSession ||
+              !window.appState ||
+              !appState.data ||
+              appState.currentStep === 4
+            ) {
+              return;
+            }
+
+            sauvegarderBrouillonExistantESG_(
+              construireEtatBrouillonESG_(),
+              false
+            );
+
+          },
+          Number(delay || 1200)
+        );
+
+    }
+
+
+    function brancherFinalisationBrouillonESG_() {
+
+      if (
+        typeof window.afficherResultat !==
+        "function"
+      ) {
+        return;
+      }
+
+
+      var afficherResultatOriginal =
+        window.afficherResultat;
+
+
+      window.afficherResultat =
+        function (resultat) {
+
+          afficherResultatOriginal(
+            resultat
+          );
+
+          finaliserBrouillonESG_(
+            resultat
+          );
+
+        };
+
+    }
+
+
+    function finaliserBrouillonESG_(
+      resultat
+    ) {
+
+      if (!draftSession) {
+        return;
+      }
+
+
+      google.script.run
+        .withSuccessHandler(
+          function () {
+            supprimerIdentifiantsBrouillonLocalESG_();
+            draftSession = null;
+          }
+        )
+        .withFailureHandler(
+          function () {
+            /*
+             * Le rapport est déjà généré :
+             * une erreur de marquage du brouillon ne doit
+             * jamais masquer le résultat au client.
+             */
+          }
+        )
+        .marquerBrouillonTermineESG({
+          draftId:
+            draftSession.draftId,
+
+          email:
+            draftSession.email,
+
+          code:
+            draftSession.code,
+
+          reportId:
+            resultat &&
+            resultat.reportId
+              ? resultat.reportId
+              : ""
+        });
+
+    }
+
+
+    function afficherCodeRepriseESG_(
+      code,
+      expiresAt
+    ) {
+
+      var panel =
+        document.getElementById(
+          "esgDraftCodePanel"
+        );
+
+      var value =
+        document.getElementById(
+          "esgDraftCodeValue"
+        );
+
+      var expiry =
+        document.getElementById(
+          "esgDraftExpiryText"
+        );
+
+
+      if (value) {
+        value.textContent =
+          code || "";
+      }
+
+
+      if (expiry) {
+        var texte =
+          "";
+
+        if (expiresAt) {
+          var date =
+            new Date(expiresAt);
+
+          if (!isNaN(date.getTime())) {
+            texte =
+              "Valable jusqu’au " +
+              date.toLocaleDateString(
+                "fr-FR"
+              ) +
+              ".";
+          }
+        }
+
+        expiry.textContent =
+          texte;
+      }
+
+
+      if (panel) {
+        panel.classList.remove(
+          "hidden"
+        );
+      }
+
+    }
+
+
+    function copierCodeRepriseESG_() {
+
+      var value =
+        document.getElementById(
+          "esgDraftCodeValue"
+        );
+
+      var code =
+        value
+          ? String(
+              value.textContent || ""
+            ).trim()
+          : "";
+
+      if (!code) {
+        return;
+      }
+
+
+      if (
+        navigator.clipboard &&
+        navigator.clipboard.writeText
+      ) {
+        navigator.clipboard
+          .writeText(code)
+          .then(
+            function () {
+              afficherStatutDraftESG_(
+                "Code copié.",
+                "success"
+              );
+            }
+          );
+      }
+
+    }
+
+
+    function afficherStatutDraftESG_(
+      message,
+      type
+    ) {
+
+      var element =
+        document.getElementById(
+          "esgDraftSaveStatus"
+        );
+
+      if (!element) {
+        return;
+      }
+
+      element.textContent =
+        message || "";
+
+      element.className =
+        "esg-draft-status" +
+        (
+          type
+            ? " is-" + type
+            : ""
+        );
+
+    }
+
+
+    function effacerStatutDraftESG_() {
+      afficherStatutDraftESG_(
+        "",
+        ""
+      );
+    }
+
+
+    function afficherStatutRepriseESG_(
+      message,
+      type
+    ) {
+
+      var element =
+        document.getElementById(
+          "esgResumeStatus"
+        );
+
+      if (!element) {
+        return;
+      }
+
+      element.textContent =
+        message || "";
+
+      element.className =
+        "esg-resume-status" +
+        (
+          type
+            ? " is-" + type
+            : ""
+        );
+
+    }
+
+
+    function effacerStatutRepriseESG_() {
+      afficherStatutRepriseESG_(
+        "",
+        ""
+      );
+    }
+
+
+    function gererErreurDraftESG_(
+      erreur
+    ) {
+
+      afficherStatutDraftESG_(
+        erreur && erreur.message
+          ? erreur.message
+          : "La sauvegarde du diagnostic a échoué.",
+        "error"
+      );
+
+      restaurerBoutonSauvegardeESG_();
+
+    }
+
+
+    function restaurerBoutonSauvegardeESG_() {
+
+      var button =
+        document.getElementById(
+          "esgSaveDraftButton"
+        );
+
+      if (button) {
+        button.disabled = false;
+        button.textContent =
+          draftSession
+            ? "Sauvegarder maintenant"
+            : "Sauvegarder et reprendre plus tard";
+      }
+
+    }
+
+
+    function restaurerBoutonRepriseESG_() {
+
+      var button =
+        document.getElementById(
+          "esgResumeButton"
+        );
+
+      if (button) {
+        button.disabled = false;
+        button.textContent =
+          "Reprendre mon diagnostic";
+      }
+
+    }
+
+
+    function lireCheckboxESG_(
+      id
+    ) {
+      var element =
+        document.getElementById(id);
+
+      return element
+        ? element.checked === true
+        : false;
+    }
+
+
+    function ecrireCheckboxESG_(
+      id,
+      value
+    ) {
+      var element =
+        document.getElementById(id);
+
+      if (element) {
+        element.checked =
+          value === true;
+      }
+    }
+
+
+    function normaliserEtapeDraftESG_(
+      step
+    ) {
+      var value =
+        parseInt(step, 10);
+
+      if (isNaN(value)) {
+        return 0;
+      }
+
+      return Math.max(
+        0,
+        Math.min(
+          3,
+          value
+        )
+      );
+    }
+
+
+    function enregistrerIdentifiantsBrouillonLocalESG_(
+      data
+    ) {
+      try {
+        localStorage.setItem(
+          ESG_DRAFT_STORAGE_KEY,
+          JSON.stringify({
+            draftId:
+              data.draftId || "",
+            email:
+              data.email || "",
+            code:
+              data.code || ""
+          })
+        );
+      } catch (error) {}
+    }
+
+
+    function lireIdentifiantsBrouillonLocalESG_() {
+      try {
+        var raw =
+          localStorage.getItem(
+            ESG_DRAFT_STORAGE_KEY
+          );
+
+        if (!raw) {
+          return null;
+        }
+
+        var data =
+          JSON.parse(raw);
+
+        return data &&
+          data.email &&
+          data.code
+          ? data
+          : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+
+    function supprimerIdentifiantsBrouillonLocalESG_() {
+      try {
+        localStorage.removeItem(
+          ESG_DRAFT_STORAGE_KEY
+        );
+      } catch (error) {}
+    }
+
+  })();
+  </script>
+
+
+</body>
+</html>

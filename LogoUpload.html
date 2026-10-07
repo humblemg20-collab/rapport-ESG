@@ -1,0 +1,506 @@
+<div class="afg-logo-upload">
+
+  <label for="afg-logo-input">
+    <strong>
+      Logo de votre organisation
+    </strong>
+  </label>
+
+  <p class="afg-logo-help">
+    Facultatif — PNG ou JPG/JPEG,
+    2 Mo maximum.
+    Votre logo sera automatiquement
+    intégré à votre rapport ESG.
+  </p>
+
+  <input
+    id="afg-logo-input"
+    type="file"
+    accept="image/png,image/jpeg"
+    onchange="AfriGreen24Branding.preview(event)"
+  >
+
+  <div
+    id="afg-logo-preview-wrap"
+    style="
+      display:none;
+      margin-top:12px;
+    "
+  >
+
+    <img
+      id="afg-logo-preview"
+      alt="Aperçu du logo"
+      style="
+        max-width:180px;
+        max-height:90px;
+        object-fit:contain;
+        display:block;
+      "
+    >
+
+    <button
+      type="button"
+      onclick="AfriGreen24Branding.clear()"
+      style="
+        margin-top:8px;
+      "
+    >
+      Retirer le logo
+    </button>
+
+  </div>
+
+  <p
+    id="afg-logo-error"
+    style="
+      display:none;
+      margin-top:8px;
+      color:#b42318;
+      font-size:14px;
+    "
+  ></p>
+
+</div>
+
+
+<script>
+
+window.AfriGreen24Branding =
+(function () {
+
+  const MAX_BYTES =
+    2 * 1024 * 1024;
+
+  const ALLOWED_TYPES = [
+    "image/png",
+    "image/jpeg"
+  ];
+
+  let currentPayload = null;
+
+
+
+  function getErrorElement() {
+
+    return document.getElementById(
+      "afg-logo-error"
+    );
+
+  }
+
+
+
+  function showError(
+    message
+  ) {
+
+    const element =
+      getErrorElement();
+
+
+    if (!element) {
+
+      return;
+
+    }
+
+
+    element.textContent =
+      message || "";
+
+
+    element.style.display =
+      message
+        ? "block"
+        : "none";
+
+  }
+
+
+
+  function fileToDataUrl(
+    file
+  ) {
+
+    return new Promise(
+
+      function(
+        resolve,
+        reject
+      ) {
+
+        const reader =
+          new FileReader();
+
+
+        reader.onload =
+          function() {
+
+            resolve(
+              reader.result
+            );
+
+          };
+
+
+        reader.onerror =
+          function() {
+
+            reject(
+
+              new Error(
+                "Impossible de lire le fichier sélectionné."
+              )
+
+            );
+
+          };
+
+
+        reader.readAsDataURL(
+          file
+        );
+
+      }
+
+    );
+
+  }
+
+
+
+  async function preview(
+    event
+  ) {
+
+    try {
+
+      showError("");
+
+
+      const file =
+
+        event &&
+        event.target &&
+        event.target.files
+
+          ? event.target.files[0]
+
+          : null;
+
+
+
+      if (!file) {
+
+        clear();
+
+        return;
+
+      }
+
+
+
+      if (
+        !ALLOWED_TYPES.includes(
+          file.type
+        )
+      ) {
+
+        throw new Error(
+          "Format non accepté. Utilisez PNG ou JPG/JPEG."
+        );
+
+      }
+
+
+
+      if (
+        file.size >
+        MAX_BYTES
+      ) {
+
+        throw new Error(
+          "Le logo dépasse la taille maximale autorisée de 2 Mo."
+        );
+
+      }
+
+
+
+      const dataUrl =
+
+        await fileToDataUrl(
+          file
+        );
+
+
+
+      currentPayload = {
+
+        fileName:
+          file.name,
+
+        mimeType:
+          file.type,
+
+        size:
+          file.size,
+
+        dataUrl:
+          dataUrl
+
+      };
+
+
+
+      const previewImage =
+
+        document.getElementById(
+          "afg-logo-preview"
+        );
+
+
+
+      const previewWrap =
+
+        document.getElementById(
+          "afg-logo-preview-wrap"
+        );
+
+
+
+      if (previewImage) {
+
+        previewImage.src =
+          dataUrl;
+
+      }
+
+
+
+      if (previewWrap) {
+
+        previewWrap.style.display =
+          "block";
+
+      }
+
+    }
+
+    catch (
+      error
+    ) {
+
+      clear(
+        false
+      );
+
+
+      showError(
+
+        error.message ||
+
+        "Le logo sélectionné est invalide."
+
+      );
+
+    }
+
+  }
+
+
+
+  function clear(
+    resetError
+  ) {
+
+    if (
+      resetError === undefined
+    ) {
+
+      resetError =
+        true;
+
+    }
+
+
+    currentPayload =
+      null;
+
+
+
+    const input =
+
+      document.getElementById(
+        "afg-logo-input"
+      );
+
+
+
+    const previewImage =
+
+      document.getElementById(
+        "afg-logo-preview"
+      );
+
+
+
+    const previewWrap =
+
+      document.getElementById(
+        "afg-logo-preview-wrap"
+      );
+
+
+
+    if (input) {
+
+      input.value =
+        "";
+
+    }
+
+
+
+    if (previewImage) {
+
+      previewImage.removeAttribute(
+        "src"
+      );
+
+    }
+
+
+
+    if (previewWrap) {
+
+      previewWrap.style.display =
+        "none";
+
+    }
+
+
+
+    if (
+      resetError
+    ) {
+
+      showError("");
+
+    }
+
+  }
+
+
+
+  function attachToData(
+    donnees,
+    organisation
+  ) {
+
+    donnees =
+      donnees || {};
+
+
+
+    var logoPayload =
+
+      currentPayload
+
+        ? Object.assign(
+
+            {},
+
+            currentPayload,
+
+            {
+
+              organisation:
+
+                organisation ||
+
+                (
+
+                  donnees.profil
+
+                    ? (
+
+                        donnees
+                          .profil
+                          .organizationName ||
+
+                        donnees
+                          .profil
+                          .nomOrganisation ||
+
+                        ""
+
+                      )
+
+                    : ""
+
+                )
+
+            }
+
+          )
+
+        : null;
+
+
+
+    /*
+     * Copie générale du logo.
+     */
+
+    donnees.logoUpload =
+      logoPayload;
+
+
+
+    /*
+     * IMPORTANT POUR LE RAPPORT ESG :
+     *
+     * genererRapportESG() reçoit "profil"
+     * séparément.
+     *
+     * On place donc aussi le logo
+     * directement dans profil.
+     */
+
+    if (
+      donnees.profil
+    ) {
+
+      donnees
+        .profil
+        .logoUpload =
+          logoPayload;
+
+    }
+
+
+
+    return donnees;
+
+  }
+
+
+
+  return {
+
+    preview:
+      preview,
+
+    clear:
+      clear,
+
+    attachToData:
+      attachToData
+
+  };
+
+})();
+
+</script>

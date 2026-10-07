@@ -1,0 +1,5826 @@
+<script>
+
+var appState = {
+  data: null,
+  currentStep: 0,
+  entryMode: null,
+
+  /*
+   * Import documentaire ESG.
+   * Cette couche ne modifie jamais le scoring.
+   * Elle sert uniquement à préremplir / signaler les réponses.
+   */
+  esgImport: {
+    files: [],
+    results: [],
+    merged: null,
+    running: false,
+
+    /*
+     * Questions TO_CONFIRM validées par l'utilisateur.
+     * La valeur métier reste portée par les champs existants.
+     */
+    confirmations: {}
+  }
+};
+
+
+
+document.addEventListener(
+  "DOMContentLoaded",
+  function() {
+
+    document
+      .getElementById(
+        "nextButton"
+      )
+      .addEventListener(
+        "click",
+        allerEtapeSuivante
+      );
+
+
+    document
+      .getElementById(
+        "previousButton"
+      )
+      .addEventListener(
+        "click",
+        allerEtapePrecedente
+      );
+
+
+    document
+      .getElementById(
+        "submitButton"
+      )
+      .addEventListener(
+        "click",
+        soumettreDiagnostic
+      );
+
+
+    initialiserImportESG();
+
+    initialiserParcoursESG_();
+
+
+    chargerApplication();
+
+  }
+);
+
+
+
+/**
+ * ============================================================
+ * IMPORT INTELLIGENT ESG
+ * ============================================================
+ *
+ * Flux :
+ * fichier(s)
+ * → Apps Script
+ * → extraction texte
+ * → HumbleOS /extract-esg
+ * → normalisation Apps Script
+ * → FOUND / TO_CONFIRM / MISSING
+ * → préremplissage du questionnaire
+ *
+ * Le backend attendu est :
+ *
+ * analyserFichierESGImporte({
+ *   fileName: "...",
+ *   mimeType: "...",
+ *   base64: "..."
+ * })
+ *
+ * Il doit retourner :
+ * {
+ *   success: true,
+ *   sourceName: "...",
+ *   profile: {...},
+ *   questions: {...},
+ *   analysis: {...}
+ * }
+ */
+
+
+function initialiserImportESG() {
+
+  var bouton =
+    document.getElementById(
+      "esgImportButton"
+    );
+
+  var input =
+    document.getElementById(
+      "esgImportFile"
+    );
+
+  if (!bouton || !input) {
+    return;
+  }
+
+
+  bouton.addEventListener(
+    "click",
+    function() {
+
+      if (
+        appState.esgImport.running
+      ) {
+        return;
+      }
+
+      input.click();
+
+    }
+  );
+
+
+  input.addEventListener(
+    "change",
+    function(event) {
+
+      var files =
+        Array.from(
+          event.target.files || []
+        );
+
+      if (!files.length) {
+        return;
+      }
+
+      lancerImportDocumentsESG(
+        files
+      );
+
+      /*
+       * Permet de sélectionner à nouveau
+       * le même fichier après une analyse.
+       */
+      input.value = "";
+
+    }
+  );
+
+}
+
+
+/**
+ * Valide les fichiers avant l'envoi.
+ *
+ * Traitement séquentiel :
+ * on évite d'envoyer plusieurs gros fichiers
+ * dans une seule requête Apps Script.
+ */
+function validerFichiersImportESG_(
+  files
+) {
+
+  var autorises = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "text/plain"
+  ];
+
+  var extensionsAutorisees =
+    /\.(pdf|doc|docx|txt)$/i;
+
+  var maxParFichier =
+    8 * 1024 * 1024;
+
+  var erreurs = [];
+
+
+  files.forEach(
+    function(file) {
+
+      var type =
+        String(
+          file.type || ""
+        ).toLowerCase();
+
+      var nom =
+        String(
+          file.name || ""
+        );
+
+      var typeConnu =
+        autorises.indexOf(type) !== -1;
+
+      var extensionConnue =
+        extensionsAutorisees.test(nom);
+
+      if (
+        !typeConnu &&
+        !extensionConnue
+      ) {
+        erreurs.push(
+          nom +
+          " : format non pris en charge."
+        );
+      }
+
+      if (
+        Number(file.size || 0) >
+        maxParFichier
+      ) {
+        erreurs.push(
+          nom +
+          " : taille supérieure à 8 Mo."
+        );
+      }
+
+    }
+  );
+
+
+  return erreurs;
+
+}
+
+
+/**
+ * Lance l'import séquentiel des documents.
+ */
+async function lancerImportDocumentsESG(
+  files
+) {
+
+  effacerErreur();
+
+  effacerErreurImportESG_();
+
+
+  var erreurs =
+    validerFichiersImportESG_(
+      files
+    );
+
+
+  if (erreurs.length) {
+
+    afficherErreurImportESG_(
+      erreurs.join(" ")
+    );
+
+    return;
+
+  }
+
+
+  appState.esgImport.running =
+    true;
+
+  appState.entryMode =
+    "import";
+
+  appState.esgImport.files =
+    files.map(
+      function(file) {
+        return {
+          name:
+            file.name,
+
+          size:
+            file.size,
+
+          type:
+            file.type || ""
+        };
+      }
+    );
+
+  appState.esgImport.results = [];
+  appState.esgImport.merged = null;
+  appState.esgImport.confirmations = {};
+
+
+  afficherListeFichiersImportESG_(
+    files
+  );
+
+
+  afficherProgressionImportESG_(
+    true,
+    "Préparation de l’analyse documentaire…"
+  );
+
+
+  var bouton =
+    document.getElementById(
+      "esgImportButton"
+    );
+
+  if (bouton) {
+    bouton.disabled = true;
+    bouton.textContent =
+      "Analyse en cours…";
+  }
+
+
+  var boutonManuel =
+    document.getElementById(
+      "esgManualStartButton"
+    );
+
+
+  if (boutonManuel) {
+    boutonManuel.disabled = true;
+  }
+
+
+  try {
+
+    for (
+      var index = 0;
+      index < files.length;
+      index++
+    ) {
+
+      var file =
+        files[index];
+
+
+      afficherProgressionImportESG_(
+        true,
+        "Analyse de " +
+        file.name +
+        " (" +
+        (index + 1) +
+        "/" +
+        files.length +
+        ")…"
+      );
+
+
+      var base64 =
+        await lireFichierBase64ESG_(
+          file
+        );
+
+
+      var resultat =
+        await appelerAnalyseFichierESG_({
+          fileName:
+            file.name,
+
+          mimeType:
+            file.type || "",
+
+          base64:
+            base64
+        });
+
+
+      if (
+        !resultat ||
+        resultat.success === false
+      ) {
+        throw new Error(
+          resultat &&
+          resultat.message
+            ? resultat.message
+            : "L’analyse de " +
+              file.name +
+              " a échoué."
+        );
+      }
+
+
+      appState
+        .esgImport
+        .results
+        .push(
+          resultat
+        );
+
+    }
+
+
+    appState.esgImport.merged =
+      fusionnerResultatsImportESG_(
+        appState.esgImport.results
+      );
+
+
+    appliquerImportESGAuQuestionnaire_(
+      appState.esgImport.merged
+    );
+
+
+    afficherResumeImportESG_(
+      appState.esgImport.merged
+    );
+
+
+    afficherProgressionImportESG_(
+      false
+    );
+
+
+  } catch (erreur) {
+
+    afficherProgressionImportESG_(
+      false
+    );
+
+
+    afficherErreurImportESG_(
+      erreur &&
+      erreur.message
+        ? erreur.message
+        : "L’import des documents ESG a échoué."
+    );
+
+  } finally {
+
+    appState.esgImport.running =
+      false;
+
+
+    if (bouton) {
+      bouton.disabled = false;
+      bouton.textContent =
+        "Charger mon document";
+    }
+
+
+    if (boutonManuel) {
+      boutonManuel.disabled = false;
+    }
+
+  }
+
+}
+
+
+/**
+ * Lit un fichier et retourne seulement
+ * la partie base64 du Data URL.
+ */
+function lireFichierBase64ESG_(
+  file
+) {
+
+  return new Promise(
+    function(resolve, reject) {
+
+      var reader =
+        new FileReader();
+
+
+      reader.onload =
+        function() {
+
+          var result =
+            String(
+              reader.result || ""
+            );
+
+          var comma =
+            result.indexOf(",");
+
+          if (comma < 0) {
+            reject(
+              new Error(
+                "Impossible de lire " +
+                file.name +
+                "."
+              )
+            );
+            return;
+          }
+
+          resolve(
+            result.substring(
+              comma + 1
+            )
+          );
+
+        };
+
+
+      reader.onerror =
+        function() {
+
+          reject(
+            new Error(
+              "Lecture impossible : " +
+                file.name
+            )
+          );
+
+        };
+
+
+      reader.readAsDataURL(
+        file
+      );
+
+    }
+  );
+
+}
+
+
+/**
+ * Promisifie google.script.run.
+ */
+function appelerAnalyseFichierESG_(
+  payload
+) {
+
+  return new Promise(
+    function(resolve, reject) {
+
+      google.script.run
+
+        .withSuccessHandler(
+          function(resultat) {
+            resolve(resultat);
+          }
+        )
+
+        .withFailureHandler(
+          function(erreur) {
+
+            reject(
+              new Error(
+                erreur &&
+                erreur.message
+                  ? erreur.message
+                  : "Erreur Apps Script pendant l’analyse ESG."
+              )
+            );
+
+          }
+        )
+
+        .analyserFichierESGImporte(
+          payload
+        );
+
+    }
+  );
+
+}
+
+
+/**
+ * Fusionne plusieurs documents.
+ *
+ * Priorité :
+ * FOUND > TO_CONFIRM > MISSING.
+ *
+ * À statut égal, la confiance la plus élevée gagne.
+ */
+function fusionnerResultatsImportESG_(
+  results
+) {
+
+  var merged = {
+    success: true,
+
+    profile: {},
+
+    questions: {},
+
+    sources: [],
+
+    analysis: {
+      questions: {
+        total: 0,
+        found: 0,
+        toConfirm: 0,
+        missing: 0
+      },
+
+      profile: {
+        total: 0,
+        found: 0,
+        toConfirm: 0,
+        missing: 0
+      }
+    }
+  };
+
+
+  (
+    results || []
+  ).forEach(
+    function(resultat) {
+
+      if (
+        resultat &&
+        resultat.sourceName
+      ) {
+        merged.sources.push(
+          resultat.sourceName
+        );
+      }
+
+
+      fusionnerCollectionImportESG_(
+        merged.profile,
+        resultat &&
+        resultat.profile
+          ? resultat.profile
+          : {}
+      );
+
+
+      fusionnerCollectionImportESG_(
+        merged.questions,
+        resultat &&
+        resultat.questions
+          ? resultat.questions
+          : {}
+      );
+
+    }
+  );
+
+
+  recalculerResumeImportESG_(
+    merged
+  );
+
+
+  return merged;
+
+}
+
+
+/**
+ * Fusion déterministe d'une collection.
+ */
+function fusionnerCollectionImportESG_(
+  cible,
+  source
+) {
+
+  Object.keys(
+    source || {}
+  ).forEach(
+    function(id) {
+
+      var nouveau =
+        source[id];
+
+      if (!nouveau) {
+        return;
+      }
+
+
+      var actuel =
+        cible[id];
+
+
+      if (
+        !actuel ||
+        comparerItemsImportESG_(
+          nouveau,
+          actuel
+        ) > 0
+      ) {
+        cible[id] =
+          nouveau;
+      }
+
+    }
+  );
+
+}
+
+
+/**
+ * FOUND > TO_CONFIRM > MISSING.
+ * Puis confiance.
+ */
+function comparerItemsImportESG_(
+  a,
+  b
+) {
+
+  var poids = {
+    MISSING: 0,
+    TO_CONFIRM: 1,
+    FOUND: 2
+  };
+
+
+  var pa =
+    poids[
+      String(
+        a.status || "MISSING"
+      ).toUpperCase()
+    ] || 0;
+
+
+  var pb =
+    poids[
+      String(
+        b.status || "MISSING"
+      ).toUpperCase()
+    ] || 0;
+
+
+  if (pa !== pb) {
+    return pa - pb;
+  }
+
+
+  return (
+    Number(
+      a.confidence || 0
+    ) -
+    Number(
+      b.confidence || 0
+    )
+  );
+
+}
+
+
+/**
+ * Recalcule le résumé après fusion.
+ */
+function recalculerResumeImportESG_(
+  merged
+) {
+
+  ["questions", "profile"]
+    .forEach(
+      function(type) {
+
+        var collection =
+          merged[type] || {};
+
+        var resume =
+          merged.analysis[type];
+
+        resume.total = 0;
+        resume.found = 0;
+        resume.toConfirm = 0;
+        resume.missing = 0;
+
+
+        Object.keys(
+          collection
+        ).forEach(
+          function(id) {
+
+            var item =
+              collection[id] || {};
+
+            var status =
+              String(
+                item.status || "MISSING"
+              ).toUpperCase();
+
+
+            resume.total++;
+
+
+            if (
+              status === "FOUND"
+            ) {
+              resume.found++;
+            } else if (
+              status === "TO_CONFIRM"
+            ) {
+              resume.toConfirm++;
+            } else {
+              resume.missing++;
+            }
+
+          }
+        );
+
+      }
+    );
+
+}
+
+
+/**
+ * Applique uniquement les informations exploitables.
+ *
+ * FOUND :
+ * préremplissage automatique.
+ *
+ * TO_CONFIRM :
+ * préremplissage uniquement si une valeur canonique
+ * existe déjà, avec marquage visuel "À confirmer".
+ *
+ * MISSING :
+ * le champ reste vide.
+ */
+function appliquerImportESGAuQuestionnaire_(
+  merged
+) {
+
+  appliquerProfilImportESG_(
+    merged.profile || {}
+  );
+
+
+  appliquerQuestionsImportESG_(
+    merged.questions || {}
+  );
+
+
+  mettreAJourExperienceProfilImportESG_();
+
+}
+
+
+/**
+ * Préremplit les champs profil.
+ */
+function appliquerProfilImportESG_(
+  profile
+) {
+
+  var fields =
+    appState &&
+    appState.data &&
+    appState.data.questionnaire
+      ? appState.data.questionnaire.profileFields
+      : [];
+
+
+  fields.forEach(function(field) {
+
+    var item =
+      profile[field.id];
+
+    if (!item) {
+      return;
+    }
+
+
+    var status =
+      String(
+        item.status || "MISSING"
+      ).toUpperCase();
+
+
+    var element =
+      document.getElementById(
+        "profile-" + field.id
+      );
+
+
+    if (!element) {
+      return;
+    }
+
+
+    var card =
+      element.closest(
+        ".question-card, .form-field"
+      );
+
+
+    var value =
+      item.canonicalValue !== null &&
+      item.canonicalValue !== undefined
+        ? item.canonicalValue
+        : item.value;
+
+
+    /*
+     * FOUND / TO_CONFIRM :
+     * préremplissage.
+     */
+    if (
+      (
+        status === "FOUND" ||
+        status === "TO_CONFIRM"
+      ) &&
+      value !== null &&
+      value !== undefined &&
+      value !== ""
+    ) {
+
+      if (
+        field.type === "multiselect"
+      ) {
+
+        var values =
+          Array.isArray(value)
+            ? value
+            : [value];
+
+        Array.from(
+          element.querySelectorAll(
+            'input[type="checkbox"]'
+          )
+        ).forEach(function(input) {
+
+          input.checked =
+            values.indexOf(
+              input.value
+            ) !== -1;
+
+        });
+
+      } else {
+
+        element.value =
+          String(value);
+
+        element.dispatchEvent(
+          new Event(
+            "change",
+            {
+              bubbles: true
+            }
+          )
+        );
+      }
+    }
+
+
+    marquerElementImportESG_(
+      element,
+      status,
+      item
+    );
+
+
+    if (!card) {
+      return;
+    }
+
+
+    if (
+      status === "FOUND"
+    ) {
+
+      card.dataset.esgImportStatus =
+        "FOUND";
+
+      card.dataset.esgImportHidden =
+        "true";
+
+      card.style.display =
+        "none";
+
+    } else {
+
+      card.dataset.esgImportStatus =
+        status;
+
+      card.dataset.esgImportHidden =
+        "false";
+
+      card.style.display =
+        "";
+
+    }
+
+  });
+
+}
+
+
+/**
+ * Préremplit les 50 questions ESG.
+ *
+ * Le niveau de preuve n'est PAS décidé automatiquement :
+ * le document apporte une preuve textuelle, mais sa force
+ * reste une décision distincte.
+ */
+function appliquerQuestionsImportESG_(
+  questions
+) {
+
+  Object.keys(
+    questions || {}
+  ).forEach(function(questionId) {
+
+    var item =
+      questions[questionId] || {};
+
+    var status =
+      String(
+        item.status || "MISSING"
+      ).toUpperCase();
+
+    var select =
+      document.getElementById(
+        "esg-" + questionId
+      );
+
+    if (!select) {
+      return;
+    }
+
+    var card =
+      select.closest(
+        ".question-card, .form-field"
+      );
+
+    if (!card) {
+      return;
+    }
+
+    /*
+     * Nettoie une éventuelle validation rapide issue
+     * d'un import précédent.
+     */
+    retirerValidationRapideQuestionESG_(
+      card
+    );
+
+    card.dataset.esgImportConfirmed =
+      "false";
+
+
+    /*
+     * ========================================================
+     * FOUND
+     * ========================================================
+     */
+    if (
+      status === "FOUND" &&
+      item.canonicalValue !== null &&
+      item.canonicalValue !== undefined &&
+      item.canonicalValue !== ""
+    ) {
+
+      select.value =
+        String(
+          item.canonicalValue
+        );
+
+      select.dispatchEvent(
+        new Event(
+          "change",
+          {
+            bubbles: true
+          }
+        )
+      );
+
+      marquerElementImportESG_(
+        select,
+        status,
+        item
+      );
+
+      card.dataset.esgImportStatus =
+        "FOUND";
+
+      card.dataset.esgImportHidden =
+        "true";
+
+      card.style.display =
+        "none";
+
+      return;
+    }
+
+
+    /*
+     * ========================================================
+     * TO_CONFIRM
+     * ========================================================
+     *
+     * L'information existe dans le document.
+     * Si HumbleOS dispose déjà d'une valeur canonique,
+     * elle est proposée.
+     *
+     * Sinon l'utilisateur choisit uniquement le niveau
+     * de maturité dans une carte compacte.
+     */
+    if (
+      status === "TO_CONFIRM"
+    ) {
+
+      if (
+        item.canonicalValue !== null &&
+        item.canonicalValue !== undefined &&
+        item.canonicalValue !== ""
+      ) {
+
+        select.value =
+          String(
+            item.canonicalValue
+          );
+
+        select.dispatchEvent(
+          new Event(
+            "change",
+            {
+              bubbles: true
+            }
+          )
+        );
+      }
+
+      card.dataset.esgImportStatus =
+        "TO_CONFIRM";
+
+      card.dataset.esgImportHidden =
+        "false";
+
+      card.dataset.esgImportConfirmed =
+        "false";
+
+      card.style.display =
+        "";
+
+      preparerValidationRapideQuestionESG_(
+        questionId,
+        item,
+        card,
+        select
+      );
+
+      return;
+    }
+
+
+    /*
+     * ========================================================
+     * MISSING
+     * ========================================================
+     *
+     * Seules les vraies informations absentes restent
+     * sous la forme du questionnaire complet.
+     */
+    card.dataset.esgImportStatus =
+      "MISSING";
+
+    card.dataset.esgImportHidden =
+      "false";
+
+    card.dataset.esgImportConfirmed =
+      "false";
+
+    card.style.display =
+      "";
+
+  });
+
+
+  mettreAJourExperienceImportESG_();
+
+}
+
+
+/**
+ * Ajoute un petit statut visuel sans toucher
+ * à la valeur métier du questionnaire.
+ */
+function marquerElementImportESG_(
+  element,
+  status,
+  item
+) {
+
+  if (!element) {
+    return;
+  }
+
+
+  var card =
+    element.closest(
+      ".question-card, .form-field"
+    );
+
+
+  if (!card) {
+    return;
+  }
+
+
+  var ancien =
+    card.querySelector(
+      ".esg-import-status"
+    );
+
+
+  if (ancien) {
+    ancien.remove();
+  }
+
+
+  if (
+    status !== "FOUND" &&
+    status !== "TO_CONFIRM"
+  ) {
+    return;
+  }
+
+
+  var badge =
+    document.createElement(
+      "div"
+    );
+
+
+  badge.className =
+    "esg-import-status";
+
+
+  badge.style.marginTop =
+    "7px";
+
+  badge.style.padding =
+    "7px 9px";
+
+  badge.style.borderRadius =
+    "8px";
+
+  badge.style.fontSize =
+    "11px";
+
+  badge.style.lineHeight =
+    "1.4";
+
+
+  if (
+    status === "FOUND"
+  ) {
+
+    badge.style.background =
+      "#EAF6EE";
+
+    badge.style.color =
+      "#0B6B3A";
+
+    badge.textContent =
+      "Information détectée dans le document.";
+
+  } else {
+
+    badge.style.background =
+      "#FFF7E6";
+
+    badge.style.color =
+      "#8A5A00";
+
+    badge.textContent =
+      "Information détectée — veuillez confirmer cette réponse.";
+
+  }
+
+
+  var evidence =
+    item &&
+    item.evidence
+      ? String(
+          item.evidence
+        ).trim()
+      : "";
+
+
+  if (evidence) {
+
+    var extrait =
+      document.createElement(
+        "div"
+      );
+
+
+    extrait.style.marginTop =
+      "5px";
+
+    extrait.style.opacity =
+      "0.85";
+
+    extrait.textContent =
+      "Extrait : “" +
+      (
+        evidence.length > 220
+          ? evidence.substring(
+              0,
+              220
+            ) + "…"
+          : evidence
+      ) +
+      "”";
+
+
+    badge.appendChild(
+      extrait
+    );
+
+  }
+
+
+  card.appendChild(
+    badge
+  );
+
+}
+
+
+/**
+ * Affiche les fichiers sélectionnés.
+ */
+function afficherListeFichiersImportESG_(
+  files
+) {
+
+  var box =
+    document.getElementById(
+      "esgImportFilesList"
+    );
+
+
+  if (!box) {
+    return;
+  }
+
+
+  box.innerHTML =
+    (
+      files || []
+    ).map(
+      function(file) {
+
+        return (
+          "<div>" +
+          escapeHtml(
+            file.name
+          ) +
+          " — " +
+          formaterTailleFichierESG_(
+            file.size
+          ) +
+          "</div>"
+        );
+
+      }
+    ).join("");
+
+
+  box.classList.remove(
+    "hidden"
+  );
+
+}
+
+
+/**
+ * Affiche/masque l'état de progression.
+ */
+function afficherProgressionImportESG_(
+  visible,
+  message
+) {
+
+  var box =
+    document.getElementById(
+      "esgImportProgress"
+    );
+
+  if (!box) {
+    return;
+  }
+
+
+  if (!visible) {
+
+    box.classList.add(
+      "hidden"
+    );
+
+    box.innerHTML = "";
+
+    return;
+
+  }
+
+
+  box.innerHTML =
+
+    '<div class="esg-import-progress-head">' +
+
+      '<span class="esg-import-progress-spinner" aria-hidden="true"></span>' +
+
+      '<div class="esg-import-progress-copy">' +
+
+        '<strong>Analyse de votre dossier ESG</strong>' +
+
+        '<span>' +
+          escapeHtml(
+            message ||
+            "Analyse documentaire en cours…"
+          ) +
+        '</span>' +
+
+      '</div>' +
+
+    '</div>' +
+
+    '<div class="esg-import-progress-track" aria-hidden="true">' +
+      '<div class="esg-import-progress-bar"></div>' +
+    '</div>' +
+
+    '<div class="esg-import-progress-note">' +
+      'AfriGreen24 lit le contenu, identifie les informations ESG, ' +
+      'vérifie les extraits utilisés et prépare les éléments restant à compléter.' +
+    '</div>';
+
+
+  box.classList.remove(
+    "hidden"
+  );
+
+}
+
+
+/**
+ * Résumé final de l'import.
+ */
+function afficherResumeImportESG_(
+  merged
+) {
+
+  var container =
+    document.getElementById(
+      "esgImportSummary"
+    );
+
+  var statsContainer =
+    document.getElementById(
+      "esgImportSummaryStats"
+    );
+
+
+  if (
+    !container ||
+    !statsContainer
+  ) {
+    return;
+  }
+
+
+  var q =
+    merged &&
+    merged.analysis
+      ? merged.analysis.questions || {}
+      : {};
+
+  var p =
+    merged &&
+    merged.analysis
+      ? merged.analysis.profile || {}
+      : {};
+
+
+  var found =
+    Number(q.found || 0) +
+    Number(p.found || 0);
+
+  var toConfirm =
+    Number(q.toConfirm || 0) +
+    Number(p.toConfirm || 0);
+
+  var missing =
+    Number(q.missing || 0) +
+    Number(p.missing || 0);
+
+  var total =
+    found +
+    toConfirm +
+    missing;
+
+  var detected =
+    found +
+    toConfirm;
+
+  var detectedPercent =
+    total > 0
+      ? Math.round(
+          detected / total * 100
+        )
+      : 0;
+
+
+  var actionLabel;
+
+  if (toConfirm > 0) {
+    actionLabel =
+      "Vérifier les informations détectées";
+  } else if (missing > 0) {
+    actionLabel =
+      "Compléter les informations manquantes";
+  } else {
+    actionLabel =
+      "Continuer vers mon diagnostic";
+  }
+
+
+  var remainingMessage;
+
+  if (
+    toConfirm > 0 &&
+    missing > 0
+  ) {
+
+    remainingMessage =
+      '<strong>' +
+      escapeHtml(toConfirm) +
+      '</strong> information' +
+      (
+        toConfirm > 1
+          ? 's détectées nécessitent'
+          : ' détectée nécessite'
+      ) +
+      ' une validation rapide. ' +
+      'Il reste seulement <strong>' +
+      escapeHtml(missing) +
+      '</strong> information' +
+      (
+        missing > 1
+          ? 's réellement manquantes'
+          : ' réellement manquante'
+      ) +
+      '.';
+
+  } else if (
+    toConfirm > 0
+  ) {
+
+    remainingMessage =
+      '<strong>' +
+      escapeHtml(toConfirm) +
+      '</strong> information' +
+      (
+        toConfirm > 1
+          ? 's détectées nécessitent'
+          : ' détectée nécessite'
+      ) +
+      ' simplement votre validation.';
+
+  } else if (
+    missing > 0
+  ) {
+
+    remainingMessage =
+      'AfriGreen24 a déjà exploité tout ce qui pouvait l’être. ' +
+      'Il reste <strong>' +
+      escapeHtml(missing) +
+      '</strong> information' +
+      (
+        missing > 1
+          ? 's à compléter'
+          : ' à compléter'
+      ) +
+      '.';
+
+  } else {
+
+    remainingMessage =
+      'Toutes les informations nécessaires ont été identifiées dans vos documents.';
+
+  }
+
+
+  statsContainer.innerHTML =
+
+    '<div class="esg-import-result-card">' +
+
+      '<div class="esg-import-result-kicker">' +
+        'Analyse terminée' +
+      '</div>' +
+
+      '<h3>' +
+        'AfriGreen24 a exploité votre dossier ESG.' +
+      '</h3>' +
+
+      '<p>' +
+        'Nous avons identifié <strong>' +
+        escapeHtml(
+          detected
+        ) +
+        '</strong> information' +
+        (
+          detected > 1
+            ? 's'
+            : ''
+        ) +
+        ' sur <strong>' +
+        escapeHtml(
+          total
+        ) +
+        '</strong>. ' +
+        'Les éléments déjà sûrs sont validés automatiquement ; ' +
+        'les autres sont présentés sous forme de validation rapide.' +
+      '</p>' +
+
+      '<div class="esg-import-result-stats">' +
+
+        construireStatImportESG_(
+          "Validées automatiquement",
+          found,
+          "#EAF6EE",
+          "#0B6B3A"
+        ) +
+
+        construireStatImportESG_(
+          "Détectées à vérifier",
+          toConfirm,
+          "#FFF7E6",
+          "#8A5A00"
+        ) +
+
+        construireStatImportESG_(
+          "Réellement manquantes",
+          missing,
+          "#F3F4F6",
+          "#4B5563"
+        ) +
+
+      '</div>' +
+
+      '<div class="esg-import-result-progress-label">' +
+        '<span>Informations identifiées dans vos documents</span>' +
+        '<strong>' +
+          escapeHtml(
+            detectedPercent
+          ) +
+          ' %' +
+        '</strong>' +
+      '</div>' +
+
+      '<div class="esg-import-result-progress">' +
+        '<div style="width:' +
+          Math.max(
+            0,
+            Math.min(
+              100,
+              detectedPercent
+            )
+          ) +
+          '%;"></div>' +
+      '</div>' +
+
+      '<div class="esg-import-result-remaining">' +
+        remainingMessage +
+      '</div>' +
+
+      '<button ' +
+        'type="button" ' +
+        'id="esgImportContinueButton" ' +
+        'class="button button-primary">' +
+        escapeHtml(
+          actionLabel
+        ) +
+      '</button>' +
+
+    '</div>';
+
+
+  container.classList.remove(
+    "hidden"
+  );
+
+
+  var continueButton =
+    document.getElementById(
+      "esgImportContinueButton"
+    );
+
+
+  if (continueButton) {
+
+    continueButton.addEventListener(
+      "click",
+      demarrerParcoursImportESG_
+    );
+
+  }
+
+
+  container.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+
+}
+
+
+/**
+ * Carte statistique.
+ */
+function construireStatImportESG_(
+  label,
+  value,
+  background,
+  color
+) {
+
+  return (
+    '<div style="' +
+      "padding:10px;" +
+      "border-radius:9px;" +
+      "text-align:center;" +
+      "background:" +
+      background +
+      ";" +
+      "color:" +
+      color +
+      ";" +
+    '">' +
+
+      '<strong style="' +
+        "display:block;" +
+        "font-size:18px;" +
+      '">' +
+
+        escapeHtml(
+          value
+        ) +
+
+      "</strong>" +
+
+      "<span>" +
+        escapeHtml(
+          label
+        ) +
+      "</span>" +
+
+    "</div>"
+  );
+
+}
+
+
+/**
+ * Formatage taille.
+ */
+function formaterTailleFichierESG_(
+  bytes
+) {
+
+  var valeur =
+    Number(bytes || 0);
+
+
+  if (
+    valeur < 1024
+  ) {
+    return valeur + " o";
+  }
+
+
+  if (
+    valeur <
+    1024 * 1024
+  ) {
+    return (
+      valeur / 1024
+    ).toFixed(1) +
+      " Ko";
+  }
+
+
+  return (
+    valeur /
+    (1024 * 1024)
+  ).toFixed(1) +
+    " Mo";
+
+}
+
+
+
+function chargerApplication() {
+
+  google.script.run
+
+    .withSuccessHandler(
+      initialiserApplication
+    )
+
+    .withFailureHandler(
+      afficherErreurFatale
+    )
+
+    .obtenirDonneesApplicationV2();
+
+}
+
+
+
+function initialiserApplication(
+  data
+) {
+
+  appState.data = data;
+
+
+  construireProfil();
+
+  construireQuestionsESG();
+
+  construireQuestionsDigitales();
+
+
+  document
+    .getElementById(
+      "loadingScreen"
+    )
+    .classList
+    .add(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      "app"
+    )
+    .classList
+    .remove(
+      "hidden"
+    );
+
+
+  afficherAccueilESG_();
+
+  mettreAJourNavigation();
+
+}
+
+
+
+function construireProfil() {
+
+  var container =
+    document.getElementById(
+      "profileFields"
+    );
+
+
+  var fields =
+    appState
+      .data
+      .questionnaire
+      .profileFields;
+
+
+  container.innerHTML =
+
+    fields.map(
+
+      function(field) {
+
+        var full =
+          field.type === "multiselect"
+            ? " full"
+            : "";
+
+
+        var required =
+          field.required
+            ? '<span class="required-mark">*</span>'
+            : "";
+
+
+        return (
+
+          '<div class="form-field' +
+          full +
+          '">' +
+
+            '<label for="profile-' +
+            escapeHtml(field.id) +
+            '">' +
+
+              escapeHtml(
+                field.label
+              ) +
+
+              " " +
+
+              required +
+
+            "</label>" +
+
+            construireChampProfil(
+              field
+            ) +
+
+          "</div>"
+
+        );
+
+      }
+
+    ).join("");
+
+}
+
+
+
+function construireChampProfil(
+  field
+) {
+
+  var id =
+    "profile-" +
+    field.id;
+
+
+  if (
+    field.type === "select"
+  ) {
+
+    return (
+
+      '<select class="form-control" id="' +
+      escapeHtml(id) +
+      '">' +
+
+        '<option value="">Sélectionnez une option</option>' +
+
+        (
+          field.options || []
+        ).map(
+
+          function(option) {
+
+            return (
+
+              '<option value="' +
+              escapeHtml(option) +
+              '">' +
+
+              escapeHtml(option) +
+
+              "</option>"
+
+            );
+
+          }
+
+        ).join("") +
+
+      "</select>"
+
+    );
+
+  }
+
+
+
+  if (
+    field.type === "multiselect"
+  ) {
+
+    return (
+
+      '<div class="checkbox-grid" id="' +
+      escapeHtml(id) +
+      '">' +
+
+        (
+          field.options || []
+        ).map(
+
+          function(option) {
+
+            return (
+
+              '<label class="checkbox-option">' +
+
+                '<input type="checkbox" value="' +
+                escapeHtml(option) +
+                '">' +
+
+                "<span>" +
+                escapeHtml(option) +
+                "</span>" +
+
+              "</label>"
+
+            );
+
+          }
+
+        ).join("") +
+
+      "</div>"
+
+    );
+
+  }
+
+
+
+  var type =
+
+    [
+      "email",
+      "tel",
+      "number"
+    ].indexOf(
+      field.type
+    ) !== -1
+
+      ? field.type
+
+      : "text";
+
+
+  return (
+
+    '<input class="form-control" id="' +
+    escapeHtml(id) +
+    '" type="' +
+    type +
+    '">'
+
+  );
+
+}
+
+
+
+function construireQuestionsESG() {
+
+  var container =
+    document.getElementById(
+      "esgQuestions"
+    );
+
+
+  var questionnaire =
+    appState
+      .data
+      .questionnaire;
+
+
+  var options =
+    questionnaire
+      .maturityOptions
+      .concat(
+        questionnaire
+          .specialOptions
+      );
+
+
+  var labels = {
+
+    E:
+      "Environnement",
+
+    S:
+      "Social",
+
+    G:
+      "Gouvernance",
+
+    R:
+      "ESG Readiness"
+
+  };
+
+
+  var grouped = {
+
+    E: [],
+
+    S: [],
+
+    G: [],
+
+    R: []
+
+  };
+
+
+  questionnaire
+    .questions
+    .forEach(
+
+      function(question) {
+
+        grouped[
+          question.pillar
+        ].push(
+          question
+        );
+
+      }
+
+    );
+
+
+  container.innerHTML =
+
+    [
+      "E",
+      "S",
+      "G",
+      "R"
+    ].map(
+
+      function(
+        pillar,
+        pillarIndex
+      ) {
+
+        return (
+
+          '<details class="pillar-group" data-pillar="' +
+          escapeHtml(
+            pillar
+          ) +
+          '" ' +
+
+          (
+            pillarIndex === 0
+              ? "open"
+              : ""
+          ) +
+
+          ">" +
+
+            "<summary>" +
+
+              escapeHtml(
+                labels[pillar]
+              ) +
+
+              " — " +
+
+              grouped[pillar].length +
+
+              " questions" +
+
+            "</summary>" +
+
+
+            '<div class="pillar-content">' +
+
+              grouped[pillar]
+
+                .map(
+
+                  function(question) {
+
+                    return construireCarteESG(
+                      question,
+                      options
+                    );
+
+                  }
+
+                )
+
+                .join("") +
+
+            "</div>" +
+
+          "</details>"
+
+        );
+
+      }
+
+    ).join("");
+
+}
+
+
+
+function construireCarteESG(
+  question,
+  options
+) {
+
+  var critical =
+
+    question.critical
+
+      ? '<span class="critical-badge">Question critique</span>'
+
+      : "";
+
+
+  var evidence =
+
+    (
+      question
+        .accepted_evidence_examples ||
+      []
+    ).join(", ");
+
+
+
+  var optionsHtml =
+
+    options.map(
+
+      function(option) {
+
+        return (
+
+          '<option value="' +
+          escapeHtml(
+            option.value
+          ) +
+          '">' +
+
+          escapeHtml(
+            option.label
+          ) +
+
+          (
+            option.description
+
+              ? " — " +
+                escapeHtml(
+                  option.description
+                )
+
+              : ""
+          ) +
+
+          "</option>"
+
+        );
+
+      }
+
+    ).join("");
+
+
+
+  return (
+
+    '<article class="question-card">' +
+
+      '<div class="question-number">' +
+
+        "Question " +
+
+        escapeHtml(
+          question.number
+        ) +
+
+        critical +
+
+      "</div>" +
+
+
+      "<h3>" +
+
+        escapeHtml(
+          question.question_text
+        ) +
+
+      "</h3>" +
+
+
+      '<p class="question-meta">' +
+
+        escapeHtml(
+          question.theme
+        ) +
+
+        " · " +
+
+        escapeHtml(
+          question.subtheme
+        ) +
+
+        (
+          evidence
+
+            ? "<br>Preuve possible : " +
+              escapeHtml(
+                evidence
+              )
+
+            : ""
+        ) +
+
+      "</p>" +
+
+
+      '<div class="question-inputs">' +
+
+
+        '<div class="form-field">' +
+
+          '<label for="esg-' +
+          escapeHtml(
+            question.question_id
+          ) +
+          '">' +
+
+          "Niveau de maturité" +
+
+          "</label>" +
+
+
+          '<select class="form-control esg-value" ' +
+
+          'id="esg-' +
+          escapeHtml(
+            question.question_id
+          ) +
+
+          '" data-question="' +
+          escapeHtml(
+            question.question_id
+          ) +
+
+          '">' +
+
+            '<option value="">Choisissez une réponse</option>' +
+
+            optionsHtml +
+
+          "</select>" +
+
+        "</div>" +
+
+
+
+        '<div class="form-field">' +
+
+          '<label for="evidence-' +
+          escapeHtml(
+            question.question_id
+          ) +
+          '">' +
+
+          "Niveau de preuve" +
+
+          "</label>" +
+
+
+          '<select class="form-control" id="evidence-' +
+          escapeHtml(
+            question.question_id
+          ) +
+          '">' +
+
+            '<option value="NONE">Aucune preuve</option>' +
+
+            '<option value="DECLARATIVE">Déclaration non vérifiée</option>' +
+
+            '<option value="MEDIUM">Preuve moyenne</option>' +
+
+            '<option value="STRONG">Preuve forte</option>' +
+
+          "</select>" +
+
+        "</div>" +
+
+
+
+        '<div class="form-field question-comment">' +
+
+          '<label for="comment-' +
+          escapeHtml(
+            question.question_id
+          ) +
+          '">' +
+
+          "Commentaire facultatif" +
+
+          "</label>" +
+
+
+          '<textarea class="form-control" id="comment-' +
+          escapeHtml(
+            question.question_id
+          ) +
+          '"></textarea>' +
+
+        "</div>" +
+
+
+      "</div>" +
+
+    "</article>"
+
+  );
+
+}
+
+
+
+function construireQuestionsDigitales() {
+
+  var container =
+    document.getElementById(
+      "digitalQuestions"
+    );
+
+
+  container.innerHTML =
+
+    appState
+      .data
+      .digitalQuestions
+      .map(
+
+        function(
+          question,
+          index
+        ) {
+
+          var type =
+
+            question.type === "multi"
+
+              ? "checkbox"
+
+              : "radio";
+
+
+          return (
+
+            '<article class="digital-card">' +
+
+              "<h3>" +
+
+                (
+                  index + 1
+                ) +
+
+                ". " +
+
+                escapeHtml(
+                  question.question_text
+                ) +
+
+              "</h3>" +
+
+
+              '<div class="digital-options">' +
+
+                question.options
+
+                  .map(
+
+                    function(option) {
+
+                      return (
+
+                        '<label class="digital-option">' +
+
+                          '<input type="' +
+                          type +
+
+                          '" name="' +
+                          escapeHtml(
+                            question.id
+                          ) +
+
+                          '" value="' +
+                          escapeHtml(
+                            option.value
+                          ) +
+                          '">' +
+
+                          "<span>" +
+
+                          escapeHtml(
+                            option.label
+                          ) +
+
+                          "</span>" +
+
+                        "</label>"
+
+                      );
+
+                    }
+
+                  )
+
+                  .join("") +
+
+              "</div>" +
+
+            "</article>"
+
+          );
+
+        }
+
+      )
+
+      .join("");
+
+}
+
+
+
+function allerEtapeSuivante() {
+
+  effacerErreur();
+
+
+  if (
+    !validerEtape(
+      appState.currentStep
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    appState.currentStep === 2
+  ) {
+
+    construireRevision();
+
+  }
+
+
+  appState.currentStep =
+
+    Math.min(
+      3,
+      appState.currentStep + 1
+    );
+
+
+  afficherEtape();
+
+}
+
+
+
+function allerEtapePrecedente() {
+
+  effacerErreur();
+
+
+  if (
+    appState.currentStep === 0
+  ) {
+
+    afficherAccueilESG_();
+
+    return;
+
+  }
+
+
+  appState.currentStep =
+
+    Math.max(
+      0,
+      appState.currentStep - 1
+    );
+
+
+  afficherEtape();
+
+}
+
+function afficherEtape() {
+
+  document
+    .querySelectorAll(
+      ".form-step"
+    )
+    .forEach(
+
+      function(step) {
+
+        step.classList.remove(
+          "active"
+        );
+
+      }
+
+    );
+
+
+  document
+    .getElementById(
+      "step-" +
+      appState.currentStep
+    )
+    .classList
+    .add(
+      "active"
+    );
+
+
+  mettreAJourNavigation();
+
+
+  window.scrollTo({
+
+    top: 0,
+
+    behavior: "smooth"
+
+  });
+
+}
+
+
+
+function mettreAJourNavigation() {
+
+  var step =
+    appState.currentStep;
+
+
+  document
+    .querySelectorAll(
+      ".step-indicator"
+    )
+    .forEach(
+
+      function(
+        indicator,
+        index
+      ) {
+
+        indicator.classList.toggle(
+          "active",
+          index === step
+        );
+
+
+        indicator.classList.toggle(
+          "completed",
+          index < step
+        );
+
+      }
+
+    );
+
+
+  document
+    .getElementById(
+      "progressBar"
+    )
+    .style
+    .width =
+
+      Math.min(
+        100,
+        (
+          step / 3
+        ) * 100
+      ) +
+
+      "%";
+
+
+  var previousButton =
+    document.getElementById(
+      "previousButton"
+    );
+
+
+  previousButton
+    .classList
+    .toggle(
+
+      "hidden",
+
+      step === 4
+
+    );
+
+
+  previousButton.textContent =
+    step === 0
+      ? "Changer de parcours"
+      : "Retour";
+
+
+  document
+    .getElementById(
+      "nextButton"
+    )
+    .classList
+    .toggle(
+
+      "hidden",
+
+      step >= 3
+
+    );
+
+
+  document
+    .getElementById(
+      "submitButton"
+    )
+    .classList
+    .toggle(
+
+      "hidden",
+
+      step !== 3
+
+    );
+
+
+  document
+    .getElementById(
+      "navigation"
+    )
+    .classList
+    .toggle(
+
+      "hidden",
+
+      step === 4
+
+    );
+
+}
+function validerEtape(
+  step
+) {
+
+  if (
+    step === 0
+  ) {
+
+    var profil =
+      collecterProfil();
+
+
+    var fields =
+      appState
+        .data
+        .questionnaire
+        .profileFields;
+
+
+    for (
+      var index = 0;
+      index < fields.length;
+      index++
+    ) {
+
+      var field =
+        fields[index];
+
+
+      if (
+
+        field.required &&
+
+        (
+
+          profil[field.id] === "" ||
+
+          profil[field.id] === null ||
+
+          profil[field.id] === undefined ||
+
+          (
+
+            Array.isArray(
+              profil[field.id]
+            ) &&
+
+            profil[field.id].length === 0
+
+          )
+
+        )
+
+      ) {
+
+        afficherErreur(
+
+          "Veuillez renseigner : " +
+          field.label +
+          "."
+
+        );
+
+
+        return false;
+
+      }
+
+    }
+
+  }
+
+
+
+  if (
+    step === 1
+  ) {
+
+    var nonRepondues =
+
+      Array.from(
+
+        document.querySelectorAll(
+          ".esg-value"
+        )
+
+      ).filter(
+
+        function(select) {
+
+          return select.value === "";
+
+        }
+
+      );
+
+
+    if (
+      nonRepondues.length > 0
+    ) {
+
+      afficherErreur(
+
+        "Veuillez répondre à toutes les questions ESG. Il reste " +
+        nonRepondues.length +
+        " réponse(s)."
+
+      );
+
+
+      nonRepondues[0]
+        .scrollIntoView({
+
+          behavior: "smooth",
+
+          block: "center"
+
+        });
+
+
+      return false;
+
+    }
+
+  }
+
+
+
+  if (
+    step === 2
+  ) {
+
+    var questions =
+      appState
+        .data
+        .digitalQuestions;
+
+
+    for (
+
+      var questionIndex = 0;
+
+      questionIndex < questions.length;
+
+      questionIndex++
+
+    ) {
+
+      var question =
+        questions[
+          questionIndex
+        ];
+
+
+      var checked =
+
+        document.querySelectorAll(
+
+          'input[name="' +
+          cssEscape(
+            question.id
+          ) +
+          '"]:checked'
+
+        );
+
+
+      if (
+        checked.length === 0
+      ) {
+
+        afficherErreur(
+
+          "Veuillez répondre à toutes les questions numériques."
+
+        );
+
+
+        return false;
+
+      }
+
+
+      if (
+
+        question.type === "multi" &&
+
+        checked.length >
+
+        (
+          question.maxSelections ||
+          3
+        )
+
+      ) {
+
+        afficherErreur(
+
+          "Sélectionnez au maximum " +
+
+          (
+            question.maxSelections ||
+            3
+          ) +
+
+          " priorités numériques."
+
+        );
+
+
+        return false;
+
+      }
+
+    }
+
+  }
+
+
+  return true;
+
+}
+
+
+
+function collecterProfil() {
+
+  var resultat = {};
+
+
+  appState
+    .data
+    .questionnaire
+    .profileFields
+    .forEach(
+
+      function(field) {
+
+        var element =
+
+          document.getElementById(
+
+            "profile-" +
+            field.id
+
+          );
+
+
+        if (
+          field.type === "multiselect"
+        ) {
+
+          resultat[field.id] =
+
+            Array.from(
+
+              element.querySelectorAll(
+                "input:checked"
+              )
+
+            ).map(
+
+              function(input) {
+
+                return input.value;
+
+              }
+
+            );
+
+        } else {
+
+          resultat[field.id] =
+            element.value.trim();
+
+        }
+
+      }
+
+    );
+
+
+  var sloganElement =
+    document.getElementById(
+      "organizationSlogan"
+    );
+
+  resultat.organizationSlogan =
+    sloganElement
+      ? sloganElement.value.trim()
+      : "";
+
+  resultat.branding =
+    resultat.branding || {};
+
+  resultat.branding.slogan =
+    resultat.organizationSlogan || null;
+
+
+  return resultat;
+
+}
+
+
+
+function collecterReponsesESG() {
+
+  var resultat = {};
+
+
+  appState
+    .data
+    .questionnaire
+    .questions
+    .forEach(
+
+      function(question) {
+
+        var id =
+          question.question_id;
+
+
+        resultat[id] = {
+
+          value:
+
+            document
+              .getElementById(
+                "esg-" + id
+              )
+              .value,
+
+
+          evidenceLevel:
+
+            document
+              .getElementById(
+                "evidence-" + id
+              )
+              .value,
+
+
+          comment:
+
+            document
+              .getElementById(
+                "comment-" + id
+              )
+              .value
+              .trim()
+
+        };
+
+      }
+
+    );
+
+
+  return resultat;
+
+}
+
+
+
+function collecterReponsesDigitales() {
+
+  var resultat = {};
+
+
+  appState
+    .data
+    .digitalQuestions
+    .forEach(
+
+      function(question) {
+
+        var checked =
+
+          Array.from(
+
+            document.querySelectorAll(
+
+              'input[name="' +
+              cssEscape(
+                question.id
+              ) +
+              '"]:checked'
+
+            )
+
+          );
+
+
+        resultat[
+          question.id
+        ] =
+
+          question.type === "multi"
+
+            ? checked.map(
+
+                function(input) {
+
+                  return input.value;
+
+                }
+
+              )
+
+            : checked.length
+
+              ? checked[0].value
+
+              : null;
+
+      }
+
+    );
+
+
+  return resultat;
+
+}
+
+
+
+function construireRevision() {
+
+  var profil =
+    collecterProfil();
+
+
+  var nombreQuestions =
+
+    appState
+      .data
+      .questionnaire
+      .questions
+      .length;
+
+
+  document
+    .getElementById(
+      "reviewBox"
+    )
+    .innerHTML =
+
+      "<strong>Organisation :</strong> " +
+
+      escapeHtml(
+        profil.organizationName || ""
+      ) +
+
+      "<br>" +
+
+
+      "<strong>Responsable :</strong> " +
+
+      escapeHtml(
+        profil.responsibleName || ""
+      ) +
+
+      "<br>" +
+
+
+      "<strong>Email :</strong> " +
+
+      escapeHtml(
+        profil.professionalEmail || ""
+      ) +
+
+      "<br>" +
+
+
+      "<strong>Questionnaire ESG :</strong> " +
+
+      nombreQuestions +
+
+      " réponses enregistrées" +
+
+      "<br>" +
+
+
+      "<strong>Questionnaire numérique :</strong> " +
+
+      appState
+        .data
+        .digitalQuestions
+        .length +
+
+      " réponses enregistrées";
+
+}
+
+
+
+function soumettreDiagnostic() {
+
+  effacerErreur();
+
+
+  if (
+
+    !document
+      .getElementById(
+        "consentDiagnostic"
+      )
+      .checked
+
+  ) {
+
+    afficherErreur(
+
+      "Le consentement au traitement du diagnostic est obligatoire."
+
+    );
+
+
+    return;
+
+  }
+
+
+
+  if (
+
+    !document
+      .getElementById(
+        "consentPrivacy"
+      )
+      .checked
+
+  ) {
+
+    afficherErreur(
+
+      "Veuillez confirmer la notice de confidentialité."
+
+    );
+
+
+    return;
+
+  }
+
+
+
+  var payload = {
+
+    profil:
+      collecterProfil(),
+
+
+    reponsesESG:
+      collecterReponsesESG(),
+
+
+    reponsesDigitales:
+      collecterReponsesDigitales(),
+
+
+    consentements: {
+
+      diagnostic:
+
+        document
+          .getElementById(
+            "consentDiagnostic"
+          )
+          .checked,
+
+
+      privacyNoticeAccepted:
+
+        document
+          .getElementById(
+            "consentPrivacy"
+          )
+          .checked,
+
+
+      afriGreen24:
+
+        document
+          .getElementById(
+            "consentAfriGreen"
+          )
+          .checked,
+
+
+      mbDigital:
+
+        document
+          .getElementById(
+            "consentMBDigital"
+          )
+          .checked
+
+    }
+
+  };
+
+
+  /*
+   * ========================================================
+   * BRANDING AFRIGREEN24
+   * Ajoute le logo sélectionné au payload ESG.
+   * ========================================================
+   */
+
+  if (
+    window.AfriGreen24Branding &&
+    typeof AfriGreen24Branding.attachToData === "function"
+  ) {
+
+    payload =
+      AfriGreen24Branding.attachToData(
+
+        payload,
+
+        payload.profil.organizationName || ""
+
+      );
+
+  } else {
+
+    payload.logoUpload = null;
+
+  }
+
+
+  document
+    .getElementById(
+      "submissionOverlay"
+    )
+    .classList
+    .remove(
+      "hidden"
+    );
+
+
+  google.script.run
+
+    .withSuccessHandler(
+      afficherResultat
+    )
+
+    .withFailureHandler(
+      gererErreurSoumission
+    )
+
+    .soumettreDiagnosticV2(
+      payload
+    );
+
+}
+
+
+
+function afficherResultat(
+  resultat
+) {
+
+  document
+    .getElementById(
+      "submissionOverlay"
+    )
+    .classList
+    .add(
+      "hidden"
+    );
+
+
+  appState.currentStep = 4;
+
+
+  var offres =
+
+    (
+      resultat
+        .offresAfriGreen24 ||
+      []
+    ).map(
+
+      function(offre) {
+
+        var destination =
+
+          offre.url ||
+
+          (
+            "mailto:" +
+
+            appState
+              .data
+              .app
+              .contactEmail
+          );
+
+
+        return (
+
+          '<a class="offer-card" target="_blank" href="' +
+
+          escapeHtml(
+            destination
+          ) +
+
+          '">' +
+
+            "<h3>" +
+
+            escapeHtml(
+              offre.titre
+            ) +
+
+            "</h3>" +
+
+
+            "<p>" +
+
+            escapeHtml(
+              offre.description
+            ) +
+
+            "</p>" +
+
+
+            '<span class="offer-cta">' +
+
+            escapeHtml(
+              offre.cta
+            ) +
+
+            " →</span>" +
+
+          "</a>"
+
+        );
+
+      }
+
+    ).join("");
+
+
+  document
+    .getElementById(
+      "resultContainer"
+    )
+    .innerHTML =
+
+      '<div class="result-hero">' +
+
+        '<span class="eyebrow">Rapport généré</span>' +
+
+
+        "<h2>Votre diagnostic ESG est prêt</h2>" +
+
+
+        "<p>" +
+
+        escapeHtml(
+          resultat.message
+        ) +
+
+        "</p>" +
+
+      "</div>" +
+
+
+
+      '<div class="result-score-grid">' +
+
+
+        '<div class="score-card">' +
+
+          "<span>Score ESG</span>" +
+
+          "<strong>" +
+
+          escapeHtml(
+            resultat.scoreESG
+          ) +
+
+          "/100</strong>" +
+
+          "<small>" +
+
+          escapeHtml(
+            resultat.maturite.label
+          ) +
+
+          "</small>" +
+
+        "</div>" +
+
+
+
+        '<div class="score-card">' +
+
+          "<span>Transparence numérique ESG</span>" +
+
+          "<strong>" +
+
+          escapeHtml(
+            resultat.scoreDigital
+          ) +
+
+          "/100</strong>" +
+
+          "<small>" +
+
+          escapeHtml(
+            resultat.niveauDigital.label
+          ) +
+
+          "</small>" +
+
+        "</div>" +
+
+
+      "</div>" +
+
+
+      "<p>" +
+
+      escapeHtml(
+        resultat
+          .resumeDigital
+          .message
+      ) +
+
+      "</p>" +
+
+
+
+      '<div class="result-links">' +
+
+        '<a class="result-link" target="_blank" href="' +
+
+        escapeHtml(
+          resultat.docUrl
+        ) +
+
+        '">' +
+
+        "Ouvrir le rapport Google Docs" +
+
+        "</a>" +
+
+
+        '<a class="result-link" target="_blank" href="' +
+
+        escapeHtml(
+          resultat.pdfDownloadUrl
+        ) +
+
+        '">' +
+
+        "Télécharger le rapport PDF" +
+
+        "</a>" +
+
+      "</div>" +
+
+
+      (
+
+        offres
+
+          ? '<div class="section-heading" style="margin-top:35px">' +
+
+              '<span class="eyebrow">Poursuivre</span>' +
+
+              "<h2>Ressources AfriGreen24</h2>" +
+
+            "</div>" +
+
+            '<div class="offer-grid">' +
+
+              offres +
+
+            "</div>"
+
+          : ""
+
+      );
+
+
+  afficherEtape();
+
+}
+
+
+
+function gererErreurSoumission(
+  erreur
+) {
+
+  document
+    .getElementById(
+      "submissionOverlay"
+    )
+    .classList
+    .add(
+      "hidden"
+    );
+
+
+  afficherErreur(
+
+    erreur &&
+    erreur.message
+
+      ? erreur.message
+
+      : "La génération du rapport a échoué."
+
+  );
+
+}
+
+
+
+function afficherErreur(
+  message
+) {
+
+  var box =
+    document.getElementById(
+      "formError"
+    );
+
+
+  box.textContent =
+    message;
+
+
+  box.classList.remove(
+    "hidden"
+  );
+
+
+  box.scrollIntoView({
+
+    behavior: "smooth",
+
+    block: "center"
+
+  });
+
+}
+
+
+
+function effacerErreur() {
+
+  var box =
+    document.getElementById(
+      "formError"
+    );
+
+
+  box.textContent = "";
+
+
+  box.classList.add(
+    "hidden"
+  );
+
+}
+
+
+
+function afficherErreurFatale(
+  erreur
+) {
+
+  var loading =
+    document.getElementById(
+      "loadingScreen"
+    );
+
+
+  loading.innerHTML =
+
+    "<h2>Impossible de charger l’application</h2>" +
+
+    "<p>" +
+
+    escapeHtml(
+
+      erreur &&
+      erreur.message
+
+        ? erreur.message
+
+        : "Erreur inconnue."
+
+    ) +
+
+    "</p>";
+
+}
+
+
+
+function escapeHtml(
+  value
+) {
+
+  return String(
+
+    value === undefined ||
+    value === null
+
+      ? ""
+
+      : value
+
+  )
+
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+
+    .replace(
+      /</g,
+      "&lt;"
+    )
+
+    .replace(
+      />/g,
+      "&gt;"
+    )
+
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
+
+
+
+function cssEscape(
+  value
+) {
+
+  if (
+
+    window.CSS &&
+    CSS.escape
+
+  ) {
+
+    return CSS.escape(
+      value
+    );
+
+  }
+
+
+  return String(
+    value
+  ).replace(
+    /"/g,
+    '\\"'
+  );
+
+}
+function basculerInformationsTrouveesESG_() {
+
+  var container =
+    document.getElementById(
+      "esgQuestions"
+    );
+
+
+  if (!container) {
+    return;
+  }
+
+
+  var cards =
+    container.querySelectorAll(
+      '[data-esg-import-status="FOUND"]'
+    );
+
+
+  if (!cards.length) {
+    return;
+  }
+
+
+  var afficher =
+    Array.from(cards)
+      .some(function(card) {
+        return (
+          card.style.display ===
+          "none"
+        );
+      });
+
+
+  cards.forEach(function(card) {
+
+    card.style.display =
+      afficher
+        ? ""
+        : "none";
+
+    card.dataset.esgImportHidden =
+      afficher
+        ? "false"
+        : "true";
+
+  });
+
+
+  var button =
+    document.getElementById(
+      "esgImportToggleFoundButton"
+    );
+
+
+  if (button) {
+
+    button.textContent =
+      afficher
+        ? "Masquer les réponses déjà préremplies"
+        : "Examiner les réponses préremplies";
+
+  }
+
+}
+function mettreAJourExperienceImportESG_() {
+
+  var ancien =
+    document.getElementById(
+      "esgImportRemainingBanner"
+    );
+
+  if (ancien) {
+    ancien.remove();
+  }
+
+
+  var questionsContainer =
+    document.getElementById(
+      "esgQuestions"
+    );
+
+
+  if (!questionsContainer) {
+    return;
+  }
+
+
+  var cards =
+    Array.from(
+      questionsContainer.querySelectorAll(
+        '[data-esg-import-status]'
+      )
+    );
+
+
+  var found =
+    cards.filter(
+      function(card) {
+        return (
+          card.dataset.esgImportStatus ===
+          "FOUND"
+        );
+      }
+    ).length;
+
+
+  var toConfirm =
+    cards.filter(
+      function(card) {
+        return (
+          card.dataset.esgImportStatus ===
+          "TO_CONFIRM"
+        );
+      }
+    ).length;
+
+
+  var confirmed =
+    cards.filter(
+      function(card) {
+        return (
+          card.dataset.esgImportStatus ===
+          "TO_CONFIRM" &&
+          card.dataset.esgImportConfirmed ===
+          "true"
+        );
+      }
+    ).length;
+
+
+  var pendingConfirm =
+    Math.max(
+      0,
+      toConfirm - confirmed
+    );
+
+
+  var missing =
+    cards.filter(
+      function(card) {
+        return (
+          card.dataset.esgImportStatus ===
+          "MISSING"
+        );
+      }
+    ).length;
+
+
+  var banner =
+    document.createElement(
+      "div"
+    );
+
+
+  banner.id =
+    "esgImportRemainingBanner";
+
+  banner.className =
+    "esg-import-workspace-banner";
+
+
+  var texte;
+
+  if (
+    pendingConfirm > 0 &&
+    missing > 0
+  ) {
+
+    texte =
+      '<strong>Votre dossier est déjà largement exploité.</strong>' +
+      '<p>' +
+        '<strong>' +
+        escapeHtml(
+          pendingConfirm
+        ) +
+        '</strong> information' +
+        (
+          pendingConfirm > 1
+            ? 's détectées sont à valider rapidement'
+            : ' détectée est à valider rapidement'
+        ) +
+        ' et seulement <strong>' +
+        escapeHtml(
+          missing
+        ) +
+        '</strong> information' +
+        (
+          missing > 1
+            ? 's sont réellement manquantes.'
+            : ' est réellement manquante.'
+        ) +
+      '</p>';
+
+  } else if (
+    pendingConfirm > 0
+  ) {
+
+    texte =
+      '<strong>AfriGreen24 a déjà trouvé les informations.</strong>' +
+      '<p>Il reste uniquement <strong>' +
+        escapeHtml(
+          pendingConfirm
+        ) +
+        '</strong> validation' +
+        (
+          pendingConfirm > 1
+            ? 's rapides'
+            : ' rapide'
+        ) +
+        ' avant de poursuivre.</p>';
+
+  } else if (
+    missing > 0
+  ) {
+
+    texte =
+      '<strong>Les informations détectées ont été validées.</strong>' +
+      '<p>Il reste seulement <strong>' +
+        escapeHtml(
+          missing
+        ) +
+        '</strong> information' +
+        (
+          missing > 1
+            ? 's réellement manquantes à compléter.'
+            : ' réellement manquante à compléter.'
+        ) +
+      '</p>';
+
+  } else {
+
+    texte =
+      '<strong>Votre diagnostic ESG est prêt à poursuivre.</strong>' +
+      '<p>Toutes les informations issues de l’import ont été validées.</p>';
+
+  }
+
+
+  banner.innerHTML =
+    texte +
+
+    '<div class="esg-import-workspace-actions">' +
+
+      (
+        compterReponsesProposeesESG_() > 0
+
+          ? (
+              '<button ' +
+                'type="button" ' +
+                'id="esgImportConfirmSuggestedButton" ' +
+                'class="button button-primary">' +
+                'Valider les réponses déjà proposées' +
+              '</button>'
+            )
+
+          : ""
+      ) +
+
+      (
+        found > 0
+
+          ? (
+              '<button ' +
+                'type="button" ' +
+                'id="esgImportToggleFoundButton" ' +
+                'class="button button-secondary">' +
+                'Examiner les réponses validées automatiquement' +
+              '</button>'
+            )
+
+          : ""
+      ) +
+
+    '</div>';
+
+
+  questionsContainer.insertBefore(
+    banner,
+    questionsContainer.firstChild
+  );
+
+
+  var confirmSuggestedButton =
+    document.getElementById(
+      "esgImportConfirmSuggestedButton"
+    );
+
+
+  if (confirmSuggestedButton) {
+
+    confirmSuggestedButton.addEventListener(
+      "click",
+      validerReponsesProposeesESG_
+    );
+
+  }
+
+
+  var toggleButton =
+    document.getElementById(
+      "esgImportToggleFoundButton"
+    );
+
+
+  if (toggleButton) {
+
+    toggleButton.addEventListener(
+      "click",
+      basculerInformationsTrouveesESG_
+    );
+
+  }
+
+
+  mettreAJourResumePiliersImportESG_();
+
+}
+
+
+
+/**
+ * ============================================================
+ * VALIDATION RAPIDE DES TO_CONFIRM
+ * ============================================================
+ *
+ * Règle de sécurité :
+ * - aucune valeur n'est inventée ;
+ * - un TO_CONFIRM sans valeur canonique exige un choix utilisateur ;
+ * - seuls les TO_CONFIRM déjà préremplis peuvent être validés en lot.
+ */
+
+
+function retirerValidationRapideQuestionESG_(
+  card
+) {
+
+  if (!card) {
+    return;
+  }
+
+
+  card.classList.remove(
+    "esg-import-to-confirm-card",
+    "esg-import-editing",
+    "esg-import-confirmed-card"
+  );
+
+
+  var quick =
+    card.querySelector(
+      ".esg-import-quick-review"
+    );
+
+
+  if (quick) {
+    quick.remove();
+  }
+
+
+  var inputs =
+    card.querySelector(
+      ".question-inputs"
+    );
+
+
+  if (inputs) {
+    inputs.classList.remove(
+      "esg-import-compact-inputs"
+    );
+  }
+
+}
+
+
+/**
+ * Prépare une question TO_CONFIRM en validation compacte.
+ */
+function preparerValidationRapideQuestionESG_(
+  questionId,
+  item,
+  card,
+  select
+) {
+
+  if (
+    !card ||
+    !select
+  ) {
+    return;
+  }
+
+
+  retirerValidationRapideQuestionESG_(
+    card
+  );
+
+
+  card.classList.add(
+    "esg-import-to-confirm-card"
+  );
+
+
+  var inputs =
+    card.querySelector(
+      ".question-inputs"
+    );
+
+
+  if (inputs) {
+    inputs.classList.add(
+      "esg-import-compact-inputs"
+    );
+  }
+
+
+  var evidence =
+    item &&
+    item.evidence
+      ? String(
+          item.evidence
+        ).trim()
+      : "";
+
+
+  var hasSuggestion =
+    select.value !== "";
+
+
+  var suggestionLabel =
+    hasSuggestion
+      ? obtenirLibelleOptionSelectESG_(
+          select,
+          select.value
+        )
+      : "";
+
+
+  var panel =
+    document.createElement(
+      "div"
+    );
+
+
+  panel.className =
+    "esg-import-quick-review";
+
+
+  panel.innerHTML =
+
+    '<div class="esg-import-quick-kicker">' +
+      'Information détectée dans votre document' +
+    '</div>' +
+
+    (
+      evidence
+
+        ? (
+            '<div class="esg-import-quick-evidence">' +
+              '<span>Extrait détecté</span>' +
+              '<blockquote>“' +
+                escapeHtml(
+                  evidence.length > 340
+                    ? evidence.substring(
+                        0,
+                        340
+                      ) + "…"
+                    : evidence
+                ) +
+              '”</blockquote>' +
+            '</div>'
+          )
+
+        : ""
+    ) +
+
+    (
+      hasSuggestion
+
+        ? (
+            '<div class="esg-import-quick-suggestion">' +
+              '<span>Réponse proposée</span>' +
+              '<strong>' +
+                escapeHtml(
+                  suggestionLabel
+                ) +
+              '</strong>' +
+            '</div>' +
+
+            '<p class="esg-import-quick-help">' +
+              'Cette réponse est déjà exploitable. Confirmez-la, ou ouvrez le détail si vous souhaitez la modifier.' +
+            '</p>'
+          )
+
+        : (
+            '<p class="esg-import-quick-help">' +
+              'Le document contient bien cette information, mais son niveau de maturité ne peut pas être repris automatiquement sans risque. ' +
+              'Choisissez uniquement le niveau correspondant, puis validez.' +
+            '</p>'
+          )
+    ) +
+
+    '<div class="esg-import-quick-actions">' +
+
+      '<button ' +
+        'type="button" ' +
+        'class="button button-primary esg-import-confirm-question" ' +
+        'data-question="' +
+        escapeHtml(
+          questionId
+        ) +
+        '">' +
+        (
+          hasSuggestion
+            ? 'Confirmer'
+            : 'Valider ce niveau'
+        ) +
+      '</button>' +
+
+      '<button ' +
+        'type="button" ' +
+        'class="button button-secondary esg-import-edit-question" ' +
+        'data-question="' +
+        escapeHtml(
+          questionId
+        ) +
+        '">' +
+        'Modifier en détail' +
+      '</button>' +
+
+    '</div>' +
+
+    '<div class="esg-import-quick-error hidden" role="alert"></div>';
+
+
+  var h3 =
+    card.querySelector(
+      "h3"
+    );
+
+
+  if (
+    h3 &&
+    h3.nextSibling
+  ) {
+    card.insertBefore(
+      panel,
+      h3.nextSibling
+    );
+  } else {
+    card.appendChild(
+      panel
+    );
+  }
+
+
+  var oldBadge =
+    card.querySelector(
+      ".esg-import-status"
+    );
+
+
+  if (oldBadge) {
+    oldBadge.remove();
+  }
+
+
+  var confirmButton =
+    panel.querySelector(
+      ".esg-import-confirm-question"
+    );
+
+
+  if (confirmButton) {
+
+    confirmButton.addEventListener(
+      "click",
+      function() {
+
+        validerQuestionImportESG_(
+          questionId
+        );
+
+      }
+    );
+
+  }
+
+
+  var editButton =
+    panel.querySelector(
+      ".esg-import-edit-question"
+    );
+
+
+  if (editButton) {
+
+    editButton.addEventListener(
+      "click",
+      function() {
+
+        ouvrirEditionQuestionImportESG_(
+          questionId
+        );
+
+      }
+    );
+
+  }
+
+
+  select.addEventListener(
+    "change",
+    function() {
+
+      var currentCard =
+        select.closest(
+          ".question-card"
+        );
+
+
+      if (
+        !currentCard ||
+        currentCard.dataset.esgImportStatus !==
+        "TO_CONFIRM"
+      ) {
+        return;
+      }
+
+
+      var button =
+        currentCard.querySelector(
+          ".esg-import-confirm-question"
+        );
+
+
+      if (
+        button &&
+        select.value !== ""
+      ) {
+        button.textContent =
+          "Valider ce niveau";
+      }
+
+
+      var error =
+        currentCard.querySelector(
+          ".esg-import-quick-error"
+        );
+
+
+      if (error) {
+        error.classList.add(
+          "hidden"
+        );
+        error.textContent = "";
+      }
+
+    }
+  );
+
+}
+
+
+/**
+ * Retourne le libellé lisible d'une option.
+ */
+function obtenirLibelleOptionSelectESG_(
+  select,
+  value
+) {
+
+  if (!select) {
+    return String(
+      value || ""
+    );
+  }
+
+
+  var option =
+    Array.from(
+      select.options || []
+    ).find(function(item) {
+      return (
+        String(item.value) ===
+        String(value)
+      );
+    });
+
+
+  return option
+    ? option.textContent
+    : String(value || "");
+
+}
+
+
+/**
+ * Valide une information TO_CONFIRM.
+ *
+ * La validation est impossible si aucune valeur canonique
+ * n'a encore été sélectionnée.
+ */
+function validerQuestionImportESG_(
+  questionId
+) {
+
+  var select =
+    document.getElementById(
+      "esg-" +
+      questionId
+    );
+
+
+  if (!select) {
+    return;
+  }
+
+
+  var card =
+    select.closest(
+      ".question-card"
+    );
+
+
+  if (!card) {
+    return;
+  }
+
+
+  var error =
+    card.querySelector(
+      ".esg-import-quick-error"
+    );
+
+
+  if (
+    select.value === ""
+  ) {
+
+    if (error) {
+      error.textContent =
+        "Choisissez d’abord le niveau de maturité correspondant à l’extrait détecté.";
+
+      error.classList.remove(
+        "hidden"
+      );
+    }
+
+
+    select.focus();
+
+    return;
+  }
+
+
+  card.dataset.esgImportConfirmed =
+    "true";
+
+  card.dataset.esgImportHidden =
+    "true";
+
+  card.classList.add(
+    "esg-import-confirmed-card"
+  );
+
+
+  appState.esgImport.confirmations =
+    appState.esgImport.confirmations ||
+    {};
+
+
+  appState.esgImport.confirmations[
+    questionId
+  ] = true;
+
+
+  card.style.display =
+    "none";
+
+
+  mettreAJourExperienceImportESG_();
+
+}
+
+
+/**
+ * Ouvre le questionnaire complet uniquement pour la question choisie.
+ */
+function ouvrirEditionQuestionImportESG_(
+  questionId
+) {
+
+  var select =
+    document.getElementById(
+      "esg-" +
+      questionId
+    );
+
+
+  if (!select) {
+    return;
+  }
+
+
+  var card =
+    select.closest(
+      ".question-card"
+    );
+
+
+  if (!card) {
+    return;
+  }
+
+
+  card.classList.add(
+    "esg-import-editing"
+  );
+
+
+  card.dataset.esgImportConfirmed =
+    "false";
+
+  card.dataset.esgImportHidden =
+    "false";
+
+
+  var inputs =
+    card.querySelector(
+      ".question-inputs"
+    );
+
+
+  if (inputs) {
+    inputs.classList.remove(
+      "esg-import-compact-inputs"
+    );
+  }
+
+
+  var panel =
+    card.querySelector(
+      ".esg-import-quick-review"
+    );
+
+
+  if (panel) {
+    panel.classList.add(
+      "hidden"
+    );
+  }
+
+
+  var meta =
+    card.querySelector(
+      ".question-meta"
+    );
+
+
+  if (meta) {
+    meta.style.display =
+      "";
+  }
+
+
+  select.focus();
+
+}
+
+
+/**
+ * Nombre de TO_CONFIRM encore en attente avec une réponse proposée.
+ */
+function compterReponsesProposeesESG_() {
+
+  return Array.from(
+    document.querySelectorAll(
+      '.question-card[data-esg-import-status="TO_CONFIRM"]'
+    )
+  ).filter(function(card) {
+
+    if (
+      card.dataset.esgImportConfirmed ===
+      "true"
+    ) {
+      return false;
+    }
+
+
+    var select =
+      card.querySelector(
+        ".esg-value"
+      );
+
+
+    return (
+      select &&
+      select.value !== ""
+    );
+
+  }).length;
+
+}
+
+
+/**
+ * Valide en lot uniquement les réponses ayant déjà
+ * une valeur canonique proposée.
+ */
+function validerReponsesProposeesESG_() {
+
+  document
+    .querySelectorAll(
+      '.question-card[data-esg-import-status="TO_CONFIRM"]'
+    )
+    .forEach(function(card) {
+
+      if (
+        card.dataset.esgImportConfirmed ===
+        "true"
+      ) {
+        return;
+      }
+
+
+      var select =
+        card.querySelector(
+          ".esg-value"
+        );
+
+
+      if (
+        !select ||
+        select.value === ""
+      ) {
+        return;
+      }
+
+
+      var questionId =
+        String(
+          select.dataset.question || ""
+        );
+
+
+      card.dataset.esgImportConfirmed =
+        "true";
+
+      card.dataset.esgImportHidden =
+        "true";
+
+      card.style.display =
+        "none";
+
+
+      if (questionId) {
+
+        appState.esgImport.confirmations =
+          appState.esgImport.confirmations ||
+          {};
+
+        appState.esgImport.confirmations[
+          questionId
+        ] = true;
+
+      }
+
+    });
+
+
+  mettreAJourExperienceImportESG_();
+
+}
+
+
+/**
+ * Validation groupée d'un pilier.
+ * Même règle : uniquement les réponses déjà proposées.
+ */
+function validerReponsesProposeesPilierESG_(
+  pillar
+) {
+
+  var details =
+    document.querySelector(
+      '.pillar-group[data-pillar="' +
+      cssEscape(
+        pillar
+      ) +
+      '"]'
+    );
+
+
+  if (!details) {
+    return;
+  }
+
+
+  details
+    .querySelectorAll(
+      '.question-card[data-esg-import-status="TO_CONFIRM"]'
+    )
+    .forEach(function(card) {
+
+      if (
+        card.dataset.esgImportConfirmed ===
+        "true"
+      ) {
+        return;
+      }
+
+
+      var select =
+        card.querySelector(
+          ".esg-value"
+        );
+
+
+      if (
+        !select ||
+        select.value === ""
+      ) {
+        return;
+      }
+
+
+      var questionId =
+        String(
+          select.dataset.question || ""
+        );
+
+
+      card.dataset.esgImportConfirmed =
+        "true";
+
+      card.dataset.esgImportHidden =
+        "true";
+
+      card.style.display =
+        "none";
+
+
+      if (questionId) {
+
+        appState.esgImport.confirmations =
+          appState.esgImport.confirmations ||
+          {};
+
+        appState.esgImport.confirmations[
+          questionId
+        ] = true;
+
+      }
+
+    });
+
+
+  mettreAJourExperienceImportESG_();
+
+}
+
+
+
+/**
+ * Initialise les deux parcours de la page d'accueil.
+ */
+function initialiserParcoursESG_() {
+
+  var boutonManuel =
+    document.getElementById(
+      "esgManualStartButton"
+    );
+
+
+  if (boutonManuel) {
+
+    boutonManuel.addEventListener(
+      "click",
+      demarrerParcoursESGClassique_
+    );
+
+  }
+
+}
+
+
+/**
+ * Ouvre le parcours complet.
+ *
+ * Si un import a déjà été réalisé, les valeurs ne sont pas effacées :
+ * toutes les questions redeviennent simplement visibles.
+ */
+function demarrerParcoursESGClassique_() {
+
+  if (
+    appState.esgImport &&
+    appState.esgImport.running
+  ) {
+    return;
+  }
+
+
+  appState.entryMode =
+    "manual";
+
+
+  restaurerExperienceQuestionnaireCompletESG_();
+
+
+  afficherEspaceDiagnosticESG_(
+    0
+  );
+
+}
+
+
+/**
+ * Ouvre le parcours issu de l'import documentaire.
+ */
+function demarrerParcoursImportESG_() {
+
+  appState.entryMode =
+    "import";
+
+
+  appliquerVisibiliteImportESG_();
+
+  mettreAJourExperienceProfilImportESG_();
+
+  mettreAJourExperienceImportESG_();
+
+
+  afficherEspaceDiagnosticESG_(
+    0
+  );
+
+}
+
+
+/**
+ * Affiche l'espace questionnaire à l'étape demandée.
+ */
+function afficherEspaceDiagnosticESG_(
+  step
+) {
+
+  var landing =
+    document.getElementById(
+      "esgLandingPage"
+    );
+
+  var workspace =
+    document.getElementById(
+      "diagnosticWorkspace"
+    );
+
+
+  if (landing) {
+    landing.classList.add(
+      "hidden"
+    );
+  }
+
+
+  if (workspace) {
+    workspace.classList.remove(
+      "hidden"
+    );
+  }
+
+
+  appState.currentStep =
+    Number.isFinite(
+      Number(step)
+    )
+      ? Number(step)
+      : 0;
+
+
+  afficherEtape();
+
+}
+
+
+/**
+ * Retourne au choix du parcours sans supprimer
+ * les réponses ou le résultat d'un import déjà effectué.
+ */
+function afficherAccueilESG_() {
+
+  var landing =
+    document.getElementById(
+      "esgLandingPage"
+    );
+
+  var workspace =
+    document.getElementById(
+      "diagnosticWorkspace"
+    );
+
+
+  if (workspace) {
+    workspace.classList.add(
+      "hidden"
+    );
+  }
+
+
+  if (landing) {
+    landing.classList.remove(
+      "hidden"
+    );
+  }
+
+
+  effacerErreur();
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
+
+
+/**
+ * Cache les champs FOUND et conserve visibles
+ * les éléments à confirmer ou compléter.
+ */
+function appliquerVisibiliteImportESG_() {
+
+  document
+    .querySelectorAll(
+      '[data-esg-import-status]'
+    )
+    .forEach(function(card) {
+
+      var status =
+        String(
+          card.dataset.esgImportStatus || ""
+        ).toUpperCase();
+
+      var confirmed =
+        String(
+          card.dataset.esgImportConfirmed || ""
+        ).toLowerCase() === "true";
+
+
+      if (
+        status === "FOUND" ||
+        (
+          status === "TO_CONFIRM" &&
+          confirmed
+        )
+      ) {
+
+        card.style.display =
+          "none";
+
+        card.dataset.esgImportHidden =
+          "true";
+
+      } else {
+
+        card.style.display =
+          "";
+
+        card.dataset.esgImportHidden =
+          "false";
+
+      }
+
+    });
+
+}
+
+
+/**
+ * Rétablit l'affichage complet du questionnaire.
+ * Les valeurs déjà saisies ou importées sont conservées.
+ */
+function restaurerExperienceQuestionnaireCompletESG_() {
+
+  document
+    .querySelectorAll(
+      '[data-esg-import-status]'
+    )
+    .forEach(function(card) {
+
+      card.style.display =
+        "";
+
+      card.dataset.esgImportHidden =
+        "false";
+
+      card.classList.remove(
+        "esg-import-to-confirm-card",
+        "esg-import-editing"
+      );
+
+      var quick =
+        card.querySelector(
+          ".esg-import-quick-review"
+        );
+
+      if (quick) {
+        quick.remove();
+      }
+
+      var inputs =
+        card.querySelector(
+          ".question-inputs"
+        );
+
+      if (inputs) {
+        inputs.classList.remove(
+          "esg-import-compact-inputs"
+        );
+      }
+
+    });
+
+
+  [
+    "esgImportProfileBanner",
+    "esgImportRemainingBanner"
+  ].forEach(function(id) {
+
+    var element =
+      document.getElementById(
+        id
+      );
+
+    if (element) {
+      element.remove();
+    }
+
+  });
+
+
+  document
+    .querySelectorAll(
+      ".pillar-import-toolbar"
+    )
+    .forEach(function(toolbar) {
+      toolbar.remove();
+    });
+
+
+  restaurerResumePiliersESG_();
+
+}
+
+
+/**
+ * Résumé spécifique à l'étape Profil après import.
+ */
+function mettreAJourExperienceProfilImportESG_() {
+
+  var ancien =
+    document.getElementById(
+      "esgImportProfileBanner"
+    );
+
+  if (ancien) {
+    ancien.remove();
+  }
+
+
+  var profileFields =
+    document.getElementById(
+      "profileFields"
+    );
+
+
+  if (!profileFields) {
+    return;
+  }
+
+
+  var found =
+    profileFields.querySelectorAll(
+      '[data-esg-import-status="FOUND"]'
+    ).length;
+
+  var toConfirm =
+    profileFields.querySelectorAll(
+      '[data-esg-import-status="TO_CONFIRM"]'
+    ).length;
+
+  var missing =
+    profileFields.querySelectorAll(
+      '[data-esg-import-status="MISSING"]'
+    ).length;
+
+  var remaining =
+    toConfirm +
+    missing;
+
+
+  var banner =
+    document.createElement(
+      "div"
+    );
+
+
+  banner.id =
+    "esgImportProfileBanner";
+
+  banner.className =
+    "esg-import-workspace-banner";
+
+
+  banner.innerHTML =
+
+    '<strong>' +
+      'Votre profil a été prérempli à partir de vos documents.' +
+    '</strong>' +
+
+    '<p>' +
+
+      (
+        remaining > 0
+          ? (
+              '<strong>' +
+              escapeHtml(
+                found
+              ) +
+              '</strong> information' +
+              (
+                found > 1
+                  ? 's'
+                  : ''
+              ) +
+              ' déjà préparée' +
+              (
+                found > 1
+                  ? 's'
+                  : ''
+              ) +
+              '. Complétez uniquement les champs visibles.'
+            )
+          : (
+              'Les informations de profil détectées ont été préremplies. ' +
+              'Vous pouvez les vérifier avant de poursuivre.'
+            )
+      ) +
+
+    '</p>' +
+
+    (
+      found > 0
+        ? (
+            '<div class="esg-import-workspace-actions">' +
+              '<button ' +
+                'type="button" ' +
+                'id="esgImportToggleProfileFoundButton" ' +
+                'class="button button-secondary">' +
+                'Voir les informations préremplies' +
+              '</button>' +
+            '</div>'
+          )
+        : ""
+    );
+
+
+  profileFields.parentNode.insertBefore(
+    banner,
+    profileFields
+  );
+
+
+  var bouton =
+    document.getElementById(
+      "esgImportToggleProfileFoundButton"
+    );
+
+
+  if (bouton) {
+
+    bouton.addEventListener(
+      "click",
+      basculerProfilTrouveESG_
+    );
+
+  }
+
+}
+
+
+/**
+ * Affiche ou masque uniquement les champs profil FOUND.
+ */
+function basculerProfilTrouveESG_() {
+
+  var profileFields =
+    document.getElementById(
+      "profileFields"
+    );
+
+
+  if (!profileFields) {
+    return;
+  }
+
+
+  var cards =
+    profileFields.querySelectorAll(
+      '[data-esg-import-status="FOUND"]'
+    );
+
+
+  if (!cards.length) {
+    return;
+  }
+
+
+  var afficher =
+    Array.from(cards)
+      .some(function(card) {
+        return (
+          card.style.display ===
+          "none"
+        );
+      });
+
+
+  cards.forEach(function(card) {
+
+    card.style.display =
+      afficher
+        ? ""
+        : "none";
+
+    card.dataset.esgImportHidden =
+      afficher
+        ? "false"
+        : "true";
+
+  });
+
+
+  var bouton =
+    document.getElementById(
+      "esgImportToggleProfileFoundButton"
+    );
+
+
+  if (bouton) {
+
+    bouton.textContent =
+      afficher
+        ? "Masquer les informations préremplies"
+        : "Voir les informations préremplies";
+
+  }
+
+}
+
+
+/**
+ * Met à jour le libellé de chaque pilier en mode import.
+ */
+function mettreAJourResumePiliersImportESG_() {
+
+  if (
+    !appState ||
+    !appState.data ||
+    !appState.data.questionnaire
+  ) {
+    return;
+  }
+
+
+  var labels = {
+    E: "Environnement",
+    S: "Social",
+    G: "Gouvernance",
+    R: "ESG Readiness"
+  };
+
+
+  [
+    "E",
+    "S",
+    "G",
+    "R"
+  ].forEach(function(pillar) {
+
+    var details =
+      document.querySelector(
+        '.pillar-group[data-pillar="' +
+        cssEscape(
+          pillar
+        ) +
+        '"]'
+      );
+
+
+    if (!details) {
+      return;
+    }
+
+
+    var questions =
+      appState
+        .data
+        .questionnaire
+        .questions
+        .filter(function(question) {
+          return (
+            question.pillar === pillar
+          );
+        });
+
+
+    var found = 0;
+    var pendingConfirm = 0;
+    var confirmed = 0;
+    var missing = 0;
+    var suggested = 0;
+
+
+    questions.forEach(function(question) {
+
+      var select =
+        document.getElementById(
+          "esg-" +
+          question.question_id
+        );
+
+
+      var card =
+        select
+          ? select.closest(
+              ".question-card"
+            )
+          : null;
+
+
+      if (!card) {
+        return;
+      }
+
+
+      var status =
+        String(
+          card.dataset.esgImportStatus || ""
+        ).toUpperCase();
+
+
+      if (
+        status === "FOUND"
+      ) {
+
+        found++;
+
+      } else if (
+        status === "TO_CONFIRM"
+      ) {
+
+        if (
+          card.dataset.esgImportConfirmed ===
+          "true"
+        ) {
+          confirmed++;
+        } else {
+          pendingConfirm++;
+
+          if (
+            select &&
+            select.value !== ""
+          ) {
+            suggested++;
+          }
+        }
+
+      } else if (
+        status === "MISSING"
+      ) {
+
+        missing++;
+
+      }
+
+    });
+
+
+    var summary =
+      details.querySelector(
+        "summary"
+      );
+
+
+    if (!summary) {
+      return;
+    }
+
+
+    summary.innerHTML =
+
+      '<span>' +
+        escapeHtml(
+          labels[pillar]
+        ) +
+      '</span>' +
+
+      '<span class="pillar-import-count">' +
+
+        escapeHtml(
+          found + confirmed
+        ) +
+        ' validée' +
+        (
+          found + confirmed > 1
+            ? 's'
+            : ''
+        ) +
+
+        ' · ' +
+
+        escapeHtml(
+          pendingConfirm
+        ) +
+        ' à vérifier' +
+
+        ' · ' +
+
+        escapeHtml(
+          missing
+        ) +
+        ' manquante' +
+        (
+          missing > 1
+            ? 's'
+            : ''
+        ) +
+
+      '</span>';
+
+
+    var ancienToolbar =
+      details.querySelector(
+        ".pillar-import-toolbar"
+      );
+
+
+    if (ancienToolbar) {
+      ancienToolbar.remove();
+    }
+
+
+    if (
+      pendingConfirm > 0
+    ) {
+
+      var toolbar =
+        document.createElement(
+          "div"
+        );
+
+      toolbar.className =
+        "pillar-import-toolbar";
+
+
+      toolbar.innerHTML =
+
+        '<div>' +
+          '<strong>' +
+            escapeHtml(
+              pendingConfirm
+            ) +
+            '</strong> information' +
+            (
+              pendingConfirm > 1
+                ? 's détectées à vérifier'
+                : ' détectée à vérifier'
+            ) +
+        '</div>' +
+
+        (
+          suggested > 0
+
+            ? (
+                '<button ' +
+                  'type="button" ' +
+                  'class="button button-secondary pillar-confirm-suggested" ' +
+                  'data-pillar="' +
+                  escapeHtml(
+                    pillar
+                  ) +
+                  '">' +
+                  'Valider les ' +
+                  escapeHtml(
+                    suggested
+                  ) +
+                  ' réponse' +
+                  (
+                    suggested > 1
+                      ? 's proposées'
+                      : ' proposée'
+                  ) +
+                '</button>'
+              )
+
+            : (
+                '<span class="pillar-import-help">' +
+                  'Choisissez uniquement le niveau de maturité pour les éléments ambigus.' +
+                '</span>'
+              )
+        );
+
+
+      var content =
+        details.querySelector(
+          ".pillar-content"
+        );
+
+
+      if (content) {
+        content.insertBefore(
+          toolbar,
+          content.firstChild
+        );
+      }
+
+
+      var button =
+        toolbar.querySelector(
+          ".pillar-confirm-suggested"
+        );
+
+
+      if (button) {
+
+        button.addEventListener(
+          "click",
+          function() {
+
+            validerReponsesProposeesPilierESG_(
+              pillar
+            );
+
+          }
+        );
+
+      }
+
+    }
+
+  });
+
+}
+
+
+/**
+ * Rétablit les titres originaux des piliers.
+ */
+function restaurerResumePiliersESG_() {
+
+  if (
+    !appState ||
+    !appState.data ||
+    !appState.data.questionnaire
+  ) {
+    return;
+  }
+
+
+  var labels = {
+    E: "Environnement",
+    S: "Social",
+    G: "Gouvernance",
+    R: "ESG Readiness"
+  };
+
+
+  [
+    "E",
+    "S",
+    "G",
+    "R"
+  ].forEach(function(pillar) {
+
+    var details =
+      document.querySelector(
+        '.pillar-group[data-pillar="' +
+        cssEscape(
+          pillar
+        ) +
+        '"]'
+      );
+
+
+    if (!details) {
+      return;
+    }
+
+
+    var count =
+      appState
+        .data
+        .questionnaire
+        .questions
+        .filter(function(question) {
+          return (
+            question.pillar === pillar
+          );
+        })
+        .length;
+
+
+    var summary =
+      details.querySelector(
+        "summary"
+      );
+
+
+    if (summary) {
+
+      summary.textContent =
+        labels[pillar] +
+        " — " +
+        count +
+        " questions";
+
+    }
+
+  });
+
+}
+
+
+/**
+ * Erreur locale à la landing page d'import.
+ */
+function afficherErreurImportESG_(
+  message
+) {
+
+  var box =
+    document.getElementById(
+      "esgImportError"
+    );
+
+
+  if (!box) {
+
+    afficherErreur(
+      message
+    );
+
+    return;
+
+  }
+
+
+  box.textContent =
+    message;
+
+  box.classList.remove(
+    "hidden"
+  );
+
+}
+
+
+/**
+ * Efface uniquement l'erreur d'import affichée sur la landing page.
+ */
+function effacerErreurImportESG_() {
+
+  var box =
+    document.getElementById(
+      "esgImportError"
+    );
+
+
+  if (!box) {
+    return;
+  }
+
+
+  box.textContent =
+    "";
+
+  box.classList.add(
+    "hidden"
+  );
+
+}
+
+</script>
