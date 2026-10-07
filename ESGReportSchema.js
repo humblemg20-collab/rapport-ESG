@@ -151,6 +151,9 @@ function creerESGReportSchemaV1Vide_() {
       dataConfidenceScore:
         null,
 
+      legacyDataConfidenceScore:
+        null,
+
       /*
        * Couverture de PREUVES CANONIQUES.
        * Ne doit jamais être alimentée par le simple score de preuve legacy.
@@ -178,7 +181,10 @@ function creerESGReportSchemaV1Vide_() {
           "LEGACY_ENGINE",
 
         canonicalEvidenceCoverage:
-          "EVIDENCE_ENGINE_V1"
+          "EVIDENCE_ENGINE_V1",
+
+        canonicalDataConfidence:
+          "AG24_DATA_QUALITY_V1"
       }
     },
 
@@ -219,6 +225,12 @@ function creerESGReportSchemaV1Vide_() {
 
       dataConfidenceScore:
         null,
+
+      legacyDataConfidenceScore:
+        null,
+
+      methodologyVersion:
+        "AG24_DATA_QUALITY_V1",
 
       warnings:
         [],
