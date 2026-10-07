@@ -10,7 +10,8 @@ Le système existant comprend :
 - alertes critiques
 - recommandations
 - import documentaire
-- HumbleOS rewrite contrôlé
+- OpenAI comme moteur IA principal
+- HumbleOS comme fallback IA contrôlé
 - génération Google Docs / PDF
 - stockage Google Sheets
 - branding
@@ -22,6 +23,8 @@ Nous migrons vers un **ESG Document Engine** :
 
 ```text
 DATA
+→ DUAL INTAKE (UPLOAD / MANUAL)
+→ OPENAI PRIMARY / HUMBLEOS FALLBACK
 → VALIDATION / PROVENANCE
 → SCORING
 → MATERIALITY
@@ -50,7 +53,9 @@ DATA
 - pas de refactor de scoring pendant la construction du Document Engine
 - aucune donnée inventée
 - règles métier déterministes
+- OpenAI est le provider IA principal ; HumbleOS est fallback uniquement
 - IA limitée à compréhension / extraction / reformulation
+- le rapport client est 100 % white-label
 - chaque release importante doit être testable et réversible
 
 ## Documentation
@@ -58,3 +63,15 @@ DATA
 - `docs/AUDIT_CURRENT_STATE.md`
 - `docs/ESG_REPORT_SCHEMA_V1.md`
 - `docs/IMPLEMENTATION_PLAN.md`
+- `docs/AI_PROVIDER_POLICY.md`
+
+
+## Configuration OpenAI
+
+La clé `OPENAI_API_KEY` doit être configurée exclusivement dans les Script Properties Apps Script.
+
+Les modèles d'extraction et de réécriture peuvent être changés sans modifier le code via :
+- `OPENAI_ESG_EXTRACT_MODEL`
+- `OPENAI_ESG_REWRITE_MODEL`
+
+Le système conserve HumbleOS comme fallback et un fallback déterministe final pour garantir la continuité du rapport.
