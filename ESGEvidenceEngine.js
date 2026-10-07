@@ -329,6 +329,25 @@ function executerEvidenceEngineESGV1(
     .evidenceEngineVersion =
     ESG_EVIDENCE_ENGINE_VERSION_V1;
 
+  model.dataQualityProfile
+    .limitations =
+    (
+      model
+        .dataQualityProfile
+        .limitations ||
+      []
+    ).filter(
+      function(message) {
+        return (
+          String(
+            message || ""
+          ).indexOf(
+            "Evidence Engine V1 n'a pas été exécuté"
+          ) === -1
+        );
+      }
+    );
+
   return {
     success:
       true,
