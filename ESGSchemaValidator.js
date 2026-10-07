@@ -399,15 +399,14 @@ function validerESGReportSchemaV1(
     (!model.evidence ||
       model.evidence.length === 0) &&
     model.scores &&
-    model.scores
-      .evidenceCoverageScore !==
-      null &&
-    model.scores
-      .evidenceCoverageScore !==
-      undefined
+    Number(
+      model.scores
+        .evidenceCoverageScore ||
+      0
+    ) > 0
   ) {
     errors.push(
-      "evidenceCoverageScore canonique défini alors que evidence[] est vide."
+      "evidenceCoverageScore > 0 alors que evidence[] est vide."
     );
   }
 
