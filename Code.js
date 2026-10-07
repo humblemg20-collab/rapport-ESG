@@ -137,6 +137,11 @@ function soumettreDiagnosticV2(
     var reponsesDigitales =
       payload.reponsesDigitales || {};
 
+    var intake =
+      normaliserContexteIntakeESG_(
+        payload.intake || {}
+      );
+
     var consentements =
       normaliserConsentementsV2_(
         payload.consentements
@@ -197,6 +202,55 @@ function soumettreDiagnosticV2(
         diagnosticDigitalInterne
       );
 
+
+    /*
+     * ========================================================
+     * 3B. MODÈLE CANONIQUE ESG_REPORT_SCHEMA_V1
+     * ========================================================
+     *
+     * Le rapport V3 historique reste disponible pendant la
+     * migration, mais toute nouvelle architecture passe déjà
+     * par le contrat canonique et sa validation.
+     */
+    var canonicalModel =
+      adapterAnalyseLegacyVersSchemaESGV1(
+        profil,
+        analyseESG,
+        diagnosticDigitalPublic,
+        {
+          profile:
+            ESG_REPORT_PROFILE_V1
+              .DIAGNOSTIC,
+
+          rawResponses:
+            reponsesESG,
+
+          intake:
+            intake
+        }
+      );
+
+
+    var canonicalValidation =
+      validerESGReportSchemaV1(
+        canonicalModel
+      );
+
+
+    if (
+      canonicalValidation.valid !==
+      true
+    ) {
+      throw new Error(
+        "ESG_REPORT_SCHEMA_V1 invalide : " +
+        canonicalValidation
+          .errors
+          .join(
+            " | "
+          )
+      );
+    }
+
     /*
      * ========================================================
      * 4. QUALIFICATION COMMERCIALE
@@ -241,11 +295,27 @@ function soumettreDiagnosticV2(
         diagnosticDigitalPublic
       );
 
-    var humbleOSRewrite = {
-      attempted: false,
-      applied: false,
-      fallbackCount: 0,
-      blockCount: 0
+    var aiRewrite = {
+      attempted:
+        false,
+
+      applied:
+        false,
+
+      providerUsed:
+        "DETERMINISTIC_SAFE_FALLBACK",
+
+      providerFallbackUsed:
+        false,
+
+      fallbackCount:
+        0,
+
+      blockCount:
+        0,
+
+      attempts:
+        []
     };
 
     /*
@@ -272,13 +342,14 @@ function soumettreDiagnosticV2(
           modeleRedactionESG
         );
 
-      humbleOSRewrite.blockCount =
+      aiRewrite.blockCount =
         payloadRewriteESG.texts.length;
 
       if (
         payloadRewriteESG.texts.length > 0
       ) {
-        humbleOSRewrite.attempted = true;
+        aiRewrite.attempted =
+          true;
 
         /*
          * Protection déterministe des faits numériques.
@@ -297,10 +368,25 @@ function soumettreDiagnosticV2(
         var replacementsByIdESG =
           protectionRewriteESG.replacementsById;
 
-        var sortieRewriteESG =
-          callHumbleOSESGRewrite_(
+        var aiGatewayRewrite =
+          reecrireRapportESGAvecAIGateway_(
             payloadProtegeESG
           );
+
+        var sortieRewriteESG =
+          aiGatewayRewrite.output;
+
+        aiRewrite.providerUsed =
+          aiGatewayRewrite.providerUsed ||
+          "DETERMINISTIC_SAFE_FALLBACK";
+
+        aiRewrite.providerFallbackUsed =
+          aiGatewayRewrite.fallbackUsed ===
+          true;
+
+        aiRewrite.attempts =
+          aiGatewayRewrite.attempts ||
+          [];
 
         var validationRewriteESG =
           validateESGRewriteOutput_(
@@ -357,7 +443,7 @@ function soumettreDiagnosticV2(
             fallbackMapESG
           );
 
-        humbleOSRewrite.fallbackCount =
+        aiRewrite.fallbackCount =
           sortieSecuriseeESG
             .fallback_ids
             .length;
@@ -368,13 +454,16 @@ function soumettreDiagnosticV2(
           sortieSecuriseeESG.output
         );
 
-        humbleOSRewrite.applied = true;
+        aiRewrite.applied =
+          true;
 
         console.log(
-          "HumbleOS ESG Rewrite — " +
+          "ESG AI Rewrite — provider=" +
+          aiRewrite.providerUsed +
+          " — " +
           payloadRewriteESG.texts.length +
-          " bloc(s), fallback : " +
-          humbleOSRewrite.fallbackCount +
+          " bloc(s), fallback factuel : " +
+          aiRewrite.fallbackCount +
           "."
         );
       }
@@ -383,11 +472,12 @@ function soumettreDiagnosticV2(
       erreurRewriteESG
     ) {
       /*
-       * Le produit ne dépend jamais de HumbleOS.
-       * Les copies de présentation restent déterministes.
+       * Le produit ne dépend jamais d'un provider IA.
+       * OpenAI puis HumbleOS ont échoué : les copies de
+       * présentation restent déterministes.
        */
       console.error(
-        "HumbleOS ESG Rewrite indisponible — rédaction Apps Script conservée : " +
+        "ESG AI Rewrite indisponible — rédaction déterministe conservée : " +
         (
           erreurRewriteESG &&
           erreurRewriteESG.message
@@ -405,6 +495,12 @@ function soumettreDiagnosticV2(
         clonerObjetESGRewrite_(
           diagnosticDigitalPublic
         );
+
+      aiRewrite.providerUsed =
+        "DETERMINISTIC_SAFE_FALLBACK";
+
+      aiRewrite.applied =
+        false;
     }
 
     /*
@@ -499,8 +595,38 @@ function soumettreDiagnosticV2(
       spreadsheetUrl:
         stockage.spreadsheetUrl,
 
+      aiRewrite:
+        aiRewrite,
+
+      /*
+       * Alias temporaire pour compatibilité avec d'éventuels
+       * consommateurs historiques. À retirer après migration.
+       */
       humbleOSRewrite:
-        humbleOSRewrite,
+        aiRewrite,
+
+      canonicalModel: {
+        schemaVersion:
+          canonicalModel.schemaVersion,
+
+        valid:
+          canonicalValidation.valid,
+
+        warnings:
+          canonicalValidation.warnings ||
+          [],
+
+        entryMode:
+          canonicalModel
+            .intake
+            .entryMode,
+
+        sourceDocuments:
+          canonicalModel
+            .intake
+            .sourceDocuments
+            .length
+      },
 
       message:
         "Votre diagnostic ESG et votre rapport ont été générés avec succès."
