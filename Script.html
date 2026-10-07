@@ -3487,10 +3487,8 @@ function construireProvenanceProfilClientESG_() {
 
 
         var sameValue =
-          JSON.stringify(
-            currentValue
-          ) ===
-          JSON.stringify(
+          valeursProvenanceEgalesESG_(
+            currentValue,
             importedValue
           );
 
@@ -3548,6 +3546,107 @@ function construireProvenanceProfilClientESG_() {
 
 
   return sortie;
+
+}
+
+
+/**
+ * Compare les valeurs importées et finales sans faux conflit
+ * de type ("24" vs 24) et sans dépendre de l'ordre
+ * d'un multiselect.
+ */
+function valeursProvenanceEgalesESG_(
+  a,
+  b
+) {
+
+  if (
+    Array.isArray(a) ||
+    Array.isArray(b)
+  ) {
+
+    var arrayA =
+      (
+        Array.isArray(a)
+          ? a
+          : [a]
+      )
+        .map(
+          function(value) {
+            return String(
+              value ===
+                undefined ||
+              value ===
+                null
+                ? ""
+                : value
+            ).trim();
+          }
+        )
+        .filter(
+          function(value) {
+            return !!value;
+          }
+        )
+        .sort();
+
+
+    var arrayB =
+      (
+        Array.isArray(b)
+          ? b
+          : [b]
+      )
+        .map(
+          function(value) {
+            return String(
+              value ===
+                undefined ||
+              value ===
+                null
+                ? ""
+                : value
+            ).trim();
+          }
+        )
+        .filter(
+          function(value) {
+            return !!value;
+          }
+        )
+        .sort();
+
+
+    return (
+      JSON.stringify(
+        arrayA
+      ) ===
+      JSON.stringify(
+        arrayB
+      )
+    );
+
+  }
+
+
+  return (
+    String(
+      a ===
+        undefined ||
+      a ===
+        null
+        ? ""
+        : a
+    ).trim() ===
+    String(
+      b ===
+        undefined ||
+      b ===
+        null
+        ? ""
+        : b
+    ).trim()
+  );
 
 }
 
