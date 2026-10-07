@@ -231,6 +231,36 @@ function soumettreDiagnosticV2(
       );
 
 
+    /*
+     * ========================================================
+     * 3C. EVIDENCE ENGINE V1
+     * ========================================================
+     */
+    var evidenceEngineResult =
+      executerEvidenceEngineESGV1(
+        canonicalModel
+      );
+
+
+    canonicalModel =
+      evidenceEngineResult.model;
+
+
+    /*
+     * ========================================================
+     * 3D. DATA QUALITY ENGINE V1
+     * ========================================================
+     */
+    var dataQualityEngineResult =
+      executerDataQualityEngineESGV1(
+        canonicalModel
+      );
+
+
+    canonicalModel =
+      dataQualityEngineResult.model;
+
+
     var canonicalValidation =
       validerESGReportSchemaV1(
         canonicalModel
@@ -625,7 +655,27 @@ function soumettreDiagnosticV2(
           canonicalModel
             .intake
             .sourceDocuments
-            .length
+            .length,
+
+        evidenceCount:
+          canonicalModel
+            .evidence
+            .length,
+
+        evidenceCoverageScore:
+          canonicalModel
+            .scores
+            .evidenceCoverageScore,
+
+        dataConfidenceScore:
+          canonicalModel
+            .scores
+            .dataConfidenceScore,
+
+        dataQualityMethodology:
+          canonicalModel
+            .dataQualityProfile
+            .methodologyVersion
       },
 
       message:
