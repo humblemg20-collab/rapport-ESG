@@ -45,6 +45,39 @@ Tests :
 - critical alerts
 - no digital module
 
+## Phase 1B — Intake + AI Gateway
+
+Créer / stabiliser :
+- `ESGIntakeProvenance.js`
+- `ESGAIConfig.js`
+- `ESGOpenAIProvider.js`
+- `ESGAIGateway.js`
+
+Politique :
+```text
+UPLOAD ou MANUAL
+→ même modèle canonique
+
+OPENAI PRIMARY
+→ HUMBLEOS FALLBACK
+→ DETERMINISTIC SAFE FALLBACK
+```
+
+Règles :
+- FOUND n'est jamais synonyme de CONFIRMED
+- une correction manuelle prévaut sur une valeur extraite
+- la provenance du document est conservée
+- le rapport final reste white-label
+- aucun secret dans le client ou Git
+
+Tests :
+- suite locale sans réseau
+- extraction OpenAI réelle
+- rewrite OpenAI réel
+- fallback HumbleOS réel
+- Fact Guard
+- white-label QC
+
 ## Phase 2 — Evidence / Data Quality
 
 Créer :
@@ -110,7 +143,9 @@ Tests obligatoires :
 - données déclaratives seulement
 - risques critiques
 - valeur manquante
-- rapport sans HumbleOS
+- rapport avec OpenAI
+- fallback HumbleOS
+- rapport sans aucun provider IA
 
 Snapshot passe en production uniquement après QC.
 
@@ -173,6 +208,10 @@ backup
 LEGACY V3
 → CANONICAL ADAPTER
 → SCHEMA V1
+→ DUAL INTAKE + PROVENANCE
+→ OPENAI PRIMARY / HUMBLEOS FALLBACK
+→ EVIDENCE + DATA QUALITY
+→ BLOCK REGISTRY
 → SNAPSHOT
 → QC
 → DIAGNOSTIC
