@@ -107,6 +107,12 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "REPORT_ENGINE_ROUTER",
+      run:
+        TEST_ESG_REPORT_ENGINE_ROUTER_LOCAL
+    },
+    {
+      name:
         "IMPORT_SCHEMA",
       run:
         TEST_ESG_IMPORT_SCHEMA_LOCAL
@@ -234,6 +240,15 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
  * OPENAI_API_KEY
  * OPENAI_ESG_EXTRACT_MODEL (optionnel)
  */
+/**
+ * Test réel du renderer Snapshot V1.
+ * Produit réellement un Google Doc + PDF et exige OpenAI PRIMARY.
+ */
+function TEST_ESG_SNAPSHOT_PDF_REAL() {
+  return TEST_ESG_SNAPSHOT_RENDERER_REAL_OPENAI();
+}
+
+
 function TEST_ESG_OPENAI_EXTRACTION_REAL() {
   var definitions = [
     {
