@@ -283,6 +283,21 @@ function soumettreDiagnosticV2(
 
     /*
      * ========================================================
+     * 3E. ROUTAGE DU MOTEUR DOCUMENTAIRE
+     * ========================================================
+     *
+     * LEGACY_V3 reste le défaut tant que le Snapshot V1
+     * n'a pas passé les smoke tests Apps Script.
+     *
+     * Pour activer le nouveau moteur sans modifier le code :
+     * Script Property ESG_REPORT_ENGINE_MODE = SNAPSHOT_V1
+     */
+    var reportEngineMode =
+      obtenirModeMoteurRapportESGV2_();
+
+
+    /*
+     * ========================================================
      * 4. QUALIFICATION COMMERCIALE
      * ========================================================
      *
@@ -359,8 +374,12 @@ function soumettreDiagnosticV2(
      * Si HumbleOS échoue ou retourne une sortie invalide :
      * le rapport continue avec le contenu Apps Script.
      */
-    try {
-      var modeleRedactionESG =
+    if (
+      reportEngineMode ===
+      "LEGACY_V3"
+    ) {
+      try {
+        var modeleRedactionESG =
         buildESGReportTextModel_(
           profil,
           analyseESG,
@@ -530,7 +549,36 @@ function soumettreDiagnosticV2(
         "DETERMINISTIC_SAFE_FALLBACK";
 
       aiRewrite.applied =
-        false;
+          false;
+      }
+    } else {
+      /*
+       * Le nouveau Snapshot V1 possède sa propre génération
+       * narrative par blocs : OpenAI primary → HumbleOS fallback.
+       * On évite donc un double appel IA.
+       */
+      aiRewrite = {
+        attempted:
+          false,
+
+        applied:
+          false,
+
+        providerUsed:
+          "DELEGATED_TO_SNAPSHOT_RENDERER",
+
+        providerFallbackUsed:
+          false,
+
+        fallbackCount:
+          0,
+
+        blockCount:
+          0,
+
+        attempts:
+          []
+      };
     }
 
     /*
@@ -545,12 +593,23 @@ function soumettreDiagnosticV2(
      * de présentation peuvent avoir été reformulés.
      */
     var rapport =
-      genererRapportInvestisseurESGV3(
+      genererRapportSelonMoteurESGV2_(
+        reportEngineMode,
         profil,
         analyseESGPresentation,
         diagnosticDigitalPresentation,
-        offres
+        offres,
+        canonicalModel
       );
+
+
+    if (
+      rapport &&
+      rapport.aiGeneration
+    ) {
+      aiRewrite =
+        rapport.aiGeneration;
+    }
 
     /*
      * ========================================================
@@ -635,6 +694,9 @@ function soumettreDiagnosticV2(
       humbleOSRewrite:
         aiRewrite,
 
+      reportEngineMode:
+        reportEngineMode,
+
       canonicalModel: {
         schemaVersion:
           canonicalModel.schemaVersion,
@@ -700,6 +762,194 @@ function soumettreDiagnosticV2(
   } finally {
 
     verrou.releaseLock();
+  }
+}
+
+
+/**
+ * ============================================================
+ * ROUTEUR DU MOTEUR DOCUMENTAIRE ESG
+ * ============================================================
+ */
+function obtenirModeMoteurRapportESGV2_() {
+  var value =
+    String(
+      PropertiesService
+        .getScriptProperties()
+        .getProperty(
+          "ESG_REPORT_ENGINE_MODE"
+        ) ||
+      "LEGACY_V3"
+    )
+      .trim()
+      .toUpperCase();
+
+  if (
+    [
+      "LEGACY_V3",
+      "SNAPSHOT_V1"
+    ].indexOf(
+      value
+    ) === -1
+  ) {
+    console.warn(
+      "ESG_REPORT_ENGINE_MODE invalide ; fallback LEGACY_V3 : " +
+      value
+    );
+
+    return "LEGACY_V3";
+  }
+
+  return value;
+}
+
+
+function genererRapportSelonMoteurESGV2_(
+  mode,
+  profil,
+  analyseESGPresentation,
+  diagnosticDigitalPresentation,
+  offres,
+  canonicalModel
+) {
+  mode =
+    String(
+      mode ||
+      "LEGACY_V3"
+    ).toUpperCase();
+
+  if (
+    mode ===
+    "SNAPSHOT_V1"
+  ) {
+    var snapshot =
+      genererSnapshotESGV1(
+        canonicalModel,
+        profil
+      );
+
+    /*
+     * Contrat de compatibilité temporaire avec le datastore
+     * et la réponse applicative V2.
+     */
+    snapshot.organisation =
+      profil.organizationName ||
+      profil.nomOrganisation ||
+      canonicalModel
+        .organization
+        .name ||
+      "";
+
+    snapshot.scoreGlobal =
+      canonicalModel
+        .scores
+        .esgOverallScoreV2;
+
+    snapshot.maturite =
+      analyseESGPresentation &&
+      analyseESGPresentation
+        .diagnostic
+        ? analyseESGPresentation
+            .diagnostic
+            .maturite
+        : null;
+
+    snapshot.risque =
+      analyseESGPresentation &&
+      analyseESGPresentation
+        .diagnostic
+        ? analyseESGPresentation
+            .diagnostic
+            .risque
+        : null;
+
+    snapshot.diagnostic =
+      analyseESGPresentation
+        .diagnostic;
+
+    snapshot.recommandations =
+      analyseESGPresentation
+        .recommandations;
+
+    snapshot.diagnosticDigital =
+      diagnosticDigitalPresentation;
+
+    /*
+     * Les offres restent dans l'application mais ne sont
+     * jamais injectées dans le document white-label.
+     */
+    snapshot.offresAfriGreen24 =
+      offres || [];
+
+    return snapshot;
+  }
+
+  return genererRapportInvestisseurESGV3(
+    profil,
+    analyseESGPresentation,
+    diagnosticDigitalPresentation,
+    offres
+  );
+}
+
+
+function TEST_ESG_REPORT_ENGINE_ROUTER_LOCAL() {
+  var properties =
+    PropertiesService
+      .getScriptProperties();
+
+  var oldValue =
+    properties.getProperty(
+      "ESG_REPORT_ENGINE_MODE"
+    );
+
+  try {
+    properties.setProperty(
+      "ESG_REPORT_ENGINE_MODE",
+      "SNAPSHOT_V1"
+    );
+
+    var snapshot =
+      obtenirModeMoteurRapportESGV2_();
+
+    properties.setProperty(
+      "ESG_REPORT_ENGINE_MODE",
+      "INVALID_MODE"
+    );
+
+    var fallback =
+      obtenirModeMoteurRapportESGV2_();
+
+    return {
+      success:
+        snapshot ===
+          "SNAPSHOT_V1" &&
+        fallback ===
+          "LEGACY_V3",
+
+      snapshot:
+        snapshot,
+
+      fallback:
+        fallback
+    };
+
+  } finally {
+    if (
+      oldValue ===
+      null ||
+      oldValue ===
+      undefined
+    ) {
+      properties.deleteProperty(
+        "ESG_REPORT_ENGINE_MODE"
+      );
+    } else {
+      properties.setProperty(
+        "ESG_REPORT_ENGINE_MODE",
+        oldValue
+      );
+    }
   }
 }
 
