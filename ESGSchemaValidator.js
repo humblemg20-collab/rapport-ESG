@@ -69,6 +69,7 @@ function validerESGReportSchemaV1(
       "esgOverallScoreV2",
       "readinessScore",
       "dataConfidenceScore",
+      "legacyDataConfidenceScore",
       "evidenceCoverageScore",
       "legacyEvidenceScore",
       "fundingReadinessScore",
