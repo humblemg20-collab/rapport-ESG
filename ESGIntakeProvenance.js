@@ -138,6 +138,20 @@ function normaliserDocumentsSourceESG_(
             String(
               document.importedAt ||
               ""
+            ),
+
+          persisted:
+            document.persisted ===
+              true,
+
+          reused:
+            document.reused ===
+              true,
+
+          sha256:
+            String(
+              document.sha256 ||
+              ""
             )
         };
       }
@@ -239,6 +253,12 @@ function construireProvenanceReponseESGV1_(
           : supplied.confidence
       ),
 
+    evidenceMatchedSource:
+      rawResponse.evidenceMatchedSource ===
+        true ||
+      supplied.evidenceMatchedSource ===
+        true,
+
     userConfirmed:
       rawResponse.userConfirmed ===
         true ||
@@ -313,6 +333,10 @@ function construireProvenanceProfilESGV1_(
       valeurNombreIntakeOuNullESG_(
         supplied.confidence
       ),
+
+    evidenceMatchedSource:
+      supplied.evidenceMatchedSource ===
+        true,
 
     userConfirmed:
       supplied.userConfirmed ===
