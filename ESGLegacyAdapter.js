@@ -562,6 +562,11 @@ function adapterReponsesLegacyESGV1_(
             provenance
               .extractionConfidence,
 
+          evidenceMatchedSource:
+            provenance
+              .evidenceMatchedSource ===
+            true,
+
           userConfirmed:
             provenance
               .userConfirmed,
