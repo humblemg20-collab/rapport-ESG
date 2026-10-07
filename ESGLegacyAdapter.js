@@ -635,6 +635,9 @@ function adapterScoresLegacyESGV1_(
       ),
 
     dataConfidenceScore:
+      null,
+
+    legacyDataConfidenceScore:
       valeurNombreOuNullESGV1_(
         scores.niveauConfiance
       ),
@@ -718,11 +721,17 @@ function adapterDataQualityLegacyESGV1_(
       ),
 
     dataConfidenceScore:
+      null,
+
+    legacyDataConfidenceScore:
       valeurNombreOuNullESGV1_(
         diagnostic.scores &&
         diagnostic.scores
           .niveauConfiance
       ),
+
+    methodologyVersion:
+      "AG24_DATA_QUALITY_V1",
 
     warnings:
       [],
