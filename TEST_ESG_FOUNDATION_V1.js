@@ -107,6 +107,12 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "QUALITY_GATE_ENGINE",
+      run:
+        TEST_ESG_QUALITY_GATE_ENGINE_V1_LOCAL
+    },
+    {
+      name:
         "REPORT_ENGINE_ROUTER",
       run:
         TEST_ESG_REPORT_ENGINE_ROUTER_LOCAL
