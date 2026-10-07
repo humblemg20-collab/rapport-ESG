@@ -1,0 +1,24 @@
+# AfriGreen24 ESG — local / secret files
+.clasp.json
+.env
+.env.*
+*.local
+*.secret
+credentials*.json
+service-account*.json
+secrets*.json
+node_modules/
+.DS_Store
+Thumbs.db
+
+# Generated artifacts
+dist/
+build/
+coverage/
+*.log
+*.pdf
+*.zip
+
+# IDE
+.vscode/
+.idea/
