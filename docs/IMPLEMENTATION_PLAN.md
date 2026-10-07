@@ -130,8 +130,17 @@ Le renderer Google Docs ne contient plus les règles métier.
 
 ## Phase 6 — Snapshot 7 pages
 
-Créer le premier profil :
-`SNAPSHOT_V1`.
+Implémentation actuelle :
+- `ESGBlockRegistry.js` — registre déterministe des blocs
+- `ESGVisualizationRules.js` — choix déterministe tableaux / cartes / graphiques
+- `ESGCompositionEngine.js` — composition Snapshot 7 sections logiques
+- `ESGSnapshotRenderer.js` — rendu Google Docs / PDF white-label
+- `ESGQualityGateEngine.js` — contrôles avant rendu
+- routage par Script Property `ESG_REPORT_ENGINE_MODE`
+
+Le mode production reste par défaut `LEGACY_V3`.
+Pour tester le nouveau renderer via le parcours complet :
+`ESG_REPORT_ENGINE_MODE=SNAPSHOT_V1`.
 
 Tests obligatoires :
 - mature + preuves fortes
@@ -147,7 +156,17 @@ Tests obligatoires :
 - fallback HumbleOS
 - rapport sans aucun provider IA
 
-Snapshot passe en production uniquement après QC.
+Snapshot passe en production uniquement après :
+- `TEST_ESG_FOUNDATION_V1_LOCAL()`
+- `TEST_ESG_OPENAI_EXTRACTION_REAL()`
+- `TEST_ESG_OPENAI_REWRITE_REAL()`
+- `TEST_ESG_HUMBLEOS_FALLBACK_REWRITE_REAL()`
+- `TEST_ESG_SNAPSHOT_PDF_REAL()`
+- contrôle visuel du Google Doc + PDF
+- test end-to-end du parcours upload et du parcours manuel
+- validation du white-label
+
+Une fois ces gates verts, `ESG_REPORT_ENGINE_MODE` pourra être basculé de `LEGACY_V3` vers `SNAPSHOT_V1`.
 
 ## Phase 7 — Diagnostic 20 pages
 
