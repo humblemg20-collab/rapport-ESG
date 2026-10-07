@@ -91,6 +91,28 @@ function genererSnapshotESGV1(
   var model =
     composition.model;
 
+
+  var preRenderQC =
+    executerQualityGatesESGV1(
+      model
+    );
+
+
+  if (
+    preRenderQC.success !==
+      true
+  ) {
+    throw new Error(
+      "ESG_SNAPSHOT_PRE_RENDER_QC_FAILED: " +
+      preRenderQC
+        .failedGates
+        .join(
+          " | "
+        )
+    );
+  }
+
+
   var identifiantRapport =
     model.report.reportId ||
     creerIdentifiantRapportESG_();
@@ -296,6 +318,9 @@ function genererSnapshotESGV1(
 
       composition:
         composition.validation,
+
+      preRender:
+        preRenderQC,
 
       whiteLabel:
         whiteLabel,
