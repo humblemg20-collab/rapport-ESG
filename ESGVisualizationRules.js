@@ -261,18 +261,48 @@ function evaluerRiskHeatmapESGV1_(
     (risks || [])
       .filter(
         function(risk) {
+          if (!risk) {
+            return false;
+          }
+
+          var likelihoodRaw =
+            risk.likelihood;
+
+          var impactRaw =
+            risk.impact;
+
+          if (
+            likelihoodRaw === null ||
+            likelihoodRaw === undefined ||
+            likelihoodRaw === "" ||
+            impactRaw === null ||
+            impactRaw === undefined ||
+            impactRaw === ""
+          ) {
+            return false;
+          }
+
+          var likelihood =
+            Number(
+              likelihoodRaw
+            );
+
+          var impact =
+            Number(
+              impactRaw
+            );
+
           return (
-            risk &&
             isFinite(
-              Number(
-                risk.likelihood
-              )
+              likelihood
             ) &&
             isFinite(
-              Number(
-                risk.impact
-              )
-            )
+              impact
+            ) &&
+            likelihood >= 1 &&
+            likelihood <= 5 &&
+            impact >= 1 &&
+            impact <= 5
           );
         }
       );
@@ -436,6 +466,28 @@ function TEST_ESG_VISUALIZATION_RULES_V1_LOCAL() {
       }
     ]);
 
+  var nullHeatmap =
+    evaluerRiskHeatmapESGV1_([
+      {
+        likelihood:
+          null,
+        impact:
+          null
+      },
+      {
+        likelihood:
+          null,
+        impact:
+          null
+      },
+      {
+        likelihood:
+          null,
+        impact:
+          null
+      }
+    ]);
+
   return {
     success:
       currentOnly.type ===
@@ -445,6 +497,8 @@ function TEST_ESG_VISUALIZATION_RULES_V1_LOCAL() {
       history.type ===
         "LINE_CHART" &&
       heatmap.eligible ===
-        true
+        true &&
+      nullHeatmap.eligible ===
+        false
   };
 }
