@@ -3,6 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { ENGINE_VERSION } from "./profiles.js";
+import { findInternalClientLeaks } from "./clientVocabulary.js";
+import { applySmartPagination } from "./pagination.js";
 import { renderReportHtml } from "./template.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -42,10 +44,12 @@ function sanitizeFilename(value) {
 }
 
 async function runVisualQa(page) {
-  return page.evaluate(() => {
-    const text = (document.body.innerText || "").toLowerCase();
+  const browserQa = await page.evaluate(() => {
+    const text = document.body.innerText || "";
+    const lowerText = text.toLowerCase();
+
     const forbidden = ["afrigreen24", "openai", "humbleos"]
-      .filter(term => text.includes(term));
+      .filter(term => lowerText.includes(term));
 
     const externalImages = [...document.images]
       .map(img => img.getAttribute("src") || "")
@@ -54,16 +58,46 @@ async function runVisualQa(page) {
     const horizontalOverflow = document.documentElement.scrollWidth >
       document.documentElement.clientWidth + 2;
 
+    const brokenImages = [...document.images]
+      .filter(img => !img.complete || img.naturalWidth === 0)
+      .map(img => img.getAttribute("src") || "");
+
     return {
-      pass:
-        forbidden.length === 0 &&
-        externalImages.length === 0 &&
-        horizontalOverflow === false,
+      text,
       forbidden,
       externalImages,
+      brokenImages,
       horizontalOverflow
     };
   });
+
+  const internalCodeLeaks =
+    findInternalClientLeaks(
+      browserQa.text
+    );
+
+  return {
+    pass:
+      browserQa.forbidden.length === 0 &&
+      browserQa.externalImages.length === 0 &&
+      browserQa.brokenImages.length === 0 &&
+      browserQa.horizontalOverflow === false &&
+      internalCodeLeaks.length === 0,
+
+    forbidden:
+      browserQa.forbidden,
+
+    externalImages:
+      browserQa.externalImages,
+
+    brokenImages:
+      browserQa.brokenImages,
+
+    horizontalOverflow:
+      browserQa.horizontalOverflow,
+
+    internalCodeLeaks
+  };
 }
 
 export async function renderPdf(spec) {
@@ -87,6 +121,11 @@ export async function renderPdf(spec) {
       media: "print"
     });
 
+    const pagination =
+      await applySmartPagination(
+        page
+      );
+
     const qa = await runVisualQa(page);
 
     if (!qa.pass) {
@@ -95,6 +134,8 @@ export async function renderPdf(spec) {
         JSON.stringify({
           forbidden: qa.forbidden,
           externalImages: qa.externalImages.length,
+          brokenImages: qa.brokenImages.length,
+          internalCodeLeaks: qa.internalCodeLeaks,
           horizontalOverflow: qa.horizontalOverflow
         })
       );
@@ -133,6 +174,7 @@ export async function renderPdf(spec) {
     return {
       pdf,
       qa,
+      pagination,
       rendererVersion: ENGINE_VERSION,
       filename:
         sanitizeFilename(
@@ -156,5 +198,6 @@ export async function closeRenderer() {
 }
 
 export const _test = {
-  sanitizeFilename
+  sanitizeFilename,
+  runVisualQa
 };
