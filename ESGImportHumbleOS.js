@@ -16,6 +16,8 @@
  *      ↓
  * construction des 65 fieldDefinitions
  *      ↓
+ * extraction déterministe des rapports AfriGreen24 structurés
+ *      ↓
  * OpenAI Responses API (PRIMARY)
  *      ↓
  * HumbleOS /extract-esg (FALLBACK uniquement)
@@ -140,29 +142,7 @@ function analyserFichierESGImporte(payload) {
 
     /*
      * ----------------------------------------------------------
-     * 5. AI GATEWAY
-     * ----------------------------------------------------------
-     *
-     * OpenAI est le provider principal.
-     * HumbleOS n'est appelé qu'en fallback.
-     * Le contrat de sortie reste identique pour la suite
-     * déterministe du pipeline.
-     */
-    var aiExtraction =
-      extraireChampsESGAvecAIGateway_(
-        sourceText,
-        definitions,
-        documentMode
-      );
-
-
-    var fields =
-      aiExtraction.fields;
-
-
-    /*
-     * ----------------------------------------------------------
-     * 5B. EXTRACTION DÉTERMINISTE DES RAPPORTS AFRIGREEN24
+     * 5. EXTRACTION DÉTERMINISTE DES RAPPORTS AFRIGREEN24
      * ----------------------------------------------------------
      *
      * Un rapport ESG AfriGreen24 structuré contient déjà, dans
@@ -184,10 +164,43 @@ function analyserFichierESGImporte(payload) {
         documentMode
       );
 
+    /*
+     * Un rapport AfriGreen24 structuré est sa propre source de vérité
+     * pour les 50 questions. L'IA ne reçoit donc que les définitions de
+     * profil dans ce cas ; les questions absentes restent MISSING au lieu
+     * d'être complétées par une inférence probabiliste.
+     */
+    var definitionsForAI =
+      structuredDeterministic.detected === true
+        ? definitions.filter(function(definition) {
+            return String(definition.path || "").indexOf("question.") !== 0;
+          })
+        : definitions;
+
+    /*
+     * ----------------------------------------------------------
+     * 5B. AI GATEWAY
+     * ----------------------------------------------------------
+     *
+     * OpenAI reste le provider principal pour les champs non déterministes.
+     * HumbleOS n'est appelé qu'en fallback.
+     */
+    var aiExtraction =
+      extraireChampsESGAvecAIGateway_(
+        sourceText,
+        definitionsForAI,
+        documentMode
+      );
+
+
+    var fields =
+      aiExtraction.fields;
+
     fields =
       fusionnerExtractionDeterministeImportESG_(
         fields,
-        structuredDeterministic.fields
+        structuredDeterministic.fields,
+        structuredDeterministic.detected === true
       );
 
 
@@ -214,7 +227,19 @@ function analyserFichierESGImporte(payload) {
 
       missingQuestionNumbers:
         structuredDeterministic
-          .missingQuestionNumbers
+          .missingQuestionNumbers,
+
+      duplicateQuestionNumbers:
+        structuredDeterministic
+          .duplicateQuestionNumbers,
+
+      invalidScores:
+        structuredDeterministic
+          .invalidScores,
+
+      sourceSectionDetected:
+        structuredDeterministic
+          .sourceSectionDetected
     };
 
 
@@ -1220,6 +1245,15 @@ function extraireQuestionsRapportAfriGreen24Deterministe_(
     missingQuestionNumbers:
       [],
 
+    duplicateQuestionNumbers:
+      [],
+
+    invalidScores:
+      [],
+
+    sourceSectionDetected:
+      false,
+
     fields:
       {}
   };
@@ -1266,51 +1300,55 @@ function extraireQuestionsRapportAfriGreen24Deterministe_(
     return resultat;
   }
 
-  var sourceLower =
-    source.toLowerCase();
-
   /*
-   * IMPORTANT :
-   * le sommaire contient déjà "Annexe B" puis "Annexe C".
-   * indexOf() prenait donc la mention du sommaire et produisait
-   * une "annexe" de quelques caractères seulement.
-   *
-   * On prend la DERNIÈRE occurrence de l'Annexe B, qui correspond
-   * au vrai titre de l'annexe technique dans notre rapport.
+   * Le sommaire contient lui aussi « Annexe B ». La conversion PDF ->
+   * Google Docs peut en outre couper le titre sur plusieurs lignes. On
+   * prend donc la dernière vraie occurrence avec une regex tolérante.
    */
-  var annexStart =
-    sourceLower
-      .lastIndexOf(
-        "annexe b. diagnostic technique détaillé"
-      );
+  var annexStart = trouverDerniereOccurrenceRegexESG_(
+    source,
+    /annexe\s+b\s*[.:\-–—]?\s*diagnostic\s+technique\s+d(?:é|e)taillé/gi
+  );
 
   if (annexStart < 0) {
-    annexStart =
-      sourceLower
-        .lastIndexOf(
-          "annexe b. diagnostic technique detaille"
-        );
+    annexStart = trouverDerniereOccurrenceRegexESG_(
+      source,
+      /annexe\s+b\s*[.:\-–—]?\s*diagnostic\s+technique\s+detaille/gi
+    );
   }
 
-  var annexEnd =
-    sourceLower
-      .indexOf(
-        "annexe c.",
-        Math.max(
-          0,
-          annexStart + 1
-        )
-      );
+  if (annexStart < 0) {
+    return resultat;
+  }
 
-  var annex =
-    annexStart >= 0
-      ? source.substring(
-          annexStart,
-          annexEnd >= 0
-            ? annexEnd
-            : source.length
-        )
-      : source;
+  resultat.sourceSectionDetected = true;
+
+  var annexEndRegex = /annexe\s+c\s*[.:\-–—]?/gi;
+  annexEndRegex.lastIndex = annexStart + 1;
+  var annexEndMatch = annexEndRegex.exec(source);
+  var annexEnd = annexEndMatch ? annexEndMatch.index : source.length;
+  var annex = source.substring(annexStart, annexEnd);
+
+  /* Métadonnées de validation indépendantes du mapping des questions. */
+  var seenQuestionNumbers = {};
+  annex.split(/\n/).forEach(function(line) {
+    var lineMatch = /^\s*(\d{1,2})(?:\s+|$)([\s\S]*)$/.exec(line);
+    if (!lineMatch) {
+      return;
+    }
+    var lineNumber = Number(lineMatch[1]);
+    var lineRemainder = String(lineMatch[2] || "");
+    if (lineNumber < 1 || lineNumber > 50 || /^\s*\/\s*100\b/.test(lineRemainder)) {
+      return;
+    }
+    seenQuestionNumbers[lineNumber] = (seenQuestionNumbers[lineNumber] || 0) + 1;
+  });
+
+  Object.keys(seenQuestionNumbers).forEach(function(numberKey) {
+    if (seenQuestionNumbers[numberKey] > 1) {
+      resultat.duplicateQuestionNumbers.push(Number(numberKey));
+    }
+  });
 
   var questions =
     obtenirQuestionsESG();
@@ -1334,14 +1372,14 @@ function extraireQuestionsRapportAfriGreen24Deterministe_(
         new RegExp(
           "(?:^|\\n)\\s*" +
           numero +
-          "\\s+([\\s\\S]*?)(?=(?:\\n\\s*" +
+          "(?!\\s*\\/\\s*100)(?:\\s+|$)([\\s\\S]*?)(?=(?:\\n\\s*" +
           (
             numero < 50
               ? numero + 1
               : "51"
           ) +
-          "\\s+)|$)",
-          "m"
+          "(?!\\s*\\/\\s*100)(?:\\s+|$))|$)",
+          ""
         );
 
       var rowMatch =
@@ -1369,6 +1407,18 @@ function extraireQuestionsRapportAfriGreen24Deterministe_(
         );
 
       if (!scoreMatch) {
+        var anyScoreMatch = rowText.match(
+          /(?:^|\s)(\d+(?:[.,]\d+)?)\s*\/\s*100(?:\s|$)/
+        );
+        if (anyScoreMatch) {
+          var parsedScore = Number(String(anyScoreMatch[1]).replace(",", "."));
+          if ([0, 20, 40, 60, 80, 100].indexOf(parsedScore) === -1) {
+            resultat.invalidScores.push({
+              questionNumber: numero,
+              score: anyScoreMatch[1]
+            });
+          }
+        }
         resultat
           .missingQuestionNumbers
           .push(
@@ -1408,24 +1458,41 @@ function extraireQuestionsRapportAfriGreen24Deterministe_(
           1,
 
         evidence:
-          evidence
+          evidence,
+
+        extractionMethod:
+          "AFRIGREEN24_STRUCTURED_REPORT",
+
+        deterministic:
+          true,
+
+        provenance: {
+          extractionMethod:
+            "AFRIGREEN24_STRUCTURED_REPORT",
+          deterministic:
+            true,
+          sourceSectionDetected:
+            true
+        }
       };
 
       resultat.questionCount++;
     }
   );
 
-  /*
-   * On n'active le chemin déterministe que si la structure est
-   * suffisamment complète pour éviter un faux positif.
-   */
-  resultat.detected =
-    resultat.questionCount >=
-    45;
+  resultat.missingQuestionNumbers = resultat.missingQuestionNumbers.filter(function(number, index, values) {
+    return values.indexOf(number) === index;
+  });
+  resultat.duplicateQuestionNumbers.sort(function(a, b) { return a - b; });
+  resultat.missingQuestionNumbers.sort(function(a, b) { return a - b; });
+  resultat.invalidScores = resultat.invalidScores.filter(function(item, index, values) {
+    return values.findIndex(function(candidate) {
+      return candidate.questionNumber === item.questionNumber && candidate.score === item.score;
+    }) === index;
+  });
 
-  if (!resultat.detected) {
-    resultat.fields = {};
-  }
+  resultat.detected =
+    resultat.sourceSectionDetected === true;
 
   console.log(
     JSON.stringify({
@@ -1439,7 +1506,16 @@ function extraireQuestionsRapportAfriGreen24Deterministe_(
         resultat.questionCount,
 
       missingQuestionNumbers:
-        resultat.missingQuestionNumbers
+        resultat.missingQuestionNumbers,
+
+      duplicateQuestionNumbers:
+        resultat.duplicateQuestionNumbers,
+
+      invalidScores:
+        resultat.invalidScores,
+
+      sourceSectionDetected:
+        resultat.sourceSectionDetected
     })
   );
 
@@ -1447,9 +1523,24 @@ function extraireQuestionsRapportAfriGreen24Deterministe_(
 }
 
 
+function trouverDerniereOccurrenceRegexESG_(source, regex) {
+  var lastIndex = -1;
+  var match;
+  regex.lastIndex = 0;
+  while ((match = regex.exec(String(source || ""))) !== null) {
+    lastIndex = match.index;
+    if (match[0] === "") {
+      regex.lastIndex++;
+    }
+  }
+  return lastIndex;
+}
+
+
 function fusionnerExtractionDeterministeImportESG_(
   aiFields,
-  deterministicFields
+  deterministicFields,
+  structuredDetected
 ) {
   var output = {};
 
@@ -1457,6 +1548,12 @@ function fusionnerExtractionDeterministeImportESG_(
     aiFields || {}
   ).forEach(
     function(path) {
+      if (
+        structuredDetected === true &&
+        String(path || "").indexOf("question.") === 0
+      ) {
+        return;
+      }
       output[path] =
         aiFields[path];
     }
@@ -1628,6 +1725,172 @@ function TEST_ESG_STRUCTURED_REPORT_DETERMINISTIC_IMPORT_LOCAL() {
  * CONSTRUCTION DU RÉSULTAT POUR Script.html
  * ============================================================
  */
+/**
+ * Intégration locale : simule la sortie texte d'un tableau Google Docs
+ * (une cellule par ligne) et vérifie le même chemin que la production,
+ * jusqu'à construireResultatImportESG_.
+ */
+function TEST_ESG_STRUCTURED_REPORT_IMPORT_INTEGRATION_LOCAL() {
+  function construireFixture_(options) {
+    options = options || {};
+    var lines = [
+      "Sommaire",
+      "Annexe B. Diagnostic technique détaillé",
+      "Annexe C. Transparence numérique ESG",
+      "Questions analysées 50",
+      "Données manquantes 0",
+      "Préparation ESG",
+      "Annexe B. Diagnostic technique détaillé",
+      "N°",
+      "Thème / sous-thème",
+      "Score",
+      "Preuve",
+      "Statut"
+    ];
+
+    obtenirQuestionsESG().forEach(function(question) {
+      var numero = Number(question.number);
+      if (options.missing === numero) {
+        return;
+      }
+      var score = options.invalid === numero
+        ? "30 / 100"
+        : String((numero % 6) * 20) + " / 100";
+      lines.push(
+        String(numero),
+        String(question.theme || "Thème"),
+        String(question.subtheme || "Sous-thème"),
+        score,
+        "Preuve moyenne",
+        "En structuration"
+      );
+      if (options.duplicate === numero) {
+        lines.push(
+          String(numero),
+          String(question.theme || "Thème"),
+          String(question.subtheme || "Sous-thème"),
+          score,
+          "Preuve moyenne",
+          "En structuration"
+        );
+      }
+    });
+
+    lines.push("Annexe C. Transparence numérique ESG");
+    return lines.join("\n");
+  }
+
+  var errors = [];
+  var completeSource = construireFixture_();
+  var extraction = extraireQuestionsRapportAfriGreen24Deterministe_(
+    completeSource,
+    "STRUCTURED_ESG_REPORT"
+  );
+  var finalResult = construireResultatImportESG_(
+    extraction.fields,
+    completeSource,
+    "structured-report-fixture.pdf"
+  );
+
+  if (!extraction.detected || !extraction.sourceSectionDetected || extraction.questionCount !== 50) {
+    errors.push("Le rapport tableau complet doit produire 50 questions.");
+  }
+  if (extraction.missingQuestionNumbers.length || extraction.duplicateQuestionNumbers.length || extraction.invalidScores.length) {
+    errors.push("Le rapport complet ne doit contenir aucune anomalie.");
+  }
+  if (
+    finalResult.analysis.found !== 50 ||
+    finalResult.analysis.toConfirm !== 0 ||
+    finalResult.analysis.missing !== 15
+  ) {
+    errors.push("Le chemin construireResultatImportESG_ ne doit laisser manquer que les 15 champs profil.");
+  }
+  var questionStats = {
+    total: 0,
+    found: 0,
+    toConfirm: 0,
+    missing: 0
+  };
+  Object.keys(finalResult.questions).forEach(function(questionId) {
+    questionStats.total++;
+    var questionStatus = finalResult.questions[questionId].status;
+    if (questionStatus === ESG_IMPORT_STATUS.FOUND) {
+      questionStats.found++;
+    } else if (questionStatus === ESG_IMPORT_STATUS.TO_CONFIRM) {
+      questionStats.toConfirm++;
+    } else {
+      questionStats.missing++;
+    }
+  });
+  if (questionStats.total !== 50 || questionStats.found !== 50 || questionStats.toConfirm !== 0 || questionStats.missing !== 0) {
+    errors.push("Les statistiques finales questions doivent être 50/50 FOUND.");
+  }
+  Object.keys(finalResult.questions).forEach(function(questionId) {
+    var item = finalResult.questions[questionId];
+    if (item.status !== ESG_IMPORT_STATUS.FOUND || item.confidence !== 1 || item.deterministic !== true) {
+      errors.push("Question non FOUND/déterministe : " + questionId);
+    }
+  });
+
+  var mapping = [0, 1, 2, 3, 4, 5];
+  obtenirQuestionsESG().forEach(function(question) {
+    var expected = mapping[Number(question.number) % 6];
+    var item = extraction.fields["question." + question.question_id];
+    if (!item || Number(item.value) !== expected) {
+      errors.push("Mapping score invalide pour " + question.question_id);
+    }
+  });
+
+  var missing = extraireQuestionsRapportAfriGreen24Deterministe_(
+    construireFixture_({ missing: 17 }),
+    "STRUCTURED_ESG_REPORT"
+  );
+  if (missing.questionCount !== 49 || missing.missingQuestionNumbers.indexOf(17) === -1) {
+    errors.push("La question manquante doit être signalée.");
+  }
+
+  var duplicate = extraireQuestionsRapportAfriGreen24Deterministe_(
+    construireFixture_({ duplicate: 12 }),
+    "STRUCTURED_ESG_REPORT"
+  );
+  if (duplicate.duplicateQuestionNumbers.indexOf(12) === -1) {
+    errors.push("Le numéro dupliqué doit être signalé.");
+  }
+
+  var invalid = extraireQuestionsRapportAfriGreen24Deterministe_(
+    construireFixture_({ invalid: 8 }),
+    "STRUCTURED_ESG_REPORT"
+  );
+  if (invalid.invalidScores.length !== 1 || invalid.invalidScores[0].questionNumber !== 8) {
+    errors.push("Le score 30/100 doit être signalé comme invalide.");
+  }
+
+  if (extraireQuestionsRapportAfriGreen24Deterministe_(
+    "Annexe B. Diagnostic technique détaillé",
+    "STRUCTURED_ESG_REPORT"
+  ).detected) {
+    errors.push("Un faux positif Annexe B seul doit être refusé.");
+  }
+  if (extraireQuestionsRapportAfriGreen24Deterministe_(
+    "Rapport narratif ESG sans tableau propriétaire.",
+    "NARRATIVE_ESG"
+  ).detected) {
+    errors.push("Un rapport narratif ne doit pas être structuré.");
+  }
+
+  if (errors.length) {
+    throw new Error("TEST_ESG_STRUCTURED_REPORT_IMPORT_INTEGRATION_FAILED: " + errors.join(" | "));
+  }
+
+  return {
+    success: true,
+    questionCount: extraction.questionCount,
+    analysis: finalResult.analysis,
+    tests: 9
+  };
+}
+
+
 function construireResultatImportESG_(
   fields,
   sourceText,
@@ -1812,6 +2075,32 @@ function construireChampImportESG_(
           sourceText
         )
       : false;
+
+  var deterministicStructuredExtraction =
+    brut.deterministic === true &&
+    brut.extractionMethod ===
+      "AFRIGREEN24_STRUCTURED_REPORT";
+
+  var extractionProvenance =
+    brut.provenance ||
+    (deterministicStructuredExtraction
+      ? {
+          extractionMethod:
+            "AFRIGREEN24_STRUCTURED_REPORT",
+          deterministic:
+            true
+        }
+      : null);
+
+  /*
+   * Le parser déterministe a déjà validé la cellule source dans la section
+   * propriétaire du rapport. Cette provenance explicite permet de tolérer
+   * les différences de texte introduites par PDF -> Google Docs sans
+   * affaiblir le Fact Guard des extractions IA.
+   */
+  if (deterministicStructuredExtraction && evidence) {
+    evidenceMatchedSource = true;
+  }
 
 
   /*
@@ -2037,6 +2326,15 @@ function construireChampImportESG_(
 
     evidenceMatchedSource:
       evidenceMatchedSource,
+
+    extractionMethod:
+      brut.extractionMethod || "",
+
+    deterministic:
+      deterministicStructuredExtraction,
+
+    provenance:
+      extractionProvenance,
 
     status:
       status
