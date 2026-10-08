@@ -175,7 +175,7 @@ function renderScoreRing(value) {
       <circle class="track" cx="50" cy="50" r="42"></circle>
       <circle class="value" cx="50" cy="50" r="42"
         stroke-dasharray="${dash.toFixed(2)} ${circumference.toFixed(2)}"></circle>
-      <text x="50" y="48" text-anchor="middle" font-size="20" font-weight="750">${esc(n.toFixed(n % 1 ? 1 : 0))}</text>
+      <text x="50" y="48" text-anchor="middle" font-size="20" font-weight="750">${esc(String(Math.round(n * 100) / 100))}</text>
       <text x="50" y="64" text-anchor="middle" font-size="8" opacity="0.68">/ 100</text>
     </svg>
   `;
