@@ -386,12 +386,54 @@ async function runVisualQa(page) {
       .filter(img => !img.complete || img.naturalWidth === 0)
       .map(img => img.getAttribute("src") || "");
 
+    const cover = document.querySelector(".report-page.cover");
+    const coverGrid = cover?.querySelector(".cover-grid");
+    const coverScore = cover?.querySelector(".cover-score");
+
+    let coverBalance = {
+      pass: true,
+      heroTopRatio: null,
+      heroBottomRatio: null,
+      scoreBottomRatio: null
+    };
+
+    if (cover && coverGrid) {
+      const coverRect = cover.getBoundingClientRect();
+      const gridRect = coverGrid.getBoundingClientRect();
+      const scoreRect = coverScore?.getBoundingClientRect();
+
+      const height = Math.max(1, coverRect.height);
+      const heroTopRatio = (gridRect.top - coverRect.top) / height;
+      const heroBottomRatio = (gridRect.bottom - coverRect.top) / height;
+      const scoreBottomRatio = scoreRect
+        ? (scoreRect.bottom - coverRect.top) / height
+        : null;
+
+      coverBalance = {
+        pass:
+          heroTopRatio >= 0.12 &&
+          heroTopRatio <= 0.40 &&
+          heroBottomRatio <= 0.88 &&
+          (
+            scoreBottomRatio === null ||
+            scoreBottomRatio <= 0.88
+          ),
+        heroTopRatio: Number(heroTopRatio.toFixed(3)),
+        heroBottomRatio: Number(heroBottomRatio.toFixed(3)),
+        scoreBottomRatio:
+          scoreBottomRatio === null
+            ? null
+            : Number(scoreBottomRatio.toFixed(3))
+      };
+    }
+
     return {
       text,
       forbidden,
       externalImages,
       brokenImages,
-      horizontalOverflow
+      horizontalOverflow,
+      coverBalance
     };
   });
 
@@ -406,6 +448,7 @@ async function runVisualQa(page) {
       browserQa.externalImages.length === 0 &&
       browserQa.brokenImages.length === 0 &&
       browserQa.horizontalOverflow === false &&
+      browserQa.coverBalance.pass === true &&
       internalCodeLeaks.length === 0,
 
     forbidden:
@@ -419,6 +462,9 @@ async function runVisualQa(page) {
 
     horizontalOverflow:
       browserQa.horizontalOverflow,
+
+    coverBalance:
+      browserQa.coverBalance,
 
     internalCodeLeaks
   };
@@ -505,6 +551,7 @@ export async function renderPdf(spec) {
           brokenImages: qa.brokenImages.length,
           internalCodeLeaks: qa.internalCodeLeaks,
           horizontalOverflow: qa.horizontalOverflow,
+          coverBalance: qa.coverBalance,
           contentParity: qa.contentParity,
           printFlow: qa.printFlow
         })
