@@ -319,12 +319,31 @@ export async function renderPdf(spec) {
 
     const visualQa = await runVisualQa(page);
 
+    const printFlow = {
+      pass:
+        pagination.orphanRiskSections.length === 0,
+
+      packedSections:
+        pagination.packedSections,
+
+      continuationSections:
+        pagination.continuationSections,
+
+      fragmentationRiskSections:
+        pagination.fragmentationRiskSections,
+
+      orphanRiskSections:
+        pagination.orphanRiskSections
+    };
+
     const qa = {
       ...visualQa,
       contentParity,
+      printFlow,
       pass:
         visualQa.pass === true &&
-        contentParity.pass === true
+        contentParity.pass === true &&
+        printFlow.pass === true
     };
 
     if (!qa.pass) {
@@ -336,7 +355,8 @@ export async function renderPdf(spec) {
           brokenImages: qa.brokenImages.length,
           internalCodeLeaks: qa.internalCodeLeaks,
           horizontalOverflow: qa.horizontalOverflow,
-          contentParity: qa.contentParity
+          contentParity: qa.contentParity,
+          printFlow: qa.printFlow
         })
       );
 
