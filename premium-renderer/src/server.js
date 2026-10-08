@@ -151,6 +151,7 @@ const server = http.createServer(async (req, res) => {
       "X-ESG-QA-Status": result.qa.pass ? "PASS" : "FAIL",
       "X-ESG-Pagination-Compacted": String(result.pagination.compactedSections.length),
       "X-ESG-Continuation-Sections": String(result.pagination.continuationSections.length),
+      "X-ESG-Fragmentation-Risk-Sections": String(result.pagination.fragmentationRiskSections.length),
       "X-Request-Id": requestId
     });
 
@@ -165,7 +166,8 @@ const server = http.createServer(async (req, res) => {
       designProfile: spec.designProfile,
       sectorProfile: spec.sectorProfile,
       compactedSections: result.pagination.compactedSections,
-      continuationSections: result.pagination.continuationSections
+      continuationSections: result.pagination.continuationSections,
+      fragmentationRiskSections: result.pagination.fragmentationRiskSections
     });
   } catch (error) {
     const code = String(error?.code || error?.message || "RENDER_FAILED")
