@@ -412,6 +412,40 @@ body {
   background: var(--accent);
 }
 
+/*
+ * PRINT FLOW POLICY
+ *
+ * Composite blocks must be allowed to flow across a physical page boundary.
+ * Their atomic children (table rows, risk cards, roadmap items) remain
+ * indivisible. This prevents Chromium from pushing an entire large block to
+ * the next page and leaving a half-empty page behind.
+ */
+.report-block[data-block-type="EXECUTIVE_SUMMARY_BLOCK"] > .card,
+.report-block[data-block-type="MATERIALITY_BLOCK"] > .card,
+.report-block[data-block-type="TABLE_BLOCK"] > .card,
+.report-block[data-block-type="RISK_BLOCK"] > .card,
+.report-block[data-block-type="RECOMMENDATION_BLOCK"] > .card,
+.report-block[data-block-type="ROADMAP_BLOCK"] > .card {
+  break-inside: auto;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.report-block[data-block-type="EXECUTIVE_SUMMARY_BLOCK"] .triple-grid,
+.report-block[data-block-type="EXECUTIVE_SUMMARY_BLOCK"] .editorial-narrative,
+.report-block[data-block-type="MATERIALITY_BLOCK"] .callout,
+.report-block[data-block-type="TABLE_BLOCK"] .callout,
+.report-block[data-block-type="RISK_BLOCK"] .risk-card,
+.report-block[data-block-type="RECOMMENDATION_BLOCK"] .risk-card,
+.report-block[data-block-type="ROADMAP_BLOCK"] .roadmap-item {
+  break-inside: avoid-page;
+}
+
+.report-block[data-block-type="DISCLAIMER_BLOCK"] {
+  margin-top: 2mm;
+  break-before: avoid-page;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
