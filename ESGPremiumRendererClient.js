@@ -294,6 +294,28 @@ function appelerPremiumRendererESGV2_(
     );
   }
 
+  var qaStatus =
+    String(
+      headers[
+        "X-ESG-QA-Status"
+      ] ||
+      headers[
+        "x-esg-qa-status"
+      ] ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+  if (
+    qaStatus !==
+    "PASS"
+  ) {
+    throw new Error(
+      "ESG_PREMIUM_RENDERER_QA_NOT_PASS"
+    );
+  }
+
   var blob =
     response.getBlob();
 
@@ -321,7 +343,21 @@ function appelerPremiumRendererESGV2_(
       payload.designProfile,
 
     sectorProfile:
-      payload.sectorProfile
+      payload.sectorProfile,
+
+    qaStatus:
+      qaStatus,
+
+    rendererVersion:
+      String(
+        headers[
+          "X-ESG-Renderer-Version"
+        ] ||
+        headers[
+          "x-esg-renderer-version"
+        ] ||
+        ""
+      )
   };
 }
 
