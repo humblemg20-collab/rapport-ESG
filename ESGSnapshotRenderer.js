@@ -120,11 +120,17 @@ function genererSnapshotESGV1(
   model.report.reportId =
     identifiantRapport;
 
-  var narration =
-    genererNarrationsSnapshotESGV1_(
+  var editorial =
+    preparerDocumentEditorialESGV2_(
       model,
       profil
     );
+
+  model =
+    editorial.model;
+
+  var narration =
+    editorial.narration;
 
   var organisation =
     nettoyerNomFichierESG_(
@@ -324,6 +330,9 @@ function genererSnapshotESGV1(
 
       whiteLabel:
         whiteLabel,
+
+      contentParity:
+        editorial.parity,
 
       pdfRender:
         pdfHealth
