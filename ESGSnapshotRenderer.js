@@ -2130,25 +2130,19 @@ function rendreRisksSnapshotESGV1_(
     "Risques ESG prioritaires"
   );
 
-  /*
-   * Snapshot finance-facing :
-   * les mesures de mitigation ne sont pas répétées ici.
-   * Elles sont déjà portées par les actions prioritaires
-   * et la feuille de route. On garde donc un tableau
-   * exécutif compact : risque + pilier + niveau.
-   */
   var rows = [
     [
       "Risque",
       "Pilier",
-      "Niveau"
+      "Niveau",
+      "Mesure"
     ]
   ];
 
   risks
     .slice(
       0,
-      3
+      5
     )
     .forEach(
       function(risk) {
@@ -2172,7 +2166,14 @@ function rendreRisksSnapshotESGV1_(
             : String(
                 risk.legacySeverity ||
                 "À évaluer"
-              )
+              ),
+          String(
+            (
+              risk.mitigationActions ||
+              []
+            )[0] ||
+            "À définir"
+          )
         ]);
       }
     );
