@@ -162,6 +162,37 @@ function analyserFichierESGImporte(payload) {
 
     /*
      * ----------------------------------------------------------
+     * 5B. EXTRACTION DÉTERMINISTE DES RAPPORTS AFRIGREEN24
+     * ----------------------------------------------------------
+     *
+     * Un rapport ESG AfriGreen24 structuré contient déjà, dans
+     * l'annexe technique, les 50 lignes numérotées avec un score
+     * sur 100. Ce format ne doit pas repasser par une interprétation
+     * probabiliste pour retrouver des réponses que notre propre
+     * moteur a déjà calculées.
+     *
+     * Règle canonique :
+     * 0/20/40/60/80/100 -> 0/1/2/3/4/5.
+     *
+     * Les valeurs déterministes gagnent sur l'extraction IA.
+     * L'IA reste utile pour les documents narratifs et les champs
+     * profil qui ne sont pas explicitement structurés.
+     */
+    var structuredDeterministic =
+      extraireQuestionsRapportAfriGreen24Deterministe_(
+        sourceText,
+        documentMode
+      );
+
+    fields =
+      fusionnerExtractionDeterministeImportESG_(
+        fields,
+        structuredDeterministic.fields
+      );
+
+
+    /*
+     * ----------------------------------------------------------
      * 6. FACT GUARD + NORMALISATION + STATUTS
      * ----------------------------------------------------------
      */
@@ -172,6 +203,19 @@ function analyserFichierESGImporte(payload) {
         payload.fileName ||
           "Document ESG"
       );
+
+    resultat.structuredDeterministicExtraction = {
+      detected:
+        structuredDeterministic.detected ===
+        true,
+
+      questionCount:
+        structuredDeterministic.questionCount,
+
+      missingQuestionNumbers:
+        structuredDeterministic
+          .missingQuestionNumbers
+    };
 
 
     resultat.success =
@@ -1137,6 +1181,428 @@ function convertirTypeChampImportESG_(
    * texte.
    */
   return "text";
+}
+
+
+/**
+ * ============================================================
+ * EXTRACTION DÉTERMINISTE — RAPPORT AFRIGREEN24 STRUCTURÉ
+ * ============================================================
+ *
+ * Cas couvert :
+ * rapport Google Docs/PDF produit par le moteur investisseur,
+ * contenant "Annexe B. Diagnostic technique détaillé" et les
+ * lignes numérotées 1..50 avec Score / Preuve / Statut.
+ *
+ * Aucun appel IA.
+ * Aucun recalcul ESG.
+ * Le score affiché est uniquement retransformé vers la réponse
+ * canonique ayant servi au scoring :
+ *
+ * 0 -> 0
+ * 20 -> 1
+ * 40 -> 2
+ * 60 -> 3
+ * 80 -> 4
+ * 100 -> 5
+ */
+function extraireQuestionsRapportAfriGreen24Deterministe_(
+  sourceText,
+  documentMode
+) {
+  var resultat = {
+    detected:
+      false,
+
+    questionCount:
+      0,
+
+    missingQuestionNumbers:
+      [],
+
+    fields:
+      {}
+  };
+
+  if (
+    String(
+      documentMode || ""
+    ) !==
+    "STRUCTURED_ESG_REPORT"
+  ) {
+    return resultat;
+  }
+
+  var source =
+    String(
+      sourceText || ""
+    );
+
+  var normalized =
+    normaliserTexteComparaisonESG_(
+      source
+    );
+
+  var requiredMarkers = [
+    "annexe b diagnostic technique detaille",
+    "theme sous theme",
+    "score preuve statut",
+    "preparation esg"
+  ];
+
+  var isOwnStructuredReport =
+    requiredMarkers.every(
+      function(markerText) {
+        return (
+          normalized.indexOf(
+            markerText
+          ) !==
+          -1
+        );
+      }
+    );
+
+  if (!isOwnStructuredReport) {
+    return resultat;
+  }
+
+  var annexStart =
+    source
+      .toLowerCase()
+      .indexOf(
+        "annexe b. diagnostic technique détaillé"
+      );
+
+  if (annexStart < 0) {
+    annexStart =
+      source
+        .toLowerCase()
+        .indexOf(
+          "annexe b. diagnostic technique detaille"
+        );
+  }
+
+  var annexEnd =
+    source
+      .toLowerCase()
+      .indexOf(
+        "annexe c.",
+        Math.max(
+          0,
+          annexStart
+        )
+      );
+
+  var annex =
+    annexStart >= 0
+      ? source.substring(
+          annexStart,
+          annexEnd >= 0
+            ? annexEnd
+            : source.length
+        )
+      : source;
+
+  var questions =
+    obtenirQuestionsESG();
+
+  questions.forEach(
+    function(question) {
+      var numero =
+        Number(
+          question.number || 0
+        );
+
+      if (
+        !numero ||
+        numero < 1 ||
+        numero > 50
+      ) {
+        return;
+      }
+
+      var rowRegex =
+        new RegExp(
+          "(?:^|\\n)\\s*" +
+          numero +
+          "\\s+([\\s\\S]*?)(?=(?:\\n\\s*" +
+          (
+            numero < 50
+              ? numero + 1
+              : "51"
+          ) +
+          "\\s+)|$)",
+          "m"
+        );
+
+      var rowMatch =
+        annex.match(
+          rowRegex
+        );
+
+      if (!rowMatch) {
+        resultat
+          .missingQuestionNumbers
+          .push(
+            numero
+          );
+        return;
+      }
+
+      var rowText =
+        String(
+          rowMatch[0] || ""
+        ).trim();
+
+      var scoreMatch =
+        rowText.match(
+          /(?:^|\s)(100|80|60|40|20|0)\s*\/\s*100(?:\s|$)/
+        );
+
+      if (!scoreMatch) {
+        resultat
+          .missingQuestionNumbers
+          .push(
+            numero
+          );
+        return;
+      }
+
+      var score =
+        Number(
+          scoreMatch[1]
+        );
+
+      var canonicalValue =
+        score / 20;
+
+      var evidence =
+        rowText
+          .replace(
+            /\s+/g,
+            " "
+          )
+          .trim()
+          .substring(
+            0,
+            500
+          );
+
+      resultat.fields[
+        "question." +
+        question.question_id
+      ] = {
+        value:
+          canonicalValue,
+
+        confidence:
+          1,
+
+        evidence:
+          evidence
+      };
+
+      resultat.questionCount++;
+    }
+  );
+
+  /*
+   * On n'active le chemin déterministe que si la structure est
+   * suffisamment complète pour éviter un faux positif.
+   */
+  resultat.detected =
+    resultat.questionCount >=
+    45;
+
+  if (!resultat.detected) {
+    resultat.fields = {};
+  }
+
+  console.log(
+    JSON.stringify({
+      event:
+        "esg_structured_report_deterministic_extraction",
+
+      detected:
+        resultat.detected,
+
+      questionCount:
+        resultat.questionCount,
+
+      missingQuestionNumbers:
+        resultat.missingQuestionNumbers
+    })
+  );
+
+  return resultat;
+}
+
+
+function fusionnerExtractionDeterministeImportESG_(
+  aiFields,
+  deterministicFields
+) {
+  var output = {};
+
+  Object.keys(
+    aiFields || {}
+  ).forEach(
+    function(path) {
+      output[path] =
+        aiFields[path];
+    }
+  );
+
+  Object.keys(
+    deterministicFields || {}
+  ).forEach(
+    function(path) {
+      output[path] =
+        deterministicFields[path];
+    }
+  );
+
+  return output;
+}
+
+
+function TEST_ESG_STRUCTURED_REPORT_DETERMINISTIC_IMPORT_LOCAL() {
+  var lines = [
+    "Annexe B. Diagnostic technique détaillé",
+    "N° Thème / sous-thème Score Preuve Statut",
+    "Environnement"
+  ];
+
+  obtenirQuestionsESG()
+    .forEach(
+      function(question) {
+        var numero =
+          Number(
+            question.number
+          );
+
+        var score =
+          (
+            numero %
+            6
+          ) *
+          20;
+
+        lines.push(
+          numero +
+          " " +
+          String(
+            question.theme ||
+            "Thème"
+          ) +
+          " — " +
+          String(
+            question.subtheme ||
+            ""
+          ) +
+          " " +
+          score +
+          " / 100 Preuve moyenne En structuration"
+        );
+      }
+    );
+
+  lines.push(
+    "Préparation ESG"
+  );
+
+  lines.push(
+    "Annexe C. Transparence numérique ESG"
+  );
+
+  var source =
+    lines.join(
+      "\n"
+    );
+
+  var extraction =
+    extraireQuestionsRapportAfriGreen24Deterministe_(
+      source,
+      "STRUCTURED_ESG_REPORT"
+    );
+
+  var questions =
+    obtenirQuestionsESG();
+
+  var errors = [];
+
+  if (
+    extraction.detected !==
+    true
+  ) {
+    errors.push(
+      "Rapport structuré non détecté."
+    );
+  }
+
+  if (
+    extraction.questionCount !==
+    50
+  ) {
+    errors.push(
+      "Nombre de questions extraites : " +
+      extraction.questionCount +
+      " au lieu de 50."
+    );
+  }
+
+  questions.forEach(
+    function(question) {
+      var numero =
+        Number(
+          question.number
+        );
+
+      var expected =
+        numero %
+        6;
+
+      var item =
+        extraction.fields[
+          "question." +
+          question.question_id
+        ];
+
+      if (
+        !item ||
+        Number(
+          item.value
+        ) !==
+          expected ||
+        Number(
+          item.confidence
+        ) !==
+          1
+      ) {
+        errors.push(
+          "Mapping déterministe invalide pour question " +
+          numero +
+          "."
+        );
+      }
+    }
+  );
+
+  return {
+    success:
+      errors.length ===
+      0,
+
+    questionCount:
+      extraction.questionCount,
+
+    missingQuestionNumbers:
+      extraction
+        .missingQuestionNumbers,
+
+    errors:
+      errors
+  };
 }
 
 
