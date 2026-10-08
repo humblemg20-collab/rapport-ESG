@@ -5,9 +5,10 @@
  *
  * Facade for the premium HTML/CSS renderer.
  *
- * This engine is NOT wired into the production report router yet.
- * It can be called explicitly for smoke tests after the renderer
- * service is deployed.
+ * This engine is wired into the report router behind the explicit
+ * PREMIUM_V2 feature mode. The renderer itself remains independently
+ * controlled by Script Properties and falls back to SNAPSHOT_V1 on
+ * renderer failure.
  */
 
 var ESG_PREMIUM_REPORT_ENGINE_VERSION_V2 =
@@ -266,6 +267,24 @@ function genererSnapshotPremiumESGV2(
 
     pdfDownloadUrl:
       pdfDownloadUrl,
+
+    documentId:
+      "",
+
+    docId:
+      "",
+
+    documentUrl:
+      "",
+
+    docUrl:
+      "",
+
+    editableDocumentAvailable:
+      false,
+
+    deliveryFormat:
+      "PDF",
 
     folderId:
       dossier.getId(),
@@ -606,6 +625,182 @@ function EXPORT_ESG_PREMIUM_SPEC_KIVU_V2() {
   );
 
   return result;
+}
+
+
+function TEST_ESG_PREMIUM_ENGINE_REAL() {
+  var fixture =
+    construireFixtureKivuSolarESGV2_();
+
+  var config =
+    obtenirConfigPremiumRendererESGV2_();
+
+  var configValidation =
+    validerConfigPremiumRendererESGV2_(
+      config
+    );
+
+  if (
+    configValidation.valid !==
+      true
+  ) {
+    throw new Error(
+      "ESG_PREMIUM_RENDERER_NOT_READY: " +
+      configValidation
+        .errors
+        .join(
+          " | "
+        )
+    );
+  }
+
+  var health =
+    testerHealthPremiumRendererESGV2_();
+
+  if (
+    health.success !==
+      true
+  ) {
+    throw new Error(
+      "ESG_PREMIUM_RENDERER_HEALTH_FAILED: " +
+      String(
+        health.status
+      )
+    );
+  }
+
+  var result =
+    genererSnapshotPremiumESGV2(
+      fixture.model,
+      fixture.profil,
+      {
+        designProfile:
+          ESG_DESIGN_PROFILE_V2
+            .INVESTOR_PREMIUM
+      }
+    );
+
+  if (
+    !result.success ||
+    !result.pdfUrl ||
+    result.quality.rendererQA !==
+      "PASS"
+  ) {
+    throw new Error(
+      "ESG_PREMIUM_REAL_GENERATION_FAILED"
+    );
+  }
+
+  Logger.log(
+    JSON.stringify(
+      {
+        success:
+          true,
+
+        reportId:
+          result.reportId,
+
+        pdfUrl:
+          result.pdfUrl,
+
+        rendererVersion:
+          result.rendererVersion,
+
+        designProfile:
+          result.designProfile,
+
+        sectorProfile:
+          result.sectorProfile,
+
+        rendererQA:
+          result
+            .quality
+            .rendererQA,
+
+        pagination:
+          result
+            .quality
+            .pagination,
+
+        aiGeneration:
+          result
+            .aiGeneration
+      },
+      null,
+      2
+    )
+  );
+
+  return result;
+}
+
+
+function TEST_ESG_PREMIUM_ROUTER_FALLBACK_LOCAL() {
+  var properties =
+    PropertiesService
+      .getScriptProperties();
+
+  var oldEnabled =
+    properties.getProperty(
+      "ESG_PREMIUM_RENDERER_ENABLED"
+    );
+
+  try {
+    properties.setProperty(
+      "ESG_PREMIUM_RENDERER_ENABLED",
+      "false"
+    );
+
+    var fixture =
+      construireFixtureKivuSolarESGV2_();
+
+    var result =
+      genererSnapshotPremiumAvecFallbackESGV2(
+        fixture.model,
+        fixture.profil,
+        {
+          narrativeMode:
+            "DETERMINISTIC_ONLY"
+        }
+      );
+
+    return {
+      success:
+        result &&
+        result.success ===
+          true &&
+        result.premiumRenderer &&
+        result
+          .premiumRenderer
+          .fallbackUsed ===
+          true &&
+        result
+          .premiumRenderer
+          .reason ===
+          "RENDERER_DISABLED",
+
+      premiumRenderer:
+        result
+          .premiumRenderer
+    };
+
+  } finally {
+    if (
+      oldEnabled ===
+        null ||
+      oldEnabled ===
+        undefined
+    ) {
+      properties.deleteProperty(
+        "ESG_PREMIUM_RENDERER_ENABLED"
+      );
+    } else {
+      properties.setProperty(
+        "ESG_PREMIUM_RENDERER_ENABLED",
+        oldEnabled
+      );
+    }
+  }
 }
 
 
