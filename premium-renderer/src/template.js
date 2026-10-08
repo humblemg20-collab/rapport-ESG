@@ -55,6 +55,116 @@ function severityLabel(item) {
   );
 }
 
+function renderNarrative(block) {
+  const narrative = String(
+    block?.presentationContent?.narrative || ""
+  ).trim();
+
+  if (!narrative) {
+    return "";
+  }
+
+  return `
+    <div class="editorial-narrative" data-narrative-for="${esc(block?.blockId || "")}">
+      ${esc(narrative)}
+    </div>
+  `;
+}
+
+function renderStakeholders(block) {
+  const stakeholders = block?.data?.stakeholders || [];
+
+  if (!stakeholders.length) return "";
+
+  return `
+    <section class="card">
+      <div class="kicker">Parties prenantes</div>
+      <div class="stakeholder-grid">
+        ${stakeholders.map(item => `
+          <div class="stakeholder-card">
+            <strong>${esc(item?.name || item?.label || item?.stakeholder || itemLabel(item))}</strong>
+            ${item?.relationship ? `<div class="muted small">${esc(item.relationship)}</div>` : ""}
+          </div>
+        `).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderRiskMatrix(block) {
+  const risks = (block?.data?.risks || [])
+    .filter(risk => {
+      const likelihood = Number(risk?.likelihood);
+      const impact = Number(risk?.impact);
+      return Number.isFinite(likelihood) &&
+        Number.isFinite(impact) &&
+        likelihood >= 1 && likelihood <= 5 &&
+        impact >= 1 && impact <= 5;
+    });
+
+  if (risks.length < 3) return "";
+
+  const cells = [];
+
+  for (let impact = 5; impact >= 1; impact -= 1) {
+    for (let likelihood = 1; likelihood <= 5; likelihood += 1) {
+      const matches = risks.filter(risk =>
+        Number(risk.likelihood) === likelihood &&
+        Number(risk.impact) === impact
+      );
+
+      const level = likelihood * impact;
+      const className =
+        level >= 16
+          ? "matrix-critical"
+          : level >= 10
+            ? "matrix-high"
+            : level >= 5
+              ? "matrix-medium"
+              : "matrix-low";
+
+      cells.push(`
+        <div class="risk-matrix-cell ${className}">
+          <span class="matrix-score">${likelihood}×${impact}</span>
+          ${matches.map(risk => `
+            <span class="matrix-dot" title="${esc(itemLabel(risk))}"></span>
+          `).join("")}
+        </div>
+      `);
+    }
+  }
+
+  return `
+    <section class="card">
+      <div class="kicker">Matrice des risques</div>
+      <div class="risk-matrix-wrap">
+        <div class="risk-matrix-y">Impact ↑</div>
+        <div class="risk-matrix">${cells.join("")}</div>
+      </div>
+      <div class="muted small matrix-axis">Probabilité →</div>
+    </section>
+  `;
+}
+
+function renderImageBlock(block) {
+  const dataUrl = String(
+    block?.data?.mediaDataUrl ||
+    block?.presentationContent?.mediaDataUrl ||
+    ""
+  );
+
+  if (!dataUrl.startsWith("data:image/")) {
+    return "";
+  }
+
+  return `
+    <figure class="media-card">
+      <img src="${esc(dataUrl)}" alt="${esc(block?.data?.caption || "")}">
+      ${block?.data?.caption ? `<figcaption>${esc(block.data.caption)}</figcaption>` : ""}
+    </figure>
+  `;
+}
+
 function renderScoreRing(value) {
   const n = score(value) ?? 0;
   const circumference = 2 * Math.PI * 42;
@@ -208,6 +318,7 @@ function renderExecutive(block) {
   return `
     <section class="card">
       <div class="kicker">Lecture exécutive</div>
+      ${renderNarrative(block)}
       <div class="triple-grid">
         <div>
           <h3 class="card-title">Forces</h3>
@@ -300,6 +411,7 @@ function renderPillar(block) {
           <span>Score / 100</span>
         </div>
       </div>
+      ${renderNarrative(block)}
       <div class="split-grid">
         <div class="card">
           <h3 class="card-title">Points forts</h3>
@@ -463,10 +575,13 @@ function renderBlock(block) {
     case "EXECUTIVE_SUMMARY_BLOCK": return renderExecutive(block);
     case "ORGANIZATION_BLOCK": return renderOrganization(block);
     case "MATERIALITY_BLOCK": return renderMateriality(block);
+    case "STAKEHOLDER_BLOCK": return renderStakeholders(block);
     case "PILLAR_BLOCK": return renderPillar(block);
     case "TABLE_BLOCK": return renderTable(block);
     case "KPI_DASHBOARD_BLOCK": return renderKpis(block);
     case "RISK_BLOCK": return renderRisks(block);
+    case "RISK_MATRIX_BLOCK": return renderRiskMatrix(block);
+    case "IMAGE_BLOCK": return renderImageBlock(block);
     case "RECOMMENDATION_BLOCK": return renderRecommendations(block);
     case "ROADMAP_BLOCK": return renderRoadmap(block);
     case "METHODOLOGY_BLOCK": return renderMethodology(block);
@@ -517,24 +632,44 @@ export function renderReportHtml(spec, baseCss) {
       const coverBlock = blocks.find(b => b.type === "COVER_BLOCK") || { data: {} };
       return `
         <section class="report-page cover" data-section-id="${esc(section.sectionId || "COVER")}">
-          <div class="page-shell">
+          <div
+            class="page-shell"
+            data-block-id="${esc(coverBlock?.blockId || "")}"
+            data-block-type="COVER_BLOCK"
+            data-render-status="RENDERED"
+          >
             ${renderCover(coverBlock, spec, sector)}
           </div>
         </section>
       `;
     }
 
-    const visibleBlocks = blocks.filter(b => b.type !== "IMAGE_BLOCK" && b.type !== "RISK_MATRIX_BLOCK");
-
     return `
       <section class="report-page" data-section-id="${esc(section.sectionId || "")}">
         <div class="page-shell">
           ${renderSectionHeading(section, index)}
-          ${visibleBlocks.map(block => `
-            <div class="report-block" data-block-type="${esc(block?.type || "")}">
-              ${renderBlock(block)}
-            </div>
-          `).join("")}
+          ${blocks.map(block => {
+            const rendered = renderBlock(block);
+            const policy = String(
+              block?.presentationContent?.renderPolicy || "RENDER"
+            );
+            const status = rendered
+              ? "RENDERED"
+              : policy === "OMIT_ALLOWED"
+                ? "OMITTED_ALLOWED"
+                : "UNSUPPORTED";
+
+            return `
+              <div
+                class="report-block"
+                data-block-id="${esc(block?.blockId || "")}"
+                data-block-type="${esc(block?.type || "")}"
+                data-render-status="${esc(status)}"
+              >
+                ${rendered}
+              </div>
+            `;
+          }).join("")}
         </div>
         ${renderFooter(model)}
       </section>
