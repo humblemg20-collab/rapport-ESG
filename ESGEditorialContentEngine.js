@@ -22,6 +22,80 @@ var ESG_PRESENTATION_RENDER_POLICY_V2 = {
 };
 
 
+function validerWhiteLabelEditorialESGV2_(
+  model
+) {
+  var forbidden = [
+    "afrigreen24",
+    "openai",
+    "humbleos"
+  ];
+
+  var leaks = [];
+
+  (
+    model &&
+    model.report &&
+    model.report.sections
+      ? model.report.sections
+      : []
+  ).forEach(
+    function(section) {
+      (
+        section.blocks ||
+        []
+      ).forEach(
+        function(block) {
+          var narrative =
+            block &&
+            block.presentationContent
+              ? String(
+                  block
+                    .presentationContent
+                    .narrative ||
+                  ""
+                )
+              : "";
+
+          var normalized =
+            narrative
+              .toLowerCase();
+
+          forbidden.forEach(
+            function(term) {
+              if (
+                normalized.indexOf(
+                  term
+                ) !==
+                -1
+              ) {
+                leaks.push({
+                  blockId:
+                    block.blockId ||
+                    "",
+
+                  term:
+                    term
+                });
+              }
+            }
+          );
+        }
+      );
+    }
+  );
+
+  return {
+    success:
+      leaks.length ===
+      0,
+
+    leaks:
+      leaks
+  };
+}
+
+
 function preparerDocumentEditorialESGV2_(
   composedModel,
   profil,
@@ -163,6 +237,39 @@ function preparerDocumentEditorialESGV2_(
       manifest
   };
 
+  /*
+   * Gate éditorial avant création d'un Google Doc/PDF.
+   * Le contrôle final du document reste en place comme seconde défense,
+   * mais une fuite IA doit être stoppée ici, avant persistance.
+   */
+  var whiteLabelEditorial =
+    validerWhiteLabelEditorialESGV2_(
+      model
+    );
+
+  if (
+    whiteLabelEditorial.success !==
+      true
+  ) {
+    throw new Error(
+      "ESG_EDITORIAL_WHITE_LABEL_FAILED: " +
+      whiteLabelEditorial
+        .leaks
+        .map(
+          function(leak) {
+            return (
+              leak.blockId +
+              ":" +
+              leak.term
+            );
+          }
+        )
+        .join(
+          " | "
+        )
+    );
+  }
+
   var parity =
     validerPariteContenuEditorialESGV2_(
       model
@@ -189,6 +296,9 @@ function preparerDocumentEditorialESGV2_(
 
     narration:
       narration,
+
+    whiteLabel:
+      whiteLabelEditorial,
 
     parity:
       parity
