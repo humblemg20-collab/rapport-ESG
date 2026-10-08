@@ -490,6 +490,62 @@ function securiserNarrationsWhiteLabelSnapshotESGV1_(
 }
 
 
+function TEST_ESG_SNAPSHOT_WHITE_LABEL_NARRATIVE_FALLBACK_LOCAL() {
+  var blocks = [
+    {
+      id:
+        "BLOCK-1",
+
+      text:
+        "Texte déterministe sûr."
+    },
+    {
+      id:
+        "BLOCK-2",
+
+      text:
+        "Deuxième texte sûr."
+    }
+  ];
+
+  var result =
+    securiserNarrationsWhiteLabelSnapshotESGV1_(
+      blocks,
+      {
+        "BLOCK-1":
+          "Rapport généré par AfriGreen24.",
+
+        "BLOCK-2":
+          "Texte institutionnel sûr."
+      }
+    );
+
+  return {
+    success:
+      result
+        .fallbackIds
+        .length ===
+        1 &&
+      result
+        .fallbackIds[0] ===
+        "BLOCK-1" &&
+      result
+        .textByBlockId[
+          "BLOCK-1"
+        ] ===
+        "Texte déterministe sûr." &&
+      result
+        .textByBlockId[
+          "BLOCK-2"
+        ] ===
+        "Texte institutionnel sûr.",
+
+    result:
+      result
+  };
+}
+
+
 function genererNarrationsSnapshotESGV1_(
   model,
   profil
