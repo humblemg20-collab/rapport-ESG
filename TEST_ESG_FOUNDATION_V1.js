@@ -113,6 +113,18 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "PRESENTATION_PROFILE_V2",
+      run:
+        TEST_ESG_PRESENTATION_PROFILE_V2_LOCAL
+    },
+    {
+      name:
+        "PREMIUM_RENDERER_CLIENT_V2",
+      run:
+        TEST_ESG_PREMIUM_RENDERER_CLIENT_V2_LOCAL
+    },
+    {
+      name:
         "REPORT_ENGINE_ROUTER",
       run:
         TEST_ESG_REPORT_ENGINE_ROUTER_LOCAL
