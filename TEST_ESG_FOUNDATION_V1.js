@@ -113,6 +113,12 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "EDITORIAL_CONTENT_ENGINE_V2",
+      run:
+        TEST_ESG_EDITORIAL_CONTENT_ENGINE_V2_LOCAL
+    },
+    {
+      name:
         "PRESENTATION_PROFILE_V2",
       run:
         TEST_ESG_PRESENTATION_PROFILE_V2_LOCAL
