@@ -35,42 +35,42 @@ export const DESIGN_PROFILES = Object.freeze({
 export const SECTOR_PROFILES = Object.freeze({
   GENERIC: Object.freeze({
     id: "GENERIC",
-    eyebrow: "ESG intelligence"
+    eyebrow: "Intelligence ESG"
   }),
 
   ENERGY: Object.freeze({
     id: "ENERGY",
-    eyebrow: "Energy transition & ESG"
+    eyebrow: "Transition énergétique & ESG"
   }),
 
   AGRICULTURE: Object.freeze({
     id: "AGRICULTURE",
-    eyebrow: "Resilient value chains & ESG"
+    eyebrow: "Chaînes de valeur résilientes & ESG"
   }),
 
   FINTECH: Object.freeze({
     id: "FINTECH",
-    eyebrow: "Responsible finance & ESG"
+    eyebrow: "Finance responsable & ESG"
   }),
 
   MANUFACTURING: Object.freeze({
     id: "MANUFACTURING",
-    eyebrow: "Industrial performance & ESG"
+    eyebrow: "Performance industrielle & ESG"
   }),
 
   HEALTH: Object.freeze({
     id: "HEALTH",
-    eyebrow: "Health systems & ESG"
+    eyebrow: "Systèmes de santé & ESG"
   }),
 
   INFRASTRUCTURE: Object.freeze({
     id: "INFRASTRUCTURE",
-    eyebrow: "Infrastructure resilience & ESG"
+    eyebrow: "Résilience des infrastructures & ESG"
   }),
 
   NGO_IMPACT: Object.freeze({
     id: "NGO_IMPACT",
-    eyebrow: "Impact, accountability & ESG"
+    eyebrow: "Impact, redevabilité & ESG"
   })
 });
 
