@@ -431,7 +431,6 @@ body {
   -webkit-box-decoration-break: clone;
 }
 
-.report-block[data-block-type="EXECUTIVE_SUMMARY_BLOCK"] .triple-grid,
 .report-block[data-block-type="EXECUTIVE_SUMMARY_BLOCK"] .editorial-narrative,
 .report-block[data-block-type="MATERIALITY_BLOCK"] .callout,
 .report-block[data-block-type="TABLE_BLOCK"] .callout,
@@ -1114,6 +1113,145 @@ body {
 }
 
 @media print {
+  /*
+   * Executive summary:
+   * CSS Grid is treated as one printable row by Chromium in many cases.
+   * Multi-column flow preserves the 3-column visual language without forcing
+   * the entire summary matrix onto the next physical page.
+   */
+  .executive-grid {
+    display: block;
+    column-count: 3;
+    column-gap: 4mm;
+    column-fill: balance;
+  }
+
+  .executive-column {
+    display: inline-block;
+    width: 100%;
+    vertical-align: top;
+    break-inside: avoid-column;
+    margin: 0;
+  }
+
+  /*
+   * One-column grids do not need Grid for print. Normal block flow lets
+   * Chromium place each atomic card independently across page boundaries.
+   */
+  .report-block[data-block-type="RISK_BLOCK"] .risk-grid,
+  .report-block[data-block-type="RECOMMENDATION_BLOCK"] .risk-grid {
+    display: block;
+  }
+
+  .report-block[data-block-type="RISK_BLOCK"] .risk-card + .risk-card,
+  .report-block[data-block-type="RECOMMENDATION_BLOCK"] .risk-card + .risk-card {
+    margin-top: 3.5mm;
+  }
+
+  /*
+   * Organisation/materiality is a known dense section. Keep rows and the
+   * disclaimer together by using a slightly denser print treatment before a
+   * continuation page is ever considered.
+   */
+  .report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .profile-item {
+    min-height: 13.5mm;
+    padding: 2.5mm 3.2mm;
+  }
+
+  .report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .profile-value {
+    font-size: 11.4pt;
+  }
+
+  .report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .data-table {
+    margin-top: 2mm;
+    margin-bottom: 2.5mm;
+  }
+
+  .report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .data-table th {
+    padding: 2mm 2.4mm;
+  }
+
+  .report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .data-table td {
+    padding: 1.9mm 2.4mm;
+    font-size: 8pt;
+    line-height: 1.3;
+  }
+
+  .report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .materiality-note {
+    margin: 2mm 0 0;
+    padding: 2.5mm 3.2mm;
+    font-size: 7.7pt;
+    line-height: 1.35;
+  }
+
+  /*
+   * Third density pass used only when the atom-aware pagination engine still
+   * detects an orphan/fragmentation risk after TIGHT.
+   */
+  .report-page.density-packed {
+    padding-top: 9mm;
+    padding-bottom: 10mm;
+  }
+
+  .report-page.density-packed .page-shell {
+    padding-bottom: 7mm;
+  }
+
+  .report-page.density-packed .section-heading {
+    margin-bottom: 3.5mm;
+  }
+
+  .report-page.density-packed .section-title {
+    font-size: 19pt;
+  }
+
+  .report-page.density-packed .card {
+    padding: 3mm;
+    margin-bottom: 2.2mm;
+  }
+
+  .report-page.density-packed .callout {
+    padding: 2.5mm 3.2mm;
+    margin: 2mm 0;
+  }
+
+  .report-page.density-packed .editorial-narrative {
+    padding: 2.3mm 3mm;
+    margin-bottom: 2mm;
+    font-size: 7.9pt;
+    line-height: 1.38;
+  }
+
+  .report-page.density-packed .list-clean li {
+    padding-top: 1.1mm;
+    padding-bottom: 1.1mm;
+  }
+
+  .report-page.density-packed .data-table {
+    margin-top: 1.5mm;
+    margin-bottom: 2.2mm;
+  }
+
+  .report-page.density-packed .data-table th {
+    padding: 1.8mm 2.2mm;
+    font-size: 7pt;
+  }
+
+  .report-page.density-packed .data-table td {
+    padding: 1.9mm 2.2mm;
+    font-size: 7.8pt;
+    line-height: 1.28;
+  }
+
+  .report-page.density-packed .risk-card {
+    padding: 3.4mm 4mm;
+    gap: 3.5mm;
+  }
+
+  .report-page.density-packed .roadmap-item {
+    padding-bottom: 3.2mm;
+  }
+
   a {
     color: inherit;
     text-decoration: none;
