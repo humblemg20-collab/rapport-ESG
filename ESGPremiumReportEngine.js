@@ -524,9 +524,6 @@ function EXPORT_ESG_PREMIUM_SPEC_KIVU_V2() {
       fixture.model,
       fixture.profil,
       {
-        narrativeMode:
-          "DETERMINISTIC_ONLY",
-
         designProfile:
           ESG_DESIGN_PROFILE_V2
             .INVESTOR_PREMIUM
