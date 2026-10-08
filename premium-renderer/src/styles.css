@@ -524,6 +524,239 @@ body {
   text-transform: uppercase;
 }
 
+
+.data-quality-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) repeat(2, minmax(0, 1fr));
+  gap: 4mm;
+}
+
+.data-quality-grid > :only-child {
+  grid-column: 1 / -1;
+}
+
+.method-card {
+  min-height: 21mm;
+  padding: 4.2mm 5mm;
+  border: 1px solid var(--line);
+  border-radius: 2mm;
+  background: linear-gradient(135deg, var(--surface), color-mix(in srgb, var(--accent-soft) 34%, white));
+}
+
+.method-value {
+  margin-top: 2mm;
+  font-size: 13pt;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 2mm;
+  overflow: hidden;
+}
+
+.profile-item {
+  min-height: 18mm;
+  padding: 3.4mm 4mm;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.profile-item:nth-child(2n) {
+  border-right: 0;
+}
+
+.profile-item:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.profile-value {
+  margin-top: 1.4mm;
+  font-size: 12.5pt;
+  font-weight: 690;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+.report-block {
+  break-inside: auto;
+}
+
+/*
+ * Smart Pagination density levels.
+ * Applied deterministically only when the measured section exceeds A4.
+ */
+.report-page.density-compact {
+  padding-top: 13mm;
+  padding-bottom: 13mm;
+}
+
+.report-page.density-compact .page-shell {
+  padding-bottom: 10mm;
+}
+
+.report-page.density-compact .section-heading {
+  margin-bottom: 6mm;
+}
+
+.report-page.density-compact .section-title {
+  font-size: 22pt;
+}
+
+.report-page.density-compact .hero-grid {
+  margin-bottom: 5mm;
+}
+
+.report-page.density-compact .hero-score-card {
+  min-height: 49mm;
+}
+
+.report-page.density-compact .metric-card {
+  min-height: 21mm;
+  padding: 4mm;
+}
+
+.report-page.density-compact .metric-value {
+  font-size: 16pt;
+}
+
+.report-page.density-compact .card {
+  padding: 4.2mm;
+  margin-bottom: 3.5mm;
+}
+
+.report-page.density-compact .callout {
+  padding: 3.8mm 4.5mm;
+  margin: 3.5mm 0;
+}
+
+.report-page.density-compact .list-clean li {
+  padding-top: 1.7mm;
+  padding-bottom: 1.7mm;
+}
+
+.report-page.density-compact .data-table {
+  margin-top: 2.5mm;
+  margin-bottom: 4mm;
+}
+
+.report-page.density-compact .data-table th {
+  padding: 2.5mm 2.8mm;
+}
+
+.report-page.density-compact .data-table td {
+  padding: 2.6mm 2.8mm;
+}
+
+.report-page.density-compact .profile-item {
+  min-height: 15.5mm;
+  padding: 2.8mm 3.5mm;
+}
+
+.report-page.density-tight {
+  padding-top: 10.5mm;
+  padding-bottom: 11mm;
+}
+
+.report-page.density-tight .page-shell {
+  padding-bottom: 8mm;
+}
+
+.report-page.density-tight .section-heading {
+  margin-bottom: 4.5mm;
+}
+
+.report-page.density-tight .section-title {
+  font-size: 20.5pt;
+}
+
+.report-page.density-tight .section-number,
+.report-page.density-tight .kicker {
+  font-size: 7.5pt;
+}
+
+.report-page.density-tight .hero-grid {
+  grid-template-columns: 50mm 1fr;
+  gap: 5mm;
+  margin-bottom: 4mm;
+}
+
+.report-page.density-tight .hero-score-card {
+  min-height: 43mm;
+}
+
+.report-page.density-tight .score-ring {
+  width: 39mm;
+  height: 39mm;
+}
+
+.report-page.density-tight .metric-grid,
+.report-page.density-tight .triple-grid {
+  gap: 2.8mm;
+}
+
+.report-page.density-tight .metric-card {
+  min-height: 18.5mm;
+  padding: 3.2mm;
+}
+
+.report-page.density-tight .metric-value {
+  margin-top: 1mm;
+  font-size: 14pt;
+}
+
+.report-page.density-tight .card {
+  padding: 3.5mm;
+  margin-bottom: 2.8mm;
+}
+
+.report-page.density-tight .card-title {
+  margin-bottom: 2mm;
+}
+
+.report-page.density-tight .callout {
+  padding: 3mm 4mm;
+  margin: 2.8mm 0;
+}
+
+.report-page.density-tight .profile-item {
+  min-height: 14mm;
+  padding: 2.3mm 3.2mm;
+}
+
+.report-page.density-tight .profile-value {
+  font-size: 11.2pt;
+}
+
+.report-page.density-tight .data-table {
+  margin-top: 2mm;
+  margin-bottom: 3mm;
+}
+
+.report-page.density-tight .data-table th {
+  padding: 2.1mm 2.4mm;
+  font-size: 7.2pt;
+}
+
+.report-page.density-tight .data-table td {
+  padding: 2.2mm 2.4mm;
+  font-size: 8.1pt;
+}
+
+.report-page.density-tight .list-clean li {
+  padding-top: 1.35mm;
+  padding-bottom: 1.35mm;
+}
+
+.report-page.density-tight .roadmap-item {
+  padding-bottom: 4mm;
+}
+
 .footer {
   position: absolute;
   left: 20mm;
