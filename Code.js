@@ -286,11 +286,17 @@ function soumettreDiagnosticV2(
      * 3E. ROUTAGE DU MOTEUR DOCUMENTAIRE
      * ========================================================
      *
-     * LEGACY_V3 reste le défaut tant que le Snapshot V1
-     * n'a pas passé les smoke tests Apps Script.
+     * LEGACY_V3 reste le défaut tant que le moteur premium
+     * n'est pas explicitement activé.
      *
-     * Pour activer le nouveau moteur sans modifier le code :
-     * Script Property ESG_REPORT_ENGINE_MODE = SNAPSHOT_V1
+     * Modes disponibles :
+     * - LEGACY_V3
+     * - SNAPSHOT_V1
+     * - PREMIUM_V2
+     *
+     * Le mode PREMIUM_V2 utilise le renderer HTML/CSS/Chromium
+     * et retombe automatiquement sur SNAPSHOT_V1 si le renderer
+     * distant est désactivé ou indisponible.
      */
     var reportEngineMode =
       obtenirModeMoteurRapportESGV2_();
@@ -787,7 +793,8 @@ function obtenirModeMoteurRapportESGV2_() {
   if (
     [
       "LEGACY_V3",
-      "SNAPSHOT_V1"
+      "SNAPSHOT_V1",
+      "PREMIUM_V2"
     ].indexOf(
       value
     ) === -1
@@ -820,19 +827,32 @@ function genererRapportSelonMoteurESGV2_(
 
   if (
     mode ===
-    "SNAPSHOT_V1"
+    "SNAPSHOT_V1" ||
+    mode ===
+    "PREMIUM_V2"
   ) {
-    var snapshot =
-      genererSnapshotESGV1(
-        canonicalModel,
-        profil
-      );
+    var rapportModerne =
+      mode ===
+        "PREMIUM_V2"
+        ? genererSnapshotPremiumAvecFallbackESGV2(
+            canonicalModel,
+            profil,
+            {
+              designProfile:
+                ESG_DESIGN_PROFILE_V2
+                  .INVESTOR_PREMIUM
+            }
+          )
+        : genererSnapshotESGV1(
+            canonicalModel,
+            profil
+          );
 
     /*
-     * Contrat de compatibilité temporaire avec le datastore
-     * et la réponse applicative V2.
+     * Contrat de compatibilité avec le datastore et la réponse
+     * applicative V2. La vérité métier reste le modèle canonique.
      */
-    snapshot.organisation =
+    rapportModerne.organisation =
       profil.organizationName ||
       profil.nomOrganisation ||
       canonicalModel
@@ -840,12 +860,12 @@ function genererRapportSelonMoteurESGV2_(
         .name ||
       "";
 
-    snapshot.scoreGlobal =
+    rapportModerne.scoreGlobal =
       canonicalModel
         .scores
         .esgOverallScoreV2;
 
-    snapshot.maturite =
+    rapportModerne.maturite =
       analyseESGPresentation &&
       analyseESGPresentation
         .diagnostic
@@ -854,7 +874,7 @@ function genererRapportSelonMoteurESGV2_(
             .maturite
         : null;
 
-    snapshot.risque =
+    rapportModerne.risque =
       analyseESGPresentation &&
       analyseESGPresentation
         .diagnostic
@@ -863,25 +883,36 @@ function genererRapportSelonMoteurESGV2_(
             .risque
         : null;
 
-    snapshot.diagnostic =
+    rapportModerne.diagnostic =
       analyseESGPresentation
         .diagnostic;
 
-    snapshot.recommandations =
+    rapportModerne.recommandations =
       analyseESGPresentation
         .recommandations;
 
-    snapshot.diagnosticDigital =
+    rapportModerne.diagnosticDigital =
       diagnosticDigitalPresentation;
+
+    /*
+     * Le Premium renderer produit un PDF final, pas un Google Doc
+     * éditable. On stabilise explicitement le contrat applicatif.
+     */
+    if (
+      !rapportModerne.docUrl
+    ) {
+      rapportModerne.docUrl =
+        "";
+    }
 
     /*
      * Les offres restent dans l'application mais ne sont
      * jamais injectées dans le document white-label.
      */
-    snapshot.offresAfriGreen24 =
+    rapportModerne.offresAfriGreen24 =
       offres || [];
 
-    return snapshot;
+    return rapportModerne;
   }
 
   return genererRapportInvestisseurESGV3(
@@ -914,6 +945,14 @@ function TEST_ESG_REPORT_ENGINE_ROUTER_LOCAL() {
 
     properties.setProperty(
       "ESG_REPORT_ENGINE_MODE",
+      "PREMIUM_V2"
+    );
+
+    var premium =
+      obtenirModeMoteurRapportESGV2_();
+
+    properties.setProperty(
+      "ESG_REPORT_ENGINE_MODE",
       "INVALID_MODE"
     );
 
@@ -924,11 +963,16 @@ function TEST_ESG_REPORT_ENGINE_ROUTER_LOCAL() {
       success:
         snapshot ===
           "SNAPSHOT_V1" &&
+        premium ===
+          "PREMIUM_V2" &&
         fallback ===
           "LEGACY_V3",
 
       snapshot:
         snapshot,
+
+      premium:
+        premium,
 
       fallback:
         fallback

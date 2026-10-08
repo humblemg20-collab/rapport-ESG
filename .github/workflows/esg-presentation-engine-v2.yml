@@ -1,0 +1,59 @@
+name: ESG Presentation Engine V2
+
+on:
+  push:
+    branches:
+      - feature/esg-presentation-engine-v2
+    paths:
+      - "premium-renderer/**"
+      - "ESGPresentationProfile.js"
+      - "ESGEditorialContentEngine.js"
+      - "ESGTestFixtures.js"
+      - "ESGPremiumRendererClient.js"
+      - "ESGPremiumReportEngine.js"
+      - ".github/workflows/esg-presentation-engine-v2.yml"
+  pull_request:
+    paths:
+      - "premium-renderer/**"
+      - "ESGPresentationProfile.js"
+      - "ESGEditorialContentEngine.js"
+      - "ESGTestFixtures.js"
+      - "ESGPremiumRendererClient.js"
+      - "ESGPremiumReportEngine.js"
+      - ".github/workflows/esg-presentation-engine-v2.yml"
+
+jobs:
+  renderer:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: premium-renderer
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install
+        run: npm install
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Render sample
+        run: npm run render:sample
+
+      - name: Validate sample PDF
+        run: |
+          test -s sample-investor-premium.pdf
+          BYTES=$(wc -c < sample-investor-premium.pdf)
+          test "$BYTES" -gt 1000
+          echo "sample_pdf_bytes=$BYTES"

@@ -1,0 +1,1455 @@
+@page {
+  size: A4;
+  margin: 0;
+}
+
+:root {
+  --ink: #0D1B1E;
+  --ink-soft: #405257;
+  --paper: #F7F8F6;
+  --surface: #FFFFFF;
+  --accent: #176B5A;
+  --accent-deep: #0D4A3E;
+  --accent-soft: #DDEBE7;
+  --gold: #B79252;
+  --line: #D7DFDC;
+  --danger: #9E3F3F;
+  --warning: #A56C19;
+  --success: #2D7359;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 10.2pt;
+  line-height: 1.42;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+body {
+  counter-reset: page-section;
+}
+
+.report-page {
+  position: relative;
+  min-height: 297mm;
+  padding: 17mm 16mm 16mm;
+  background: var(--surface);
+  break-after: page;
+  overflow: visible;
+}
+
+.report-page:last-child {
+  break-after: auto;
+}
+
+.report-page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 7mm;
+  height: 100%;
+  background:
+    linear-gradient(
+      180deg,
+      var(--accent-deep) 0%,
+      var(--accent) 62%,
+      var(--gold) 100%
+    );
+}
+
+.page-shell {
+  position: relative;
+  z-index: 2;
+  margin-left: 4mm;
+  padding-bottom: 13mm;
+}
+
+.cover {
+  overflow: hidden;
+}
+
+.cover {
+  position: relative;
+  padding-top: 15mm;
+  padding-bottom: 15mm;
+  background:
+    radial-gradient(circle at 82% 16%, color-mix(in srgb, var(--gold) 17%, transparent), transparent 24%),
+    radial-gradient(circle at 70% 68%, color-mix(in srgb, var(--accent) 17%, transparent), transparent 36%),
+    linear-gradient(135deg, #071517 0%, var(--accent-deep) 62%, #143B36 100%);
+  color: #FFFFFF;
+}
+
+.cover::before {
+  width: 0;
+}
+
+/*
+ * Investor Premium cover architecture.
+ * The former layout used margin-top:auto and anchored the hero to the bottom,
+ * which created an oversized empty upper half. The cover is now composed
+ * around an intentional upper-middle hero zone.
+ */
+.cover::after {
+  content: "";
+  position: absolute;
+  top: -28mm;
+  right: -38mm;
+  width: 132mm;
+  height: 132mm;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 18mm rgba(255,255,255,0.018),
+    0 0 0 36mm rgba(255,255,255,0.012);
+  pointer-events: none;
+}
+
+.cover .page-shell {
+  position: relative;
+  min-height: 267mm;
+  display: block;
+  padding-bottom: 0;
+}
+
+.cover .page-shell::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14mm;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.26),
+    rgba(255,255,255,0.05)
+  );
+}
+
+.cover-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 58mm;
+  gap: 14mm;
+  align-items: center;
+  margin-top: 46mm;
+  margin-bottom: 0;
+}
+
+.cover-grid::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -15mm;
+  width: 24mm;
+  height: 1.5px;
+  background: var(--gold);
+}
+
+.cover-eyebrow {
+  margin-bottom: 7mm;
+  color: rgba(255,255,255,0.72);
+  font-size: 8.6pt;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.cover-title {
+  max-width: 122mm;
+  margin: 0;
+  font-size: 34pt;
+  line-height: 0.96;
+  letter-spacing: -0.038em;
+  font-weight: 740;
+}
+
+.cover-subtitle {
+  max-width: 112mm;
+  margin: 6mm 0 0;
+  color: rgba(255,255,255,0.80);
+  font-size: 11.6pt;
+  line-height: 1.35;
+}
+
+.cover-org {
+  margin-top: 12mm;
+  font-size: 18pt;
+  font-weight: 680;
+  letter-spacing: -0.015em;
+}
+
+.cover-meta {
+  margin-top: 2.5mm;
+  color: rgba(255,255,255,0.64);
+  font-size: 8.7pt;
+}
+
+.cover-score {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 58mm;
+  min-height: 58mm;
+  border: 1px solid rgba(255,255,255,0.26);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.11),
+      rgba(255,255,255,0.055)
+    );
+  box-shadow: 0 10mm 28mm rgba(0,0,0,0.16);
+  backdrop-filter: blur(8px);
+}
+
+.cover-score::before {
+  content: "";
+  position: absolute;
+  top: 5mm;
+  left: 5mm;
+  width: 9mm;
+  height: 1px;
+  background: var(--gold);
+}
+
+.cover-score strong {
+  display: block;
+  font-size: 30pt;
+  line-height: 1;
+}
+
+.cover-score span {
+  margin-top: 2.4mm;
+  color: rgba(255,255,255,0.70);
+  font-size: 7.6pt;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.cover-mark {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  min-height: 15mm;
+  margin-top: 0;
+}
+
+.cover-mark:empty {
+  min-height: 0;
+  height: 0;
+  margin: 0;
+}
+
+.cover-logo {
+  max-width: 42mm;
+  max-height: 14mm;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.section-heading {
+  display: grid;
+  grid-template-columns: 20mm 1fr;
+  gap: 7mm;
+  align-items: start;
+  margin-bottom: 10mm;
+}
+
+.section-number {
+  color: var(--gold);
+  font-size: 8.5pt;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 24pt;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  font-weight: 720;
+}
+
+.section-rule {
+  width: 24mm;
+  height: 1.5px;
+  margin-top: 4mm;
+  background: var(--accent);
+}
+
+.kicker {
+  margin-bottom: 2.5mm;
+  color: var(--accent);
+  font-size: 8.2pt;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 57mm 1fr;
+  gap: 8mm;
+  margin-bottom: 8mm;
+}
+
+.hero-score-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 55mm;
+  border-radius: 2mm;
+  background: var(--ink);
+  color: #FFFFFF;
+}
+
+.score-ring {
+  width: 46mm;
+  height: 46mm;
+}
+
+.score-ring text {
+  fill: #FFFFFF;
+  font-family: inherit;
+}
+
+.score-ring .track {
+  fill: none;
+  stroke: rgba(255,255,255,0.15);
+  stroke-width: 7;
+}
+
+.score-ring .value {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 7;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4mm;
+}
+
+.metric-card,
+.card {
+  break-inside: avoid-page;
+  border: 1px solid var(--line);
+  border-radius: 2mm;
+  background: var(--surface);
+}
+
+.metric-card {
+  min-height: 25mm;
+  padding: 5mm;
+}
+
+.metric-label {
+  color: var(--ink-soft);
+  font-size: 7.8pt;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.metric-value {
+  margin-top: 1.8mm;
+  font-size: 18pt;
+  font-weight: 720;
+  letter-spacing: -0.02em;
+}
+
+.metric-note {
+  margin-top: 1mm;
+  color: var(--ink-soft);
+  font-size: 8pt;
+}
+
+.card {
+  padding: 5.5mm;
+  margin-bottom: 5mm;
+}
+
+.card-title {
+  margin: 0 0 3.5mm;
+  font-size: 12pt;
+  font-weight: 700;
+}
+
+.callout {
+  padding: 5mm 5.5mm;
+  margin: 5mm 0;
+  border-left: 2.5mm solid var(--accent);
+  background: var(--accent-soft);
+  break-inside: avoid-page;
+}
+
+.callout.warning {
+  border-left-color: var(--warning);
+  background: #FBF2E3;
+}
+
+.callout.danger {
+  border-left-color: var(--danger);
+  background: #F8E9E9;
+}
+
+.pillar-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 37mm;
+  gap: 8mm;
+  align-items: center;
+  margin-bottom: 6mm;
+}
+
+.pillar-score {
+  padding: 5mm;
+  background: var(--ink);
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.pillar-score strong {
+  display: block;
+  font-size: 22pt;
+  line-height: 1;
+}
+
+.pillar-score span {
+  display: block;
+  margin-top: 1.5mm;
+  color: rgba(255,255,255,0.72);
+  font-size: 7.5pt;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.bar-track {
+  height: 3.2mm;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #E6EBE9;
+}
+
+.bar-value {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-deep), var(--accent));
+}
+
+.split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5mm;
+}
+
+.triple-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4mm;
+}
+
+.list-clean {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.list-clean li {
+  position: relative;
+  padding: 2.2mm 0 2.2mm 5mm;
+  border-bottom: 1px solid var(--line);
+}
+
+.list-clean li:last-child {
+  border-bottom: 0;
+}
+
+.list-clean li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4.3mm;
+  width: 2mm;
+  height: 2mm;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/*
+ * PRINT FLOW POLICY
+ *
+ * Composite blocks must be allowed to flow across a physical page boundary.
+ * Their atomic children (table rows, risk cards, roadmap items) remain
+ * indivisible. This prevents Chromium from pushing an entire large block to
+ * the next page and leaving a half-empty page behind.
+ */
+.report-block[data-block-type="EXECUTIVE_SUMMARY_BLOCK"] > .card,
+.report-block[data-block-type="MATERIALITY_BLOCK"] > .card,
+.report-block[data-block-type="TABLE_BLOCK"] > .card,
+.report-block[data-block-type="RISK_BLOCK"] > .card,
+.report-block[data-block-type="RECOMMENDATION_BLOCK"] > .card,
+.report-block[data-block-type="ROADMAP_BLOCK"] > .card {
+  break-inside: auto;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.report-block[data-block-type="EXECUTIVE_SUMMARY_BLOCK"] .editorial-narrative,
+.report-block[data-block-type="MATERIALITY_BLOCK"] .callout,
+.report-block[data-block-type="TABLE_BLOCK"] .callout,
+.report-block[data-block-type="RISK_BLOCK"] .risk-card,
+.report-block[data-block-type="RECOMMENDATION_BLOCK"] .risk-card,
+.report-block[data-block-type="ROADMAP_BLOCK"] .roadmap-item {
+  break-inside: avoid-page;
+}
+
+.report-block[data-block-type="DISCLAIMER_BLOCK"] {
+  margin-top: 2mm;
+  break-before: avoid-page;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin: 4mm 0 6mm;
+  break-inside: auto;
+}
+
+.data-table thead {
+  display: table-header-group;
+}
+
+.data-table tr {
+  break-inside: avoid-page;
+  break-after: auto;
+}
+
+.data-table th {
+  padding: 3mm 3.2mm;
+  background: var(--ink);
+  color: #FFFFFF;
+  text-align: left;
+  font-size: 7.8pt;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+}
+
+.data-table td {
+  padding: 3.2mm;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  font-size: 8.7pt;
+}
+
+.data-table tbody tr:nth-child(even) td {
+  background: #FAFBFA;
+}
+
+.risk-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3.5mm;
+}
+
+.risk-card {
+  display: grid;
+  grid-template-columns: 1fr 24mm;
+  gap: 5mm;
+  padding: 4.5mm 5mm;
+  border: 1px solid var(--line);
+  border-left: 2.5mm solid var(--danger);
+  break-inside: avoid-page;
+}
+
+.risk-level {
+  align-self: start;
+  padding: 1.6mm 2mm;
+  background: #F3E1E1;
+  color: var(--danger);
+  text-align: center;
+  font-size: 7.5pt;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.roadmap {
+  position: relative;
+  margin: 5mm 0;
+}
+
+.roadmap-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 27mm 1fr;
+  gap: 5mm;
+  padding: 0 0 6mm 8mm;
+  break-inside: avoid-page;
+}
+
+.roadmap-item::before {
+  content: "";
+  position: absolute;
+  left: 1.4mm;
+  top: 2mm;
+  bottom: -1mm;
+  width: 1px;
+  background: var(--line);
+}
+
+.roadmap-item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1.3mm;
+  width: 3mm;
+  height: 3mm;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.roadmap-item:last-child::before {
+  display: none;
+}
+
+.roadmap-horizon {
+  color: var(--accent-deep);
+  font-size: 8pt;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+
+
+.editorial-narrative {
+  margin: 0 0 5mm;
+  padding: 4mm 4.5mm;
+  border-left: 2.2mm solid var(--gold);
+  background: color-mix(in srgb, var(--paper) 76%, white);
+  color: var(--ink-soft);
+  font-size: 9.1pt;
+  line-height: 1.5;
+  break-inside: avoid-page;
+}
+
+.stakeholder-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3mm;
+}
+
+.stakeholder-card {
+  min-height: 16mm;
+  padding: 3.5mm;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  break-inside: avoid-page;
+}
+
+.risk-matrix-wrap {
+  display: grid;
+  grid-template-columns: 10mm 1fr;
+  gap: 2mm;
+  align-items: stretch;
+}
+
+.risk-matrix-y {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  font-size: 7.5pt;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.risk-matrix {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border: 1px solid var(--line);
+}
+
+.risk-matrix-cell {
+  position: relative;
+  min-height: 15mm;
+  padding: 1.5mm;
+  border-right: 1px solid rgba(255,255,255,0.65);
+  border-bottom: 1px solid rgba(255,255,255,0.65);
+}
+
+.matrix-low { background: #E6F0EA; }
+.matrix-medium { background: #F2E8C9; }
+.matrix-high { background: #F3D6B5; }
+.matrix-critical { background: #EAC5C5; }
+
+.matrix-score {
+  color: rgba(13,27,30,0.52);
+  font-size: 6.7pt;
+}
+
+.matrix-dot {
+  display: inline-block;
+  width: 3mm;
+  height: 3mm;
+  margin: 1mm 0.6mm 0 0;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.matrix-axis {
+  margin: 2mm 0 0 12mm;
+  text-align: right;
+}
+
+.media-card {
+  margin: 4mm 0 6mm;
+  break-inside: avoid-page;
+}
+
+.media-card img {
+  display: block;
+  width: 100%;
+  max-height: 88mm;
+  object-fit: cover;
+  border-radius: 2mm;
+}
+
+.media-card figcaption {
+  margin-top: 2mm;
+  color: var(--ink-soft);
+  font-size: 7.6pt;
+}
+
+.report-page.density-compact .editorial-narrative {
+  margin-bottom: 3mm;
+  padding: 3mm 3.8mm;
+  font-size: 8.5pt;
+}
+
+.report-page.density-tight .editorial-narrative {
+  margin-bottom: 2.4mm;
+  padding: 2.6mm 3.4mm;
+  font-size: 8.1pt;
+  line-height: 1.42;
+}
+
+.data-quality-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) repeat(2, minmax(0, 1fr));
+  gap: 4mm;
+}
+
+.data-quality-grid > :only-child {
+  grid-column: 1 / -1;
+}
+
+.method-card {
+  min-height: 21mm;
+  padding: 4.2mm 5mm;
+  border: 1px solid var(--line);
+  border-radius: 2mm;
+  background: linear-gradient(135deg, var(--surface), color-mix(in srgb, var(--accent-soft) 34%, white));
+}
+
+.method-value {
+  margin-top: 2mm;
+  font-size: 13pt;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 2mm;
+  overflow: hidden;
+}
+
+.profile-item {
+  min-height: 18mm;
+  padding: 3.4mm 4mm;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.profile-item:nth-child(2n) {
+  border-right: 0;
+}
+
+.profile-item:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.profile-value {
+  margin-top: 1.4mm;
+  font-size: 12.5pt;
+  font-weight: 690;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+.report-block {
+  break-inside: auto;
+}
+
+/*
+ * Smart Pagination density levels.
+ * Applied deterministically only when the measured section exceeds A4.
+ */
+.report-page.density-compact {
+  padding-top: 13mm;
+  padding-bottom: 13mm;
+}
+
+.report-page.density-compact .page-shell {
+  padding-bottom: 10mm;
+}
+
+.report-page.density-compact .section-heading {
+  margin-bottom: 6mm;
+}
+
+.report-page.density-compact .section-title {
+  font-size: 22pt;
+}
+
+.report-page.density-compact .hero-grid {
+  margin-bottom: 5mm;
+}
+
+.report-page.density-compact .hero-score-card {
+  min-height: 49mm;
+}
+
+.report-page.density-compact .metric-card {
+  min-height: 21mm;
+  padding: 4mm;
+}
+
+.report-page.density-compact .metric-value {
+  font-size: 16pt;
+}
+
+.report-page.density-compact .card {
+  padding: 4.2mm;
+  margin-bottom: 3.5mm;
+}
+
+.report-page.density-compact .callout {
+  padding: 3.8mm 4.5mm;
+  margin: 3.5mm 0;
+}
+
+.report-page.density-compact .list-clean li {
+  padding-top: 1.7mm;
+  padding-bottom: 1.7mm;
+}
+
+.report-page.density-compact .data-table {
+  margin-top: 2.5mm;
+  margin-bottom: 4mm;
+}
+
+.report-page.density-compact .data-table th {
+  padding: 2.5mm 2.8mm;
+}
+
+.report-page.density-compact .data-table td {
+  padding: 2.6mm 2.8mm;
+}
+
+.report-page.density-compact .profile-item {
+  min-height: 15.5mm;
+  padding: 2.8mm 3.5mm;
+}
+
+.report-page.density-tight {
+  padding-top: 10.5mm;
+  padding-bottom: 11mm;
+}
+
+.report-page.density-tight .page-shell {
+  padding-bottom: 8mm;
+}
+
+.report-page.density-tight .section-heading {
+  margin-bottom: 4.5mm;
+}
+
+.report-page.density-tight .section-title {
+  font-size: 20.5pt;
+}
+
+.report-page.density-tight .section-number,
+.report-page.density-tight .kicker {
+  font-size: 7.5pt;
+}
+
+.report-page.density-tight .hero-grid {
+  grid-template-columns: 50mm 1fr;
+  gap: 5mm;
+  margin-bottom: 4mm;
+}
+
+.report-page.density-tight .hero-score-card {
+  min-height: 43mm;
+}
+
+.report-page.density-tight .score-ring {
+  width: 39mm;
+  height: 39mm;
+}
+
+.report-page.density-tight .metric-grid,
+.report-page.density-tight .triple-grid {
+  gap: 2.8mm;
+}
+
+.report-page.density-tight .metric-card {
+  min-height: 18.5mm;
+  padding: 3.2mm;
+}
+
+.report-page.density-tight .metric-value {
+  margin-top: 1mm;
+  font-size: 14pt;
+}
+
+.report-page.density-tight .card {
+  padding: 3.5mm;
+  margin-bottom: 2.8mm;
+}
+
+.report-page.density-tight .card-title {
+  margin-bottom: 2mm;
+}
+
+.report-page.density-tight .callout {
+  padding: 3mm 4mm;
+  margin: 2.8mm 0;
+}
+
+.report-page.density-tight .profile-item {
+  min-height: 14mm;
+  padding: 2.3mm 3.2mm;
+}
+
+.report-page.density-tight .profile-value {
+  font-size: 11.2pt;
+}
+
+.report-page.density-tight .data-table {
+  margin-top: 2mm;
+  margin-bottom: 3mm;
+}
+
+.report-page.density-tight .data-table th {
+  padding: 2.1mm 2.4mm;
+  font-size: 7.2pt;
+}
+
+.report-page.density-tight .data-table td {
+  padding: 2.2mm 2.4mm;
+  font-size: 8.1pt;
+}
+
+.report-page.density-tight .list-clean li {
+  padding-top: 1.35mm;
+  padding-bottom: 1.35mm;
+}
+
+.report-page.density-tight .roadmap-item {
+  padding-bottom: 4mm;
+}
+
+.footer {
+  position: absolute;
+  left: 20mm;
+  right: 16mm;
+  bottom: 7mm;
+  display: flex;
+  justify-content: space-between;
+  gap: 8mm;
+  padding-top: 2.5mm;
+  border-top: 1px solid var(--line);
+  color: #71807C;
+  font-size: 7.2pt;
+}
+
+.muted {
+  color: var(--ink-soft);
+}
+
+.small {
+  font-size: 8.2pt;
+}
+
+.uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.no-break {
+  break-inside: avoid-page;
+}
+
+/*
+ * SNAPSHOT PAGE-PACKING RULES
+ *
+ * These rules are deterministic presentation rules for known Snapshot
+ * compositions. They never remove or truncate canonical content.
+ */
+
+/* Page 02: keep the executive lists with the dashboard whenever feasible. */
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"] .section-heading {
+  margin-bottom: 6mm;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"] .hero-grid {
+  grid-template-columns: 50mm 1fr;
+  gap: 5mm;
+  margin-bottom: 4mm;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"] .hero-score-card {
+  min-height: 47mm;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"] .score-ring {
+  width: 39mm;
+  height: 39mm;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"] .metric-grid {
+  gap: 2.8mm;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"] .metric-card {
+  min-height: 20mm;
+  padding: 3.4mm;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"] .metric-value {
+  margin-top: 1mm;
+  font-size: 15pt;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"] .data-quality-card {
+  padding: 3.5mm;
+  margin-bottom: 3mm;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"] .method-card {
+  min-height: 17mm;
+  padding: 3mm 3.5mm;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"] .method-value {
+  margin-top: 1mm;
+  font-size: 11.5pt;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"] .editorial-narrative {
+  margin-bottom: 2.5mm;
+  padding: 2.6mm 3.3mm;
+  font-size: 8.1pt;
+  line-height: 1.34;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"]
+  .report-block[data-block-type="EXECUTIVE_SUMMARY_BLOCK"] > .card {
+  padding: 3.5mm;
+  margin-bottom: 0;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"]
+  .report-block[data-block-type="EXECUTIVE_SUMMARY_BLOCK"] .triple-grid {
+  gap: 2.5mm;
+  break-inside: auto;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"]
+  .report-block[data-block-type="EXECUTIVE_SUMMARY_BLOCK"] .card-title {
+  margin-bottom: 1.5mm;
+  font-size: 10.5pt;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"]
+  .report-block[data-block-type="EXECUTIVE_SUMMARY_BLOCK"] .list-clean {
+  font-size: 7.8pt;
+  line-height: 1.25;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"]
+  .report-block[data-block-type="EXECUTIVE_SUMMARY_BLOCK"] .list-clean li {
+  padding: 1.05mm 0 1.05mm 3.8mm;
+}
+
+.report-page[data-section-id="SNAP-EXECUTIVE_ESG_SNAPSHOT"]
+  .report-block[data-block-type="EXECUTIVE_SUMMARY_BLOCK"] .list-clean li::before {
+  top: 2.8mm;
+  width: 1.5mm;
+  height: 1.5mm;
+}
+
+/* Page 03: the materiality note must travel with its table, not alone. */
+.report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .section-heading {
+  margin-bottom: 5mm;
+}
+
+.report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .organization-card {
+  padding: 3.5mm;
+  margin-bottom: 3mm;
+}
+
+.report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .profile-item {
+  min-height: 13mm;
+  padding: 2.1mm 3mm;
+}
+
+.report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .profile-value {
+  margin-top: 0.8mm;
+  font-size: 10.6pt;
+}
+
+.report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"]
+  .report-block[data-block-type="MATERIALITY_BLOCK"] > .card {
+  padding: 3.3mm;
+  margin-bottom: 0;
+}
+
+.report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"]
+  .report-block[data-block-type="MATERIALITY_BLOCK"] .data-table {
+  margin: 2mm 0 2.5mm;
+}
+
+.report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"]
+  .report-block[data-block-type="MATERIALITY_BLOCK"] .data-table th {
+  padding: 1.8mm 2.2mm;
+  font-size: 6.9pt;
+}
+
+.report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"]
+  .report-block[data-block-type="MATERIALITY_BLOCK"] .data-table td {
+  padding: 1.65mm 2.2mm;
+  font-size: 7.45pt;
+  line-height: 1.22;
+}
+
+.report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"]
+  .report-block[data-block-type="MATERIALITY_BLOCK"] .callout {
+  margin: 2mm 0 0;
+  padding: 2.2mm 3mm;
+  font-size: 7.3pt;
+  line-height: 1.3;
+  break-inside: avoid-page;
+}
+
+/*
+ * Governance risks: CSS grid fragmentation is unreliable in Chromium print.
+ * Use normal block flow so cards can occupy the remaining page area one by one.
+ */
+.report-block[data-block-type="RISK_BLOCK"] .risk-grid {
+  display: block;
+}
+
+.report-block[data-block-type="RISK_BLOCK"] .risk-card + .risk-card {
+  margin-top: 3.5mm;
+}
+
+.report-block[data-block-type="RISK_BLOCK"] .kicker {
+  break-after: avoid-page;
+}
+
+.report-block[data-block-type="RISK_BLOCK"] > .card {
+  padding: 4mm;
+}
+
+/* Never strand a one-line disclaimer on its own physical page. */
+.report-block[data-block-type="DISCLAIMER_BLOCK"] {
+  break-before: avoid-page;
+  margin-top: 1.5mm;
+}
+
+@media print {
+  /*
+   * Executive summary:
+   * CSS Grid is treated as one printable row by Chromium in many cases.
+   * Multi-column flow preserves the 3-column visual language without forcing
+   * the entire summary matrix onto the next physical page.
+   */
+  .executive-grid {
+    display: block;
+    column-count: 3;
+    column-gap: 4mm;
+    column-fill: balance;
+  }
+
+  .executive-column {
+    display: inline-block;
+    width: 100%;
+    vertical-align: top;
+    break-inside: avoid-column;
+    margin: 0;
+  }
+
+  /*
+   * One-column grids do not need Grid for print. Normal block flow lets
+   * Chromium place each atomic card independently across page boundaries.
+   */
+  .report-block[data-block-type="RISK_BLOCK"] .risk-grid,
+  .report-block[data-block-type="RECOMMENDATION_BLOCK"] .risk-grid {
+    display: block;
+  }
+
+  .report-block[data-block-type="RISK_BLOCK"] .risk-card + .risk-card,
+  .report-block[data-block-type="RECOMMENDATION_BLOCK"] .risk-card + .risk-card {
+    margin-top: 3.5mm;
+  }
+
+  /*
+   * Organisation/materiality is a known dense section. Keep rows and the
+   * disclaimer together by using a slightly denser print treatment before a
+   * continuation page is ever considered.
+   */
+  .report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .profile-item {
+    min-height: 13.5mm;
+    padding: 2.5mm 3.2mm;
+  }
+
+  .report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .profile-value {
+    font-size: 11.4pt;
+  }
+
+  .report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .data-table {
+    margin-top: 2mm;
+    margin-bottom: 2.5mm;
+  }
+
+  .report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .data-table th {
+    padding: 2mm 2.4mm;
+  }
+
+  .report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .data-table td {
+    padding: 1.9mm 2.4mm;
+    font-size: 8pt;
+    line-height: 1.3;
+  }
+
+  .report-page[data-section-id="SNAP-ORGANIZATION_MATERIAL_ISSUES"] .materiality-note {
+    margin: 2mm 0 0;
+    padding: 2.5mm 3.2mm;
+    font-size: 7.7pt;
+    line-height: 1.35;
+  }
+
+  /*
+   * Third density pass used only when the atom-aware pagination engine still
+   * detects an orphan/fragmentation risk after TIGHT.
+   */
+  .report-page.density-packed {
+    padding-top: 9mm;
+    padding-bottom: 10mm;
+  }
+
+  .report-page.density-packed .page-shell {
+    padding-bottom: 7mm;
+  }
+
+  .report-page.density-packed .section-heading {
+    margin-bottom: 3.5mm;
+  }
+
+  .report-page.density-packed .section-title {
+    font-size: 19pt;
+  }
+
+  .report-page.density-packed .card {
+    padding: 3mm;
+    margin-bottom: 2.2mm;
+  }
+
+  .report-page.density-packed .callout {
+    padding: 2.5mm 3.2mm;
+    margin: 2mm 0;
+  }
+
+  .report-page.density-packed .editorial-narrative {
+    padding: 2.3mm 3mm;
+    margin-bottom: 2mm;
+    font-size: 7.9pt;
+    line-height: 1.38;
+  }
+
+  .report-page.density-packed .list-clean li {
+    padding-top: 1.1mm;
+    padding-bottom: 1.1mm;
+  }
+
+  .report-page.density-packed .data-table {
+    margin-top: 1.5mm;
+    margin-bottom: 2.2mm;
+  }
+
+  .report-page.density-packed .data-table th {
+    padding: 1.8mm 2.2mm;
+    font-size: 7pt;
+  }
+
+  .report-page.density-packed .data-table td {
+    padding: 1.9mm 2.2mm;
+    font-size: 7.8pt;
+    line-height: 1.28;
+  }
+
+  .report-page.density-packed .risk-card {
+    padding: 3.4mm 4mm;
+    gap: 3.5mm;
+  }
+
+  .report-page.density-packed .roadmap-item {
+    padding-bottom: 3.2mm;
+  }
+
+  /*
+   * Rescue pass: used only when an otherwise-valid section would create a
+   * sparse physical continuation page. It preserves all content while shaving
+   * vertical space from high-cost components.
+   */
+  .report-page.density-rescue {
+    padding-top: 8mm;
+    padding-bottom: 9mm;
+  }
+
+  .report-page.density-rescue .page-shell {
+    padding-bottom: 6mm;
+  }
+
+  .report-page.density-rescue .section-heading {
+    margin-bottom: 2.8mm;
+  }
+
+  .report-page.density-rescue .section-title {
+    font-size: 18.2pt;
+  }
+
+  .report-page.density-rescue .section-number,
+  .report-page.density-rescue .kicker {
+    font-size: 7pt;
+  }
+
+  .report-page.density-rescue .pillar-head {
+    gap: 4mm;
+    margin-bottom: 3mm;
+  }
+
+  .report-page.density-rescue .pillar-score {
+    padding: 3mm;
+  }
+
+  .report-page.density-rescue .pillar-score strong {
+    font-size: 19pt;
+  }
+
+  .report-page.density-rescue .card {
+    padding: 2.5mm;
+    margin-bottom: 1.8mm;
+  }
+
+  .report-page.density-rescue .editorial-narrative {
+    padding: 2mm 2.8mm;
+    margin-bottom: 1.6mm;
+    font-size: 7.7pt;
+    line-height: 1.32;
+  }
+
+  .report-page.density-rescue .split-grid {
+    gap: 3mm;
+  }
+
+  .report-page.density-rescue .list-clean li {
+    padding-top: 0.9mm;
+    padding-bottom: 0.9mm;
+    font-size: 8.2pt;
+  }
+
+  .report-page.density-rescue .data-table {
+    margin-top: 1.2mm;
+    margin-bottom: 1.8mm;
+  }
+
+  .report-page.density-rescue .data-table th {
+    padding: 1.5mm 2mm;
+    font-size: 6.8pt;
+  }
+
+  .report-page.density-rescue .data-table td {
+    padding: 1.55mm 2mm;
+    font-size: 7.5pt;
+    line-height: 1.22;
+  }
+
+  .report-page.density-rescue .callout {
+    padding: 2mm 2.8mm;
+    margin: 1.6mm 0;
+    font-size: 7.4pt;
+  }
+
+  .report-page.density-rescue .risk-grid {
+    gap: 1.8mm;
+  }
+
+  .report-page.density-rescue .risk-card {
+    grid-template-columns: 1fr 20mm;
+    gap: 3mm;
+    padding: 2.5mm 3mm;
+  }
+
+  .report-page.density-rescue .risk-card + .risk-card {
+    margin-top: 1.8mm;
+  }
+
+  .report-page.density-rescue .risk-card strong {
+    font-size: 8.2pt;
+    line-height: 1.22;
+  }
+
+  .report-page.density-rescue .risk-card .muted.small {
+    margin-top: 1mm !important;
+    font-size: 7.1pt;
+    line-height: 1.25;
+  }
+
+  .report-page.density-rescue .risk-level {
+    padding: 1.2mm 1.5mm;
+    font-size: 7pt;
+  }
+
+  .report-page.density-rescue .roadmap-item {
+    padding-bottom: 2.6mm;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}

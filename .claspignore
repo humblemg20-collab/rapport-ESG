@@ -1,0 +1,11 @@
+# AfriGreen24 ESG — clasp boundary
+# The premium renderer is a separate Node/Chromium service and must never be
+# uploaded into the Apps Script project.
+
+premium-renderer/**
+docs/**
+.github/**
+README.md
+*.md
+package.json
+package-lock.json

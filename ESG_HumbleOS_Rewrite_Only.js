@@ -1522,6 +1522,61 @@ function verifierFaitsESGRewrite_(
     };
   }
 
+  var forbiddenTerms = [
+    "afrigreen24",
+    "openai",
+    "humbleos"
+  ];
+
+  var sourceLower =
+    String(
+      source || ""
+    ).toLowerCase();
+
+  var rewrittenLower =
+    String(
+      rewritten || ""
+    ).toLowerCase();
+
+  for (
+    var forbiddenIndex = 0;
+    forbiddenIndex <
+      forbiddenTerms.length;
+    forbiddenIndex++
+  ) {
+    var forbiddenTerm =
+      forbiddenTerms[
+        forbiddenIndex
+      ];
+
+    /*
+     * Une mention interne nouvellement introduite par le provider
+     * est une fuite white-label. Le bloc doit revenir à sa source
+     * déterministe. Une mention déjà présente dans la source n'est
+     * pas créée par l'IA ; elle sera encore contrôlée par le gate
+     * final du document.
+     */
+    if (
+      rewrittenLower.indexOf(
+        forbiddenTerm
+      ) !==
+        -1 &&
+      sourceLower.indexOf(
+        forbiddenTerm
+      ) ===
+        -1
+    ) {
+      return {
+        valid:
+          false,
+
+        reason:
+          "WHITE_LABEL_TERM_INTRODUCED:" +
+          forbiddenTerm
+      };
+    }
+  }
+
   return {
     valid: true
   };
@@ -1873,6 +1928,188 @@ function fusionnerActionsESGRewrite_(
 /**
  * Test local gratuit : aucune requête HumbleOS.
  */
+function TEST_ESG_REWRITE_WHITE_LABEL_FALLBACK_LOCAL() {
+  var forbiddenCases = [
+    {
+      id:
+        "legacy_white_label_afrigreen",
+
+      rewritten:
+        "AfriGreen24 recommande de renforcer le suivi ESG."
+    },
+    {
+      id:
+        "legacy_white_label_openai",
+
+      rewritten:
+        "OpenAI recommande de renforcer le suivi ESG."
+    },
+    {
+      id:
+        "legacy_white_label_humbleos",
+
+      rewritten:
+        "HumbleOS recommande de renforcer le suivi ESG."
+    }
+  ];
+
+  var failures = [];
+
+  forbiddenCases.forEach(
+    function(testCase) {
+      var source =
+        "L’organisation doit renforcer le suivi de ses données ESG.";
+
+      var input = {
+        schema_version:
+          ESG_REWRITE_CONFIG
+            .inputSchema,
+
+        language:
+          "fr",
+
+        texts: [
+          {
+            id:
+              testCase.id,
+
+            text:
+              source
+          }
+        ]
+      };
+
+      var output = {
+        schema_version:
+          ESG_REWRITE_CONFIG
+            .outputSchema,
+
+        texts: [
+          {
+            id:
+              testCase.id,
+
+            rewritten_text:
+              testCase.rewritten
+          }
+        ]
+      };
+
+      var result =
+        applyESGRewriteSafetyFallback_(
+          input,
+          output,
+          {
+            organizationName:
+              "Organisation Test"
+          }
+        );
+
+      var ok =
+        result
+          .fallback_ids
+          .length ===
+          1 &&
+        result
+          .fallback_ids[0] ===
+          testCase.id &&
+        result
+          .output
+          .texts[0]
+          .rewritten_text ===
+          source;
+
+      if (!ok) {
+        failures.push({
+          id:
+            testCase.id,
+
+          result:
+            result
+        });
+      }
+    }
+  );
+
+  /*
+   * Cas témoin : un texte sûr doit rester inchangé.
+   */
+  var safeInput = {
+    schema_version:
+      ESG_REWRITE_CONFIG
+        .inputSchema,
+
+    language:
+      "fr",
+
+    texts: [
+      {
+        id:
+          "legacy_white_label_safe",
+
+        text:
+          "L’organisation doit renforcer le suivi de ses données ESG."
+      }
+    ]
+  };
+
+  var safeOutput = {
+    schema_version:
+      ESG_REWRITE_CONFIG
+        .outputSchema,
+
+    texts: [
+      {
+        id:
+          "legacy_white_label_safe",
+
+        rewritten_text:
+          "L’organisation doit mieux structurer le suivi de ses données ESG."
+      }
+    ]
+  };
+
+  var safeResult =
+    applyESGRewriteSafetyFallback_(
+      safeInput,
+      safeOutput,
+      {
+        organizationName:
+          "Organisation Test"
+      }
+    );
+
+  if (
+    safeResult
+      .fallback_ids
+      .length !==
+      0
+  ) {
+    failures.push({
+      id:
+        "legacy_white_label_safe",
+
+      result:
+        safeResult
+    });
+  }
+
+  return {
+    success:
+      failures.length ===
+      0,
+
+    testedForbiddenTerms: [
+      "afrigreen24",
+      "openai",
+      "humbleos"
+    ],
+
+    failures:
+      failures
+  };
+}
+
 function TEST_ESG_REWRITE_FACT_PROTECTION_LOCAL() {
   var tests = [];
 

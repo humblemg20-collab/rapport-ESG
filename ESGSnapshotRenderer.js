@@ -120,11 +120,17 @@ function genererSnapshotESGV1(
   model.report.reportId =
     identifiantRapport;
 
-  var narration =
-    genererNarrationsSnapshotESGV1_(
+  var editorial =
+    preparerDocumentEditorialESGV2_(
       model,
       profil
     );
+
+  model =
+    editorial.model;
+
+  var narration =
+    editorial.narration;
 
   var organisation =
     nettoyerNomFichierESG_(
@@ -325,6 +331,9 @@ function genererSnapshotESGV1(
       whiteLabel:
         whiteLabel,
 
+      contentParity:
+        editorial.parity,
+
       pdfRender:
         pdfHealth
     }
@@ -373,6 +382,170 @@ function configurerDocumentSnapshotESGV1_(
  * AI NARRATIVE BATCH
  * ============================================================
  */
+function securiserNarrationsWhiteLabelSnapshotESGV1_(
+  blocks,
+  textByBlockId
+) {
+  var forbidden = [
+    "afrigreen24",
+    "openai",
+    "humbleos"
+  ];
+
+  var sourceById = {};
+
+  (
+    blocks || []
+  ).forEach(
+    function(block) {
+      if (
+        block &&
+        block.id
+      ) {
+        sourceById[
+          String(
+            block.id
+          )
+        ] =
+          String(
+            block.text ||
+            ""
+          );
+      }
+    }
+  );
+
+  var output = {};
+  var fallbackIds = [];
+
+  Object.keys(
+    textByBlockId ||
+    {}
+  ).forEach(
+    function(id) {
+      var text =
+        String(
+          textByBlockId[
+            id
+          ] ||
+          ""
+        );
+
+      var normalized =
+        text
+          .toLowerCase();
+
+      var leakingTerm =
+        forbidden.filter(
+          function(term) {
+            return (
+              normalized.indexOf(
+                term
+              ) !==
+              -1
+            );
+          }
+        )[0];
+
+      if (leakingTerm) {
+        output[id] =
+          sourceById[id] ||
+          "";
+
+        fallbackIds.push(
+          id
+        );
+
+        console.warn(
+          JSON.stringify({
+            event:
+              "esg_white_label_narrative_fallback",
+
+            blockId:
+              id,
+
+            forbiddenTerm:
+              leakingTerm,
+
+            action:
+              "DETERMINISTIC_BLOCK_FALLBACK"
+          })
+        );
+
+        return;
+      }
+
+      output[id] =
+        text;
+    }
+  );
+
+  return {
+    textByBlockId:
+      output,
+
+    fallbackIds:
+      fallbackIds
+  };
+}
+
+
+function TEST_ESG_SNAPSHOT_WHITE_LABEL_NARRATIVE_FALLBACK_LOCAL() {
+  var blocks = [
+    {
+      id:
+        "BLOCK-1",
+
+      text:
+        "Texte déterministe sûr."
+    },
+    {
+      id:
+        "BLOCK-2",
+
+      text:
+        "Deuxième texte sûr."
+    }
+  ];
+
+  var result =
+    securiserNarrationsWhiteLabelSnapshotESGV1_(
+      blocks,
+      {
+        "BLOCK-1":
+          "Rapport généré par AfriGreen24.",
+
+        "BLOCK-2":
+          "Texte institutionnel sûr."
+      }
+    );
+
+  return {
+    success:
+      result
+        .fallbackIds
+        .length ===
+        1 &&
+      result
+        .fallbackIds[0] ===
+        "BLOCK-1" &&
+      result
+        .textByBlockId[
+          "BLOCK-1"
+        ] ===
+        "Texte déterministe sûr." &&
+      result
+        .textByBlockId[
+          "BLOCK-2"
+        ] ===
+        "Texte institutionnel sûr.",
+
+    result:
+      result
+  };
+}
+
+
 function genererNarrationsSnapshotESGV1_(
   model,
   profil
@@ -424,6 +597,9 @@ function genererNarrationsSnapshotESGV1_(
         0,
 
       attempts:
+        [],
+
+      whiteLabelFallbackIds:
         [],
 
       textByBlockId:
@@ -514,6 +690,22 @@ function genererNarrationsSnapshotESGV1_(
       }
     );
 
+    /*
+     * Défense white-label post-provider.
+     * Même si un provider ignore l'instruction éditoriale et injecte
+     * un nom interne, le bloc concerné retombe automatiquement sur
+     * sa narration déterministe avant toute création de document.
+     */
+    var whiteLabelSafety =
+      securiserNarrationsWhiteLabelSnapshotESGV1_(
+        blocks,
+        byId
+      );
+
+    byId =
+      whiteLabelSafety
+        .textByBlockId;
+
     return {
       providerUsed:
         gateway.providerUsed,
@@ -532,7 +724,15 @@ function genererNarrationsSnapshotESGV1_(
           restored.failed_ids ||
           []
         ).length >
+          0 ||
+        whiteLabelSafety
+          .fallbackIds
+          .length >
           0,
+
+      whiteLabelFallbackIds:
+        whiteLabelSafety
+          .fallbackIds,
 
       blockCount:
         blocks.length,
@@ -585,6 +785,9 @@ function genererNarrationsSnapshotESGV1_(
         error.attempts
           ? error.attempts
           : [],
+
+      whiteLabelFallbackIds:
+        [],
 
       textByBlockId:
         deterministic
@@ -3927,101 +4130,13 @@ function verifierPDFSnapshotESGV1_(
  * Produit réellement Google Doc + PDF.
  */
 function TEST_ESG_SNAPSHOT_RENDERER_REAL_OPENAI() {
-  var profil = {
-    organizationName:
-      "Kivu Solar Test",
-
-    mainCountry:
-      "RDC",
-
-    organizationType:
-      "Entreprise",
-
-    mainSector:
-      "Énergie solaire",
-
-    employeeCount:
-      "36",
-
-    creationYear:
-      "2021",
-
-    interventionZone:
-      "Afrique centrale"
-  };
-
-  var reponses = {};
-
-  obtenirQuestionsESG()
-    .forEach(
-      function(
-        question,
-        index
-      ) {
-        reponses[
-          question.question_id
-        ] = {
-          value:
-            index %
-            6,
-
-          evidenceLevel:
-            index %
-              3 ===
-              0
-              ? "MEDIUM"
-              : "DECLARATIVE",
-
-          comment:
-            "Test Snapshot renderer.",
-
-          inputMethod:
-            "MANUAL",
-
-          userConfirmed:
-            true
-        };
-      }
-    );
-
-  var analyse =
-    executerDiagnosticEtRecommandationsESG(
-      reponses
-    );
-
-  var model =
-    adapterAnalyseLegacyVersSchemaESGV1(
-      profil,
-      analyse,
-      {},
-      {
-        profile:
-          "SNAPSHOT",
-
-        rawResponses:
-          reponses,
-
-        intake: {
-          entryMode:
-            "manual"
-        }
-      }
-    );
-
-  model =
-    executerEvidenceEngineESGV1(
-      model
-    ).model;
-
-  model =
-    executerDataQualityEngineESGV1(
-      model
-    ).model;
+  var fixture =
+    construireFixtureKivuSolarESGV2_();
 
   var result =
     genererSnapshotESGV1(
-      model,
-      profil
+      fixture.model,
+      fixture.profil
     );
 
   if (

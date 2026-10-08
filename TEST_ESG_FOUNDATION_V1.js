@@ -41,6 +41,36 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "STRUCTURED_REPORT_DETERMINISTIC_IMPORT",
+      run:
+        TEST_ESG_STRUCTURED_REPORT_DETERMINISTIC_IMPORT_LOCAL
+    },
+    {
+      name:
+        "STRUCTURED_REPORT_IMPORT_INTEGRATION",
+      run:
+        TEST_ESG_STRUCTURED_REPORT_IMPORT_INTEGRATION_LOCAL
+    },
+    {
+      name:
+        "STRUCTURED_REPORT_PARTIAL_FALLBACK",
+      run:
+        TEST_ESG_STRUCTURED_PARTIAL_FALLBACK_LOCAL
+    },
+    {
+      name:
+        "STRUCTURED_FACT_GUARD",
+      run:
+        TEST_ESG_STRUCTURED_FACT_GUARD_LOCAL
+    },
+    {
+      name:
+        "IMPORT_TRUST_BOUNDARY",
+      run:
+        TEST_ESG_IMPORT_TRUST_BOUNDARY_LOCAL
+    },
+    {
+      name:
         "DATA_STATUS",
       run:
         TEST_ESG_DATA_STATUS_V1_LOCAL
@@ -68,6 +98,18 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
         "WHITE_LABEL_TEXT",
       run:
         TEST_ESG_WHITE_LABEL_TEXT_LOCAL
+    },
+    {
+      name:
+        "LEGACY_WHITE_LABEL_REWRITE_FALLBACK",
+      run:
+        TEST_ESG_REWRITE_WHITE_LABEL_FALLBACK_LOCAL
+    },
+    {
+      name:
+        "SNAPSHOT_WHITE_LABEL_NARRATIVE_FALLBACK",
+      run:
+        TEST_ESG_SNAPSHOT_WHITE_LABEL_NARRATIVE_FALLBACK_LOCAL
     },
     {
       name:
@@ -110,6 +152,48 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
         "QUALITY_GATE_ENGINE",
       run:
         TEST_ESG_QUALITY_GATE_ENGINE_V1_LOCAL
+    },
+    {
+      name:
+        "KIVU_CANONICAL_FIXTURE_V2",
+      run:
+        TEST_ESG_KIVU_FIXTURE_V2_LOCAL
+    },
+    {
+      name:
+        "EDITORIAL_CONTENT_ENGINE_V2",
+      run:
+        TEST_ESG_EDITORIAL_CONTENT_ENGINE_V2_LOCAL
+    },
+    {
+      name:
+        "PREMIUM_CONTENT_PARITY_KIVU_V2",
+      run:
+        TEST_ESG_PREMIUM_CONTENT_PARITY_KIVU_V2_LOCAL
+    },
+    {
+      name:
+        "PRESENTATION_PROFILE_V2",
+      run:
+        TEST_ESG_PRESENTATION_PROFILE_V2_LOCAL
+    },
+    {
+      name:
+        "PREMIUM_RENDERER_CLIENT_V2",
+      run:
+        TEST_ESG_PREMIUM_RENDERER_CLIENT_V2_LOCAL
+    },
+    {
+      name:
+        "PREMIUM_REPORT_ENGINE_V2",
+      run:
+        TEST_ESG_PREMIUM_REPORT_ENGINE_V2_LOCAL
+    },
+    {
+      name:
+        "PREMIUM_ROUTER_FALLBACK_LOCAL",
+      run:
+        TEST_ESG_PREMIUM_ROUTER_FALLBACK_LOCAL
     },
     {
       name:

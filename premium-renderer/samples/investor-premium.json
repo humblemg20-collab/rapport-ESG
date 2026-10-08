@@ -1,0 +1,940 @@
+{
+  "contractVersion": "ESG_PRESENTATION_CONTRACT_V2",
+  "engineVersion": "ESG_PRESENTATION_ENGINE_V2",
+  "reportProfile": "SNAPSHOT",
+  "designProfile": "INVESTOR_PREMIUM_V1",
+  "sectorProfile": "ENERGY",
+  "language": "fr",
+  "brandProfile": {
+    "organizationName": "Kivu Solar Test",
+    "primaryColor": "#145C4D",
+    "secondaryColor": "#B79252",
+    "sector": "Énergie solaire",
+    "mainCountry": "RDC",
+    "whiteLabel": true
+  },
+  "documentModel": {
+    "schemaVersion": "ESG_REPORT_SCHEMA_V1",
+    "organization": {
+      "name": "Kivu Solar Test",
+      "legalType": "Entreprise",
+      "sector": "Énergie solaire",
+      "mainCountry": "RDC",
+      "employeeCount": 36,
+      "creationYear": 2021,
+      "interventionZone": "Afrique centrale"
+    },
+    "scores": {
+      "environmentScore": 29.22,
+      "socialScore": 20.13,
+      "governanceScore": 3.98,
+      "esgOverallScoreV2": 17.78,
+      "readinessScore": 53.13,
+      "dataConfidenceScore": 70,
+      "evidenceCoverageScore": 0
+    },
+    "report": {
+      "reportId": "ESG-DEMO-001",
+      "profile": "SNAPSHOT",
+      "language": "fr",
+      "sections": [
+        {
+          "sectionId": "SNAP-COVER",
+          "pageNumber": 1,
+          "title": "Cover",
+          "blocks": [
+            {
+              "type": "COVER_BLOCK",
+              "data": {
+                "organizationName": "Kivu Solar Test",
+                "reportTitle": "RAPPORT ESG",
+                "reportSubtitle": "Diagnostic environnemental, social et de gouvernance",
+                "reportId": "ESG-DEMO-001",
+                "scores": {
+                  "overall": 17.78
+                }
+              },
+              "blockId": "SNAP-P1-COVER",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {},
+                  "criticalValues": [
+                    "Kivu Solar Test",
+                    "RAPPORT ESG",
+                    "ESG-DEMO-001"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "sectionId": "SNAP-EXECUTIVE_ESG_SNAPSHOT",
+          "pageNumber": 2,
+          "title": "Synthèse ESG exécutive",
+          "blocks": [
+            {
+              "type": "SCORE_BLOCK",
+              "data": {
+                "displayScore": 17.78,
+                "readinessScore": 53.13,
+                "scores": {
+                  "environmentScore": 29.22,
+                  "socialScore": 20.13,
+                  "governanceScore": 3.98,
+                  "dataConfidenceScore": 70,
+                  "evidenceCoverageScore": 0
+                }
+              },
+              "blockId": "SNAP-P2-SCORE",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {},
+                  "criticalValues": [
+                    "17.78",
+                    "29.22",
+                    "20.13",
+                    "3.98",
+                    "53.13"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "DATA_QUALITY_BLOCK",
+              "data": {
+                "dataQualityProfile": {
+                  "dataConfidenceScore": 70,
+                  "evidenceCoverageScore": 0,
+                  "methodologyVersion": "AG24_DATA_QUALITY_V1",
+                  "warnings": [
+                    "Couverture de preuves canoniques faible."
+                  ]
+                }
+              },
+              "blockId": "SNAP-P2-DATA-QUALITY",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {},
+                  "criticalValues": []
+                }
+              }
+            },
+            {
+              "type": "EXECUTIVE_SUMMARY_BLOCK",
+              "data": {
+                "strengths": [
+                  {
+                    "theme": "Déchets"
+                  },
+                  {
+                    "theme": "Économie circulaire"
+                  },
+                  {
+                    "theme": "Santé et sécurité"
+                  }
+                ],
+                "gaps": [
+                  {
+                    "theme": "Politique environnementale"
+                  },
+                  {
+                    "theme": "Ressources"
+                  },
+                  {
+                    "theme": "Produits et services"
+                  }
+                ],
+                "risks": [
+                  {
+                    "description": "Prévention du travail des enfants insuffisamment démontrée."
+                  },
+                  {
+                    "description": "Structure juridique insuffisamment documentée."
+                  },
+                  {
+                    "description": "Obligations réglementaires insuffisamment suivies."
+                  }
+                ]
+              },
+              "blockId": "SNAP-P2-EXECUTIVE",
+              "required": true,
+              "presentationContent": {
+                "narrative": "Kivu Solar Test présente un score ESG global de 17.78 / 100. Les scores des piliers s’élèvent à 29.22 / 100 pour l’Environnement, 20.13 / 100 pour le Social et 3.98 / 100 pour la Gouvernance. La confiance dans les données est de 70 / 100 et la couverture par des preuves canoniques de 0 / 100. Les principaux écarts et risques identifiés doivent être traités selon la feuille de route du rapport.",
+                "narrativeRequired": true,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "strengths": 3,
+                    "gaps": 3,
+                    "risks": 3
+                  },
+                  "criticalValues": []
+                }
+              }
+            }
+          ]
+        },
+        {
+          "sectionId": "SNAP-ORGANIZATION_MATERIAL_ISSUES",
+          "pageNumber": 3,
+          "title": "Organisation & enjeux prioritaires",
+          "blocks": [
+            {
+              "type": "ORGANIZATION_BLOCK",
+              "data": {
+                "organization": {
+                  "name": "Kivu Solar Test",
+                  "legalType": "Entreprise",
+                  "sector": "Énergie solaire",
+                  "mainCountry": "RDC",
+                  "employeeCount": 36,
+                  "creationYear": 2021,
+                  "interventionZone": "Afrique centrale"
+                }
+              },
+              "blockId": "SNAP-P3-ORG",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {},
+                  "criticalValues": [
+                    "Kivu Solar Test",
+                    "Énergie solaire",
+                    "RDC"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "MATERIALITY_BLOCK",
+              "data": {
+                "mode": "PRELIMINARY_DIAGNOSTIC_TOPICS",
+                "matrixEligible": false,
+                "topics": [
+                  {
+                    "name": "Droits humains",
+                    "pillar": "S",
+                    "priority": "CRITIQUE"
+                  },
+                  {
+                    "name": "Structure juridique",
+                    "pillar": "G",
+                    "priority": "CRITIQUE"
+                  },
+                  {
+                    "name": "Pollution",
+                    "pillar": "E",
+                    "priority": "ÉLEVÉ"
+                  }
+                ],
+                "disclaimer": "Ces sujets sont des enjeux préliminaires issus du diagnostic. Ils ne constituent pas une analyse formelle de matérialité."
+              },
+              "blockId": "SNAP-P3-MATERIALITY",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "topics": 3
+                  },
+                  "criticalValues": []
+                }
+              }
+            }
+          ]
+        },
+        {
+          "sectionId": "SNAP-ENVIRONMENT",
+          "pageNumber": 4,
+          "title": "Environnement",
+          "blocks": [
+            {
+              "type": "PILLAR_BLOCK",
+              "data": {
+                "pillar": "E",
+                "score": 29.22,
+                "strengths": [
+                  {
+                    "theme": "Eau"
+                  },
+                  {
+                    "theme": "Déchets"
+                  },
+                  {
+                    "theme": "Changement climatique"
+                  }
+                ],
+                "gaps": [
+                  {
+                    "theme": "Politique environnementale"
+                  },
+                  {
+                    "theme": "Énergie"
+                  },
+                  {
+                    "theme": "Ressources"
+                  }
+                ]
+              },
+              "blockId": "SNAP-PILLAR-E",
+              "required": true,
+              "presentationContent": {
+                "narrative": "Le pilier environnemental obtient un score de 29.22 / 100. L’analyse fait ressortir 3 points forts prioritaires et 3 écarts majeurs à traiter. Cette lecture repose uniquement sur les réponses, les statuts de données et les éléments disponibles dans le diagnostic.",
+                "narrativeRequired": true,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "strengths": 3,
+                    "gaps": 3
+                  },
+                  "criticalValues": [
+                    "29.22"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "TABLE_BLOCK",
+              "data": {
+                "title": "Indicateurs à mettre en place",
+                "columns": [
+                  "Indicateur",
+                  "Unité",
+                  "Fréquence",
+                  "Responsable"
+                ],
+                "rows": [
+                  [
+                    "Émissions directes de GES",
+                    "tCO2e",
+                    "Annuelle",
+                    "Responsable opérations / environnement"
+                  ],
+                  [
+                    "Consommation énergétique totale",
+                    "kWh ou GJ",
+                    "Mensuelle",
+                    "Responsable opérations"
+                  ],
+                  [
+                    "Part d’énergie renouvelable",
+                    "%",
+                    "Annuelle",
+                    "Direction générale"
+                  ]
+                ],
+                "disclaimer": "Ces indicateurs sont recommandés ; ils ne sont pas présentés comme des KPI déjà mesurés."
+              },
+              "blockId": "SNAP-REC-KPI-E",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "rows": 3
+                  },
+                  "criticalValues": []
+                }
+              }
+            }
+          ]
+        },
+        {
+          "sectionId": "SNAP-SOCIAL",
+          "pageNumber": 5,
+          "title": "Social",
+          "blocks": [
+            {
+              "type": "PILLAR_BLOCK",
+              "data": {
+                "pillar": "S",
+                "score": 20.13,
+                "strengths": [
+                  {
+                    "theme": "Travail et emploi"
+                  },
+                  {
+                    "theme": "Santé et sécurité"
+                  },
+                  {
+                    "theme": "Rémunération"
+                  }
+                ],
+                "gaps": [
+                  {
+                    "theme": "Compétences"
+                  },
+                  {
+                    "theme": "Égalité de genre"
+                  },
+                  {
+                    "theme": "Droits humains"
+                  }
+                ]
+              },
+              "blockId": "SNAP-PILLAR-S",
+              "required": true,
+              "presentationContent": {
+                "narrative": "Le pilier social obtient un score de 20.13 / 100. L’analyse fait ressortir 3 points forts prioritaires et 3 écarts majeurs à traiter. Cette lecture repose uniquement sur les réponses, les statuts de données et les éléments disponibles dans le diagnostic.",
+                "narrativeRequired": true,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "strengths": 3,
+                    "gaps": 3
+                  },
+                  "criticalValues": [
+                    "20.13"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "TABLE_BLOCK",
+              "data": {
+                "title": "Indicateurs à mettre en place",
+                "columns": [
+                  "Indicateur",
+                  "Unité",
+                  "Fréquence",
+                  "Responsable"
+                ],
+                "rows": [
+                  [
+                    "Taux de fréquence des accidents",
+                    "Taux",
+                    "Mensuelle ou annuelle",
+                    "Responsable SST / opérations / direction générale"
+                  ],
+                  [
+                    "Taux de résolution des plaintes",
+                    "%",
+                    "Trimestrielle",
+                    "Responsable RH / SST / direction générale"
+                  ],
+                  [
+                    "Heures de formation par collaborateur",
+                    "Heures",
+                    "Trimestrielle",
+                    "Responsable RH / SST / direction générale"
+                  ],
+                  [
+                    "Part des femmes dans l’effectif",
+                    "%",
+                    "Annuelle",
+                    "Responsable RH / direction générale"
+                  ]
+                ],
+                "disclaimer": "Ces indicateurs sont recommandés ; ils ne sont pas présentés comme des KPI déjà mesurés."
+              },
+              "blockId": "SNAP-REC-KPI-S",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "rows": 4
+                  },
+                  "criticalValues": []
+                }
+              }
+            }
+          ]
+        },
+        {
+          "sectionId": "SNAP-GOVERNANCE_RISKS",
+          "pageNumber": 6,
+          "title": "Gouvernance & risques ESG",
+          "blocks": [
+            {
+              "type": "PILLAR_BLOCK",
+              "data": {
+                "pillar": "G",
+                "score": 3.98,
+                "strengths": [
+                  {
+                    "theme": "Contrôle interne"
+                  },
+                  {
+                    "theme": "Éthique et intégrité"
+                  },
+                  {
+                    "theme": "Achats responsables"
+                  }
+                ],
+                "gaps": [
+                  {
+                    "theme": "Structure juridique"
+                  },
+                  {
+                    "theme": "Gouvernance"
+                  },
+                  {
+                    "theme": "Gestion des risques"
+                  }
+                ]
+              },
+              "blockId": "SNAP-PILLAR-G",
+              "required": true,
+              "presentationContent": {
+                "narrative": "Le pilier de gouvernance obtient un score de 3.98 / 100. L’analyse fait ressortir 3 points forts prioritaires et 3 écarts majeurs à traiter. Cette lecture repose uniquement sur les réponses, les statuts de données et les éléments disponibles dans le diagnostic.",
+                "narrativeRequired": true,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "strengths": 3,
+                    "gaps": 3
+                  },
+                  "criticalValues": [
+                    "3.98"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "TABLE_BLOCK",
+              "data": {
+                "title": "Indicateurs à mettre en place",
+                "columns": [
+                  "Indicateur",
+                  "Unité",
+                  "Fréquence",
+                  "Responsable"
+                ],
+                "rows": [
+                  [
+                    "Incidents de données personnelles",
+                    "Nombre",
+                    "Trimestrielle",
+                    "Responsable informatique / protection des données / direction générale"
+                  ]
+                ],
+                "disclaimer": "Ces indicateurs sont recommandés ; ils ne sont pas présentés comme des KPI déjà mesurés."
+              },
+              "blockId": "SNAP-REC-KPI-G",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "rows": 1
+                  },
+                  "criticalValues": []
+                }
+              }
+            },
+            {
+              "type": "RISK_BLOCK",
+              "data": {
+                "risks": [
+                  {
+                    "description": "Prévention du travail des enfants insuffisamment démontrée.",
+                    "pillar": "S",
+                    "legacySeverity": "CRITIQUE",
+                    "mitigationActions": [
+                      "Mettre en place une interdiction formelle, des contrôles d’âge et un mécanisme de remédiation."
+                    ]
+                  },
+                  {
+                    "description": "Structure juridique et autorisations essentielles insuffisamment démontrées.",
+                    "pillar": "G",
+                    "legacySeverity": "CRITIQUE",
+                    "mitigationActions": [
+                      "Vérifier les statuts, licences et autorisations applicables."
+                    ]
+                  }
+                ]
+              },
+              "blockId": "SNAP-P6-RISKS",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "risks": 2
+                  },
+                  "criticalValues": []
+                }
+              }
+            }
+          ]
+        },
+        {
+          "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
+          "pageNumber": 7,
+          "title": "Actions prioritaires & feuille de route",
+          "blocks": [
+            {
+              "type": "RECOMMENDATION_BLOCK",
+              "data": {
+                "recommendations": [
+                  {
+                    "action": "Adopter immédiatement une interdiction formelle et des contrôles adaptés.",
+                    "priority": "CRITIQUE",
+                    "pillar": "S"
+                  },
+                  {
+                    "action": "Vérifier les documents légaux et licences essentielles.",
+                    "priority": "CRITIQUE",
+                    "pillar": "G"
+                  }
+                ]
+              },
+              "blockId": "SNAP-P7-RECOMMENDATIONS",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "recommendations": 2
+                  },
+                  "criticalValues": []
+                }
+              }
+            },
+            {
+              "type": "ROADMAP_BLOCK",
+              "data": {
+                "horizons": {
+                  "0_3_MONTHS": [
+                    {
+                      "title": "Vérifier les documents légaux et licences essentielles."
+                    },
+                    {
+                      "title": "Formaliser les contrôles relatifs aux droits humains."
+                    }
+                  ],
+                  "3_12_MONTHS": [
+                    {
+                      "title": "Déployer les indicateurs ESG prioritaires."
+                    }
+                  ],
+                  "12_24_MONTHS": []
+                }
+              },
+              "blockId": "SNAP-P7-ROADMAP",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "roadmapActions": 3
+                  },
+                  "criticalValues": []
+                }
+              }
+            },
+            {
+              "type": "METHODOLOGY_BLOCK",
+              "data": {
+                "materialityStatus": "NOT_ASSESSED"
+              },
+              "blockId": "SNAP-P7-METHODOLOGY",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {},
+                  "criticalValues": []
+                }
+              }
+            },
+            {
+              "type": "DISCLAIMER_BLOCK",
+              "data": {
+                "text": "Ce rapport constitue une évaluation ESG fondée sur les informations disponibles à la date de l’analyse. Il ne constitue ni une certification, ni un audit indépendant, ni une garantie d’accès au financement."
+              },
+              "blockId": "SNAP-P7-DISCLAIMER",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {},
+                  "criticalValues": [
+                    "Ce rapport constitue une évaluation ESG fondée sur les informations disponibles à la date de l’analyse. Il ne constitue ni une certification, ni un audit indépendant, ni une garantie d’accès au financement."
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "presentation": {
+        "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+        "contentManifest": [
+          {
+            "sectionId": "SNAP-COVER",
+            "blockId": "SNAP-P1-COVER",
+            "type": "COVER_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false,
+            "itemCounts": {},
+            "criticalValues": [
+              "Kivu Solar Test",
+              "RAPPORT ESG",
+              "ESG-DEMO-001"
+            ]
+          },
+          {
+            "sectionId": "SNAP-EXECUTIVE_ESG_SNAPSHOT",
+            "blockId": "SNAP-P2-SCORE",
+            "type": "SCORE_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false,
+            "itemCounts": {},
+            "criticalValues": [
+              "17.78",
+              "29.22",
+              "20.13",
+              "3.98",
+              "53.13"
+            ]
+          },
+          {
+            "sectionId": "SNAP-EXECUTIVE_ESG_SNAPSHOT",
+            "blockId": "SNAP-P2-DATA-QUALITY",
+            "type": "DATA_QUALITY_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false,
+            "itemCounts": {},
+            "criticalValues": []
+          },
+          {
+            "sectionId": "SNAP-EXECUTIVE_ESG_SNAPSHOT",
+            "blockId": "SNAP-P2-EXECUTIVE",
+            "type": "EXECUTIVE_SUMMARY_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": true,
+            "itemCounts": {
+              "strengths": 3,
+              "gaps": 3,
+              "risks": 3
+            },
+            "criticalValues": []
+          },
+          {
+            "sectionId": "SNAP-ORGANIZATION_MATERIAL_ISSUES",
+            "blockId": "SNAP-P3-ORG",
+            "type": "ORGANIZATION_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false,
+            "itemCounts": {},
+            "criticalValues": [
+              "Kivu Solar Test",
+              "Énergie solaire",
+              "RDC"
+            ]
+          },
+          {
+            "sectionId": "SNAP-ORGANIZATION_MATERIAL_ISSUES",
+            "blockId": "SNAP-P3-MATERIALITY",
+            "type": "MATERIALITY_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false,
+            "itemCounts": {
+              "topics": 3
+            },
+            "criticalValues": []
+          },
+          {
+            "sectionId": "SNAP-ENVIRONMENT",
+            "blockId": "SNAP-PILLAR-E",
+            "type": "PILLAR_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": true,
+            "itemCounts": {
+              "strengths": 3,
+              "gaps": 3
+            },
+            "criticalValues": [
+              "29.22"
+            ]
+          },
+          {
+            "sectionId": "SNAP-ENVIRONMENT",
+            "blockId": "SNAP-REC-KPI-E",
+            "type": "TABLE_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false,
+            "itemCounts": {
+              "rows": 3
+            },
+            "criticalValues": []
+          },
+          {
+            "sectionId": "SNAP-SOCIAL",
+            "blockId": "SNAP-PILLAR-S",
+            "type": "PILLAR_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": true,
+            "itemCounts": {
+              "strengths": 3,
+              "gaps": 3
+            },
+            "criticalValues": [
+              "20.13"
+            ]
+          },
+          {
+            "sectionId": "SNAP-SOCIAL",
+            "blockId": "SNAP-REC-KPI-S",
+            "type": "TABLE_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false,
+            "itemCounts": {
+              "rows": 4
+            },
+            "criticalValues": []
+          },
+          {
+            "sectionId": "SNAP-GOVERNANCE_RISKS",
+            "blockId": "SNAP-PILLAR-G",
+            "type": "PILLAR_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": true,
+            "itemCounts": {
+              "strengths": 3,
+              "gaps": 3
+            },
+            "criticalValues": [
+              "3.98"
+            ]
+          },
+          {
+            "sectionId": "SNAP-GOVERNANCE_RISKS",
+            "blockId": "SNAP-REC-KPI-G",
+            "type": "TABLE_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false,
+            "itemCounts": {
+              "rows": 1
+            },
+            "criticalValues": []
+          },
+          {
+            "sectionId": "SNAP-GOVERNANCE_RISKS",
+            "blockId": "SNAP-P6-RISKS",
+            "type": "RISK_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false,
+            "itemCounts": {
+              "risks": 2
+            },
+            "criticalValues": []
+          },
+          {
+            "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
+            "blockId": "SNAP-P7-RECOMMENDATIONS",
+            "type": "RECOMMENDATION_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false,
+            "itemCounts": {
+              "recommendations": 2
+            },
+            "criticalValues": []
+          },
+          {
+            "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
+            "blockId": "SNAP-P7-ROADMAP",
+            "type": "ROADMAP_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false,
+            "itemCounts": {
+              "roadmapActions": 3
+            },
+            "criticalValues": []
+          },
+          {
+            "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
+            "blockId": "SNAP-P7-METHODOLOGY",
+            "type": "METHODOLOGY_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false,
+            "itemCounts": {},
+            "criticalValues": []
+          },
+          {
+            "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
+            "blockId": "SNAP-P7-DISCLAIMER",
+            "type": "DISCLAIMER_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false,
+            "itemCounts": {},
+            "criticalValues": [
+              "Ce rapport constitue une évaluation ESG fondée sur les informations disponibles à la date de l’analyse. Il ne constitue ni une certification, ni un audit indépendant, ni une garantie d’accès au financement."
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "fixtureMode": "STATIC_RENDERER_ONLY"
+}
