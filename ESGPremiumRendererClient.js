@@ -351,6 +351,17 @@ function appelerPremiumRendererESGV2_(
       0
     );
 
+  var fragmentationRiskSections =
+    Number(
+      headers[
+        "X-ESG-Fragmentation-Risk-Sections"
+      ] ||
+      headers[
+        "x-esg-fragmentation-risk-sections"
+      ] ||
+      0
+    );
+
   return {
     success:
       true,
@@ -383,6 +394,13 @@ function appelerPremiumRendererESGV2_(
           continuationSections
         )
           ? continuationSections
+          : 0,
+
+      fragmentationRiskSections:
+        isFinite(
+          fragmentationRiskSections
+        )
+          ? fragmentationRiskSections
           : 0
     },
 
