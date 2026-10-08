@@ -47,6 +47,24 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "STRUCTURED_REPORT_IMPORT_INTEGRATION",
+      run:
+        TEST_ESG_STRUCTURED_REPORT_IMPORT_INTEGRATION_LOCAL
+    },
+    {
+      name:
+        "STRUCTURED_FACT_GUARD",
+      run:
+        TEST_ESG_STRUCTURED_FACT_GUARD_LOCAL
+    },
+    {
+      name:
+        "IMPORT_TRUST_BOUNDARY",
+      run:
+        TEST_ESG_IMPORT_TRUST_BOUNDARY_LOCAL
+    },
+    {
+      name:
         "DATA_STATUS",
       run:
         TEST_ESG_DATA_STATUS_V1_LOCAL
