@@ -63,12 +63,27 @@ async function runContentParityQa(page, spec) {
       );
 
   const dom = await page.evaluate(() => {
-    const blocks = [...document.querySelectorAll("[data-block-id]")].map(node => ({
-      blockId: node.getAttribute("data-block-id") || "",
-      type: node.getAttribute("data-block-type") || "",
-      status: node.getAttribute("data-render-status") || "",
-      textLength: (node.innerText || "").trim().length
-    }));
+    const blocks = [...document.querySelectorAll("[data-block-id]")].map(node => {
+      const itemCounts = {};
+
+      [...node.querySelectorAll("[data-parity-item]")]
+        .forEach(item => {
+          const key = item.getAttribute("data-parity-item") || "";
+          if (!key) return;
+          itemCounts[key] = (itemCounts[key] || 0) + 1;
+        });
+
+      const text = (node.innerText || "").trim();
+
+      return {
+        blockId: node.getAttribute("data-block-id") || "",
+        type: node.getAttribute("data-block-type") || "",
+        status: node.getAttribute("data-render-status") || "",
+        text,
+        textLength: text.length,
+        itemCounts
+      };
+    });
 
     const narratives = [...document.querySelectorAll("[data-narrative-for]")]
       .map(node => ({
@@ -97,7 +112,16 @@ async function runContentParityQa(page, spec) {
   const missingBlocks = [];
   const unsupportedBlocks = [];
   const missingNarratives = [];
+  const itemCountMismatches = [];
+  const criticalValueMismatches = [];
   let omittedAllowed = 0;
+
+  const normalizeText = value =>
+    String(value ?? "")
+      .normalize("NFKC")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
 
   for (const item of expected) {
     if (!item.blockId) {
@@ -144,6 +168,38 @@ async function runContentParityQa(page, spec) {
         missingNarratives.push(item.blockId);
       }
     }
+
+    const expectedItemCounts = item.itemCounts || {};
+
+    for (const [key, rawExpected] of Object.entries(expectedItemCounts)) {
+      const expectedCount = Number(rawExpected || 0);
+      const actualCount = Number(actual?.itemCounts?.[key] || 0);
+
+      if (expectedCount !== actualCount) {
+        itemCountMismatches.push({
+          blockId: item.blockId,
+          key,
+          expected: expectedCount,
+          actual: actualCount
+        });
+      }
+    }
+
+    const normalizedActualText = normalizeText(actual?.text || "");
+
+    for (const rawValue of item.criticalValues || []) {
+      const expectedValue = normalizeText(rawValue);
+
+      if (
+        expectedValue &&
+        !normalizedActualText.includes(expectedValue)
+      ) {
+        criticalValueMismatches.push({
+          blockId: item.blockId,
+          value: String(rawValue)
+        });
+      }
+    }
   }
 
   const duplicateDomIds = dom.blocks
@@ -156,6 +212,8 @@ async function runContentParityQa(page, spec) {
       missingBlocks.length === 0 &&
       unsupportedBlocks.length === 0 &&
       missingNarratives.length === 0 &&
+      itemCountMismatches.length === 0 &&
+      criticalValueMismatches.length === 0 &&
       duplicateDomIds.length === 0,
 
     expectedBlockCount: expected.length,
@@ -164,6 +222,8 @@ async function runContentParityQa(page, spec) {
     missingBlocks: [...new Set(missingBlocks)],
     unsupportedBlocks: [...new Set(unsupportedBlocks)],
     missingNarratives: [...new Set(missingNarratives)],
+    itemCountMismatches,
+    criticalValueMismatches,
     duplicateDomIds: [...new Set(duplicateDomIds)]
   };
 }
