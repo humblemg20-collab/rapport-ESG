@@ -50,6 +50,24 @@ curl -X POST http://localhost:3000/v1/render \
   --output report.pdf
 ```
 
+The checked-in `samples/investor-premium.json` is a renderer-only fixture. It
+is useful for CSS/Chromium regression tests but is not the canonical business
+reference.
+
+For real content-parity validation, export the Presentation Spec from Apps
+Script with `EXPORT_ESG_PREMIUM_SPEC_KIVU_V2()`, download that JSON locally,
+then render that exact canonical spec:
+
+PowerShell:
+
+```powershell
+$env:ESG_PRESENTATION_SPEC_FILE="C:\path\to\ESG Premium Presentation Spec - Kivu Solar Test - ....json"
+npm run render:sample
+```
+
+The command reports `inputMode=EXTERNAL_PRESENTATION_SPEC` when the real
+exported contract is being used.
+
 ## Unit tests
 
 ```bash
