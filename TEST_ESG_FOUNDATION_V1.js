@@ -125,6 +125,12 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "PREMIUM_REPORT_ENGINE_V2",
+      run:
+        TEST_ESG_PREMIUM_REPORT_ENGINE_V2_LOCAL
+    },
+    {
+      name:
         "REPORT_ENGINE_ROUTER",
       run:
         TEST_ESG_REPORT_ENGINE_ROUTER_LOCAL
