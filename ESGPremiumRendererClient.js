@@ -329,6 +329,28 @@ function appelerPremiumRendererESGV2_(
     );
   }
 
+  var compactedSections =
+    Number(
+      headers[
+        "X-ESG-Pagination-Compacted"
+      ] ||
+      headers[
+        "x-esg-pagination-compacted"
+      ] ||
+      0
+    );
+
+  var continuationSections =
+    Number(
+      headers[
+        "X-ESG-Continuation-Sections"
+      ] ||
+      headers[
+        "x-esg-continuation-sections"
+      ] ||
+      0
+    );
+
   return {
     success:
       true,
@@ -347,6 +369,22 @@ function appelerPremiumRendererESGV2_(
 
     qaStatus:
       qaStatus,
+
+    pagination: {
+      compactedSections:
+        isFinite(
+          compactedSections
+        )
+          ? compactedSections
+          : 0,
+
+      continuationSections:
+        isFinite(
+          continuationSections
+        )
+          ? continuationSections
+          : 0
+    },
 
     rendererVersion:
       String(
