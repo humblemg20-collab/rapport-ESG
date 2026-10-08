@@ -382,6 +382,114 @@ function configurerDocumentSnapshotESGV1_(
  * AI NARRATIVE BATCH
  * ============================================================
  */
+function securiserNarrationsWhiteLabelSnapshotESGV1_(
+  blocks,
+  textByBlockId
+) {
+  var forbidden = [
+    "afrigreen24",
+    "openai",
+    "humbleos"
+  ];
+
+  var sourceById = {};
+
+  (
+    blocks || []
+  ).forEach(
+    function(block) {
+      if (
+        block &&
+        block.id
+      ) {
+        sourceById[
+          String(
+            block.id
+          )
+        ] =
+          String(
+            block.text ||
+            ""
+          );
+      }
+    }
+  );
+
+  var output = {};
+  var fallbackIds = [];
+
+  Object.keys(
+    textByBlockId ||
+    {}
+  ).forEach(
+    function(id) {
+      var text =
+        String(
+          textByBlockId[
+            id
+          ] ||
+          ""
+        );
+
+      var normalized =
+        text
+          .toLowerCase();
+
+      var leakingTerm =
+        forbidden.filter(
+          function(term) {
+            return (
+              normalized.indexOf(
+                term
+              ) !==
+              -1
+            );
+          }
+        )[0];
+
+      if (leakingTerm) {
+        output[id] =
+          sourceById[id] ||
+          "";
+
+        fallbackIds.push(
+          id
+        );
+
+        console.warn(
+          JSON.stringify({
+            event:
+              "esg_white_label_narrative_fallback",
+
+            blockId:
+              id,
+
+            forbiddenTerm:
+              leakingTerm,
+
+            action:
+              "DETERMINISTIC_BLOCK_FALLBACK"
+          })
+        );
+
+        return;
+      }
+
+      output[id] =
+        text;
+    }
+  );
+
+  return {
+    textByBlockId:
+      output,
+
+    fallbackIds:
+      fallbackIds
+  };
+}
+
+
 function genererNarrationsSnapshotESGV1_(
   model,
   profil
@@ -433,6 +541,9 @@ function genererNarrationsSnapshotESGV1_(
         0,
 
       attempts:
+        [],
+
+      whiteLabelFallbackIds:
         [],
 
       textByBlockId:
@@ -523,6 +634,22 @@ function genererNarrationsSnapshotESGV1_(
       }
     );
 
+    /*
+     * Défense white-label post-provider.
+     * Même si un provider ignore l'instruction éditoriale et injecte
+     * un nom interne, le bloc concerné retombe automatiquement sur
+     * sa narration déterministe avant toute création de document.
+     */
+    var whiteLabelSafety =
+      securiserNarrationsWhiteLabelSnapshotESGV1_(
+        blocks,
+        byId
+      );
+
+    byId =
+      whiteLabelSafety
+        .textByBlockId;
+
     return {
       providerUsed:
         gateway.providerUsed,
@@ -541,7 +668,15 @@ function genererNarrationsSnapshotESGV1_(
           restored.failed_ids ||
           []
         ).length >
+          0 ||
+        whiteLabelSafety
+          .fallbackIds
+          .length >
           0,
+
+      whiteLabelFallbackIds:
+        whiteLabelSafety
+          .fallbackIds,
 
       blockCount:
         blocks.length,
@@ -594,6 +729,9 @@ function genererNarrationsSnapshotESGV1_(
         error.attempts
           ? error.attempts
           : [],
+
+      whiteLabelFallbackIds:
+        [],
 
       textByBlockId:
         deterministic
