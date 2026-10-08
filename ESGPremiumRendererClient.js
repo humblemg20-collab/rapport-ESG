@@ -351,6 +351,17 @@ function appelerPremiumRendererESGV2_(
       0
     );
 
+  var rescueSections =
+    Number(
+      headers[
+        "X-ESG-Pagination-Rescue"
+      ] ||
+      headers[
+        "x-esg-pagination-rescue"
+      ] ||
+      0
+    );
+
   var continuationSections =
     Number(
       headers[
@@ -416,6 +427,13 @@ function appelerPremiumRendererESGV2_(
           packedSections
         )
           ? packedSections
+          : 0,
+
+      rescueSections:
+        isFinite(
+          rescueSections
+        )
+          ? rescueSections
           : 0,
 
       continuationSections:
