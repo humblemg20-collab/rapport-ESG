@@ -7,6 +7,7 @@ on:
     paths:
       - "premium-renderer/**"
       - "ESGPresentationProfile.js"
+      - "ESGEditorialContentEngine.js"
       - "ESGPremiumRendererClient.js"
       - "ESGPremiumReportEngine.js"
       - ".github/workflows/esg-presentation-engine-v2.yml"
@@ -14,6 +15,7 @@ on:
     paths:
       - "premium-renderer/**"
       - "ESGPresentationProfile.js"
+      - "ESGEditorialContentEngine.js"
       - "ESGPremiumRendererClient.js"
       - "ESGPremiumReportEngine.js"
       - ".github/workflows/esg-presentation-engine-v2.yml"
