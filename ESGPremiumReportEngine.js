@@ -179,7 +179,16 @@ function genererSnapshotPremiumESGV2(
         preRenderQC,
 
       rendererQA:
-        renderer.qaStatus
+        renderer.qaStatus,
+
+      pagination:
+        renderer.pagination || {
+          compactedSections:
+            0,
+
+          continuationSections:
+            0
+        }
     },
 
     rendererLatencyMs:
