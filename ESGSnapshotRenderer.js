@@ -3936,101 +3936,13 @@ function verifierPDFSnapshotESGV1_(
  * Produit réellement Google Doc + PDF.
  */
 function TEST_ESG_SNAPSHOT_RENDERER_REAL_OPENAI() {
-  var profil = {
-    organizationName:
-      "Kivu Solar Test",
-
-    mainCountry:
-      "RDC",
-
-    organizationType:
-      "Entreprise",
-
-    mainSector:
-      "Énergie solaire",
-
-    employeeCount:
-      "36",
-
-    creationYear:
-      "2021",
-
-    interventionZone:
-      "Afrique centrale"
-  };
-
-  var reponses = {};
-
-  obtenirQuestionsESG()
-    .forEach(
-      function(
-        question,
-        index
-      ) {
-        reponses[
-          question.question_id
-        ] = {
-          value:
-            index %
-            6,
-
-          evidenceLevel:
-            index %
-              3 ===
-              0
-              ? "MEDIUM"
-              : "DECLARATIVE",
-
-          comment:
-            "Test Snapshot renderer.",
-
-          inputMethod:
-            "MANUAL",
-
-          userConfirmed:
-            true
-        };
-      }
-    );
-
-  var analyse =
-    executerDiagnosticEtRecommandationsESG(
-      reponses
-    );
-
-  var model =
-    adapterAnalyseLegacyVersSchemaESGV1(
-      profil,
-      analyse,
-      {},
-      {
-        profile:
-          "SNAPSHOT",
-
-        rawResponses:
-          reponses,
-
-        intake: {
-          entryMode:
-            "manual"
-        }
-      }
-    );
-
-  model =
-    executerEvidenceEngineESGV1(
-      model
-    ).model;
-
-  model =
-    executerDataQualityEngineESGV1(
-      model
-    ).model;
+  var fixture =
+    construireFixtureKivuSolarESGV2_();
 
   var result =
     genererSnapshotESGV1(
-      model,
-      profil
+      fixture.model,
+      fixture.profil
     );
 
   if (
