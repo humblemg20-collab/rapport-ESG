@@ -53,6 +53,14 @@
                 "scores": {
                   "overall": 17.78
                 }
+              },
+              "blockId": "SNAP-P1-COVER",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             }
           ]
@@ -74,6 +82,14 @@
                   "dataConfidenceScore": 70,
                   "evidenceCoverageScore": 0
                 }
+              },
+              "blockId": "SNAP-P2-SCORE",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             },
             {
@@ -87,26 +103,60 @@
                     "Couverture de preuves canoniques faible."
                   ]
                 }
+              },
+              "blockId": "SNAP-P2-DATA-QUALITY",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             },
             {
               "type": "EXECUTIVE_SUMMARY_BLOCK",
               "data": {
                 "strengths": [
-                  { "theme": "Déchets" },
-                  { "theme": "Économie circulaire" },
-                  { "theme": "Santé et sécurité" }
+                  {
+                    "theme": "Déchets"
+                  },
+                  {
+                    "theme": "Économie circulaire"
+                  },
+                  {
+                    "theme": "Santé et sécurité"
+                  }
                 ],
                 "gaps": [
-                  { "theme": "Politique environnementale" },
-                  { "theme": "Ressources" },
-                  { "theme": "Produits et services" }
+                  {
+                    "theme": "Politique environnementale"
+                  },
+                  {
+                    "theme": "Ressources"
+                  },
+                  {
+                    "theme": "Produits et services"
+                  }
                 ],
                 "risks": [
-                  { "description": "Prévention du travail des enfants insuffisamment démontrée." },
-                  { "description": "Structure juridique insuffisamment documentée." },
-                  { "description": "Obligations réglementaires insuffisamment suivies." }
+                  {
+                    "description": "Prévention du travail des enfants insuffisamment démontrée."
+                  },
+                  {
+                    "description": "Structure juridique insuffisamment documentée."
+                  },
+                  {
+                    "description": "Obligations réglementaires insuffisamment suivies."
+                  }
                 ]
+              },
+              "blockId": "SNAP-P2-EXECUTIVE",
+              "required": true,
+              "presentationContent": {
+                "narrative": "Kivu Solar Test présente un score ESG global de 17.78 / 100. Les scores des piliers s’élèvent à 29.22 / 100 pour l’Environnement, 20.13 / 100 pour le Social et 3.98 / 100 pour la Gouvernance. La confiance dans les données est de 70 / 100 et la couverture par des preuves canoniques de 0 / 100. Les principaux écarts et risques identifiés doivent être traités selon la feuille de route du rapport.",
+                "narrativeRequired": true,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             }
           ]
@@ -128,6 +178,14 @@
                   "creationYear": 2021,
                   "interventionZone": "Afrique centrale"
                 }
+              },
+              "blockId": "SNAP-P3-ORG",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             },
             {
@@ -153,6 +211,14 @@
                   }
                 ],
                 "disclaimer": "Ces sujets sont des enjeux préliminaires issus du diagnostic. Ils ne constituent pas une analyse formelle de matérialité."
+              },
+              "blockId": "SNAP-P3-MATERIALITY",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             }
           ]
@@ -168,28 +234,76 @@
                 "pillar": "E",
                 "score": 29.22,
                 "strengths": [
-                  { "theme": "Eau" },
-                  { "theme": "Déchets" },
-                  { "theme": "Changement climatique" }
+                  {
+                    "theme": "Eau"
+                  },
+                  {
+                    "theme": "Déchets"
+                  },
+                  {
+                    "theme": "Changement climatique"
+                  }
                 ],
                 "gaps": [
-                  { "theme": "Politique environnementale" },
-                  { "theme": "Énergie" },
-                  { "theme": "Ressources" }
+                  {
+                    "theme": "Politique environnementale"
+                  },
+                  {
+                    "theme": "Énergie"
+                  },
+                  {
+                    "theme": "Ressources"
+                  }
                 ]
+              },
+              "blockId": "SNAP-PILLAR-E",
+              "required": true,
+              "presentationContent": {
+                "narrative": "Le pilier environnemental obtient un score de 29.22 / 100. L’analyse fait ressortir 3 points forts prioritaires et 3 écarts majeurs à traiter. Cette lecture repose uniquement sur les réponses, les statuts de données et les éléments disponibles dans le diagnostic.",
+                "narrativeRequired": true,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             },
             {
               "type": "TABLE_BLOCK",
               "data": {
                 "title": "Indicateurs à mettre en place",
-                "columns": ["Indicateur", "Unité", "Fréquence", "Responsable"],
+                "columns": [
+                  "Indicateur",
+                  "Unité",
+                  "Fréquence",
+                  "Responsable"
+                ],
                 "rows": [
-                  ["Émissions directes de GES", "tCO2e", "Annuelle", "Responsable opérations / environnement"],
-                  ["Consommation énergétique totale", "kWh ou GJ", "Mensuelle", "Responsable opérations"],
-                  ["Part d’énergie renouvelable", "%", "Annuelle", "Direction générale"]
+                  [
+                    "Émissions directes de GES",
+                    "tCO2e",
+                    "Annuelle",
+                    "Responsable opérations / environnement"
+                  ],
+                  [
+                    "Consommation énergétique totale",
+                    "kWh ou GJ",
+                    "Mensuelle",
+                    "Responsable opérations"
+                  ],
+                  [
+                    "Part d’énergie renouvelable",
+                    "%",
+                    "Annuelle",
+                    "Direction générale"
+                  ]
                 ],
                 "disclaimer": "Ces indicateurs sont recommandés ; ils ne sont pas présentés comme des KPI déjà mesurés."
+              },
+              "blockId": "SNAP-REC-KPI-E",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             }
           ]
@@ -205,15 +319,82 @@
                 "pillar": "S",
                 "score": 20.13,
                 "strengths": [
-                  { "theme": "Travail et emploi" },
-                  { "theme": "Santé et sécurité" },
-                  { "theme": "Rémunération" }
+                  {
+                    "theme": "Travail et emploi"
+                  },
+                  {
+                    "theme": "Santé et sécurité"
+                  },
+                  {
+                    "theme": "Rémunération"
+                  }
                 ],
                 "gaps": [
-                  { "theme": "Compétences" },
-                  { "theme": "Égalité de genre" },
-                  { "theme": "Droits humains" }
+                  {
+                    "theme": "Compétences"
+                  },
+                  {
+                    "theme": "Égalité de genre"
+                  },
+                  {
+                    "theme": "Droits humains"
+                  }
                 ]
+              },
+              "blockId": "SNAP-PILLAR-S",
+              "required": true,
+              "presentationContent": {
+                "narrative": "Le pilier social obtient un score de 20.13 / 100. L’analyse fait ressortir 3 points forts prioritaires et 3 écarts majeurs à traiter. Cette lecture repose uniquement sur les réponses, les statuts de données et les éléments disponibles dans le diagnostic.",
+                "narrativeRequired": true,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+              }
+            },
+            {
+              "type": "TABLE_BLOCK",
+              "data": {
+                "title": "Indicateurs à mettre en place",
+                "columns": [
+                  "Indicateur",
+                  "Unité",
+                  "Fréquence",
+                  "Responsable"
+                ],
+                "rows": [
+                  [
+                    "Taux de fréquence des accidents",
+                    "Taux",
+                    "Mensuelle ou annuelle",
+                    "Responsable SST / opérations / direction générale"
+                  ],
+                  [
+                    "Taux de résolution des plaintes",
+                    "%",
+                    "Trimestrielle",
+                    "Responsable RH / SST / direction générale"
+                  ],
+                  [
+                    "Heures de formation par collaborateur",
+                    "Heures",
+                    "Trimestrielle",
+                    "Responsable RH / SST / direction générale"
+                  ],
+                  [
+                    "Part des femmes dans l’effectif",
+                    "%",
+                    "Annuelle",
+                    "Responsable RH / direction générale"
+                  ]
+                ],
+                "disclaimer": "Ces indicateurs sont recommandés ; ils ne sont pas présentés comme des KPI déjà mesurés."
+              },
+              "blockId": "SNAP-REC-KPI-S",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             }
           ]
@@ -229,15 +410,64 @@
                 "pillar": "G",
                 "score": 3.98,
                 "strengths": [
-                  { "theme": "Contrôle interne" },
-                  { "theme": "Éthique et intégrité" },
-                  { "theme": "Achats responsables" }
+                  {
+                    "theme": "Contrôle interne"
+                  },
+                  {
+                    "theme": "Éthique et intégrité"
+                  },
+                  {
+                    "theme": "Achats responsables"
+                  }
                 ],
                 "gaps": [
-                  { "theme": "Structure juridique" },
-                  { "theme": "Gouvernance" },
-                  { "theme": "Gestion des risques" }
+                  {
+                    "theme": "Structure juridique"
+                  },
+                  {
+                    "theme": "Gouvernance"
+                  },
+                  {
+                    "theme": "Gestion des risques"
+                  }
                 ]
+              },
+              "blockId": "SNAP-PILLAR-G",
+              "required": true,
+              "presentationContent": {
+                "narrative": "Le pilier de gouvernance obtient un score de 3.98 / 100. L’analyse fait ressortir 3 points forts prioritaires et 3 écarts majeurs à traiter. Cette lecture repose uniquement sur les réponses, les statuts de données et les éléments disponibles dans le diagnostic.",
+                "narrativeRequired": true,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+              }
+            },
+            {
+              "type": "TABLE_BLOCK",
+              "data": {
+                "title": "Indicateurs à mettre en place",
+                "columns": [
+                  "Indicateur",
+                  "Unité",
+                  "Fréquence",
+                  "Responsable"
+                ],
+                "rows": [
+                  [
+                    "Incidents de données personnelles",
+                    "Nombre",
+                    "Trimestrielle",
+                    "Responsable informatique / protection des données / direction générale"
+                  ]
+                ],
+                "disclaimer": "Ces indicateurs sont recommandés ; ils ne sont pas présentés comme des KPI déjà mesurés."
+              },
+              "blockId": "SNAP-REC-KPI-G",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             },
             {
@@ -261,6 +491,14 @@
                     ]
                   }
                 ]
+              },
+              "blockId": "SNAP-P6-RISKS",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             }
           ]
@@ -285,6 +523,14 @@
                     "pillar": "G"
                   }
                 ]
+              },
+              "blockId": "SNAP-P7-RECOMMENDATIONS",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             },
             {
@@ -292,31 +538,202 @@
               "data": {
                 "horizons": {
                   "0_3_MONTHS": [
-                    { "title": "Vérifier les documents légaux et licences essentielles." },
-                    { "title": "Formaliser les contrôles relatifs aux droits humains." }
+                    {
+                      "title": "Vérifier les documents légaux et licences essentielles."
+                    },
+                    {
+                      "title": "Formaliser les contrôles relatifs aux droits humains."
+                    }
                   ],
                   "3_12_MONTHS": [
-                    { "title": "Déployer les indicateurs ESG prioritaires." }
+                    {
+                      "title": "Déployer les indicateurs ESG prioritaires."
+                    }
                   ],
                   "12_24_MONTHS": []
                 }
+              },
+              "blockId": "SNAP-P7-ROADMAP",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             },
             {
               "type": "METHODOLOGY_BLOCK",
               "data": {
                 "materialityStatus": "NOT_ASSESSED"
+              },
+              "blockId": "SNAP-P7-METHODOLOGY",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             },
             {
               "type": "DISCLAIMER_BLOCK",
               "data": {
                 "text": "Ce rapport constitue une évaluation ESG fondée sur les informations disponibles à la date de l’analyse. Il ne constitue ni une certification, ni un audit indépendant, ni une garantie d’accès au financement."
+              },
+              "blockId": "SNAP-P7-DISCLAIMER",
+              "required": true,
+              "presentationContent": {
+                "narrative": "",
+                "narrativeRequired": false,
+                "renderPolicy": "RENDER",
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
               }
             }
           ]
         }
-      ]
+      ],
+      "presentation": {
+        "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+        "contentManifest": [
+          {
+            "sectionId": "SNAP-COVER",
+            "blockId": "SNAP-P1-COVER",
+            "type": "COVER_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false
+          },
+          {
+            "sectionId": "SNAP-EXECUTIVE_ESG_SNAPSHOT",
+            "blockId": "SNAP-P2-SCORE",
+            "type": "SCORE_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false
+          },
+          {
+            "sectionId": "SNAP-EXECUTIVE_ESG_SNAPSHOT",
+            "blockId": "SNAP-P2-DATA-QUALITY",
+            "type": "DATA_QUALITY_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false
+          },
+          {
+            "sectionId": "SNAP-EXECUTIVE_ESG_SNAPSHOT",
+            "blockId": "SNAP-P2-EXECUTIVE",
+            "type": "EXECUTIVE_SUMMARY_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": true
+          },
+          {
+            "sectionId": "SNAP-ORGANIZATION_MATERIAL_ISSUES",
+            "blockId": "SNAP-P3-ORG",
+            "type": "ORGANIZATION_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false
+          },
+          {
+            "sectionId": "SNAP-ORGANIZATION_MATERIAL_ISSUES",
+            "blockId": "SNAP-P3-MATERIALITY",
+            "type": "MATERIALITY_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false
+          },
+          {
+            "sectionId": "SNAP-ENVIRONMENT",
+            "blockId": "SNAP-PILLAR-E",
+            "type": "PILLAR_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": true
+          },
+          {
+            "sectionId": "SNAP-ENVIRONMENT",
+            "blockId": "SNAP-REC-KPI-E",
+            "type": "TABLE_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false
+          },
+          {
+            "sectionId": "SNAP-SOCIAL",
+            "blockId": "SNAP-PILLAR-S",
+            "type": "PILLAR_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": true
+          },
+          {
+            "sectionId": "SNAP-SOCIAL",
+            "blockId": "SNAP-REC-KPI-S",
+            "type": "TABLE_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false
+          },
+          {
+            "sectionId": "SNAP-GOVERNANCE_RISKS",
+            "blockId": "SNAP-PILLAR-G",
+            "type": "PILLAR_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": true
+          },
+          {
+            "sectionId": "SNAP-GOVERNANCE_RISKS",
+            "blockId": "SNAP-REC-KPI-G",
+            "type": "TABLE_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false
+          },
+          {
+            "sectionId": "SNAP-GOVERNANCE_RISKS",
+            "blockId": "SNAP-P6-RISKS",
+            "type": "RISK_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false
+          },
+          {
+            "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
+            "blockId": "SNAP-P7-RECOMMENDATIONS",
+            "type": "RECOMMENDATION_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false
+          },
+          {
+            "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
+            "blockId": "SNAP-P7-ROADMAP",
+            "type": "ROADMAP_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false
+          },
+          {
+            "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
+            "blockId": "SNAP-P7-METHODOLOGY",
+            "type": "METHODOLOGY_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false
+          },
+          {
+            "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
+            "blockId": "SNAP-P7-DISCLAIMER",
+            "type": "DISCLAIMER_BLOCK",
+            "required": true,
+            "renderPolicy": "RENDER",
+            "narrativeRequired": false
+          }
+        ]
+      }
     }
   }
 }
