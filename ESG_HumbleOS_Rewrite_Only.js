@@ -1522,6 +1522,61 @@ function verifierFaitsESGRewrite_(
     };
   }
 
+  var forbiddenTerms = [
+    "afrigreen24",
+    "openai",
+    "humbleos"
+  ];
+
+  var sourceLower =
+    String(
+      source || ""
+    ).toLowerCase();
+
+  var rewrittenLower =
+    String(
+      rewritten || ""
+    ).toLowerCase();
+
+  for (
+    var forbiddenIndex = 0;
+    forbiddenIndex <
+      forbiddenTerms.length;
+    forbiddenIndex++
+  ) {
+    var forbiddenTerm =
+      forbiddenTerms[
+        forbiddenIndex
+      ];
+
+    /*
+     * Une mention interne nouvellement introduite par le provider
+     * est une fuite white-label. Le bloc doit revenir à sa source
+     * déterministe. Une mention déjà présente dans la source n'est
+     * pas créée par l'IA ; elle sera encore contrôlée par le gate
+     * final du document.
+     */
+    if (
+      rewrittenLower.indexOf(
+        forbiddenTerm
+      ) !==
+        -1 &&
+      sourceLower.indexOf(
+        forbiddenTerm
+      ) ===
+        -1
+    ) {
+      return {
+        valid:
+          false,
+
+        reason:
+          "WHITE_LABEL_TERM_INTRODUCED:" +
+          forbiddenTerm
+      };
+    }
+  }
+
   return {
     valid: true
   };
@@ -1873,6 +1928,75 @@ function fusionnerActionsESGRewrite_(
 /**
  * Test local gratuit : aucune requête HumbleOS.
  */
+function TEST_ESG_REWRITE_WHITE_LABEL_FALLBACK_LOCAL() {
+  var input = {
+    schema_version:
+      ESG_REWRITE_CONFIG
+        .inputSchema,
+
+    language:
+      "fr",
+
+    texts: [
+      {
+        id:
+          "legacy_white_label_test",
+
+        text:
+          "L’organisation doit renforcer le suivi de ses données ESG."
+      }
+    ]
+  };
+
+  var output = {
+    schema_version:
+      ESG_REWRITE_CONFIG
+        .outputSchema,
+
+    texts: [
+      {
+        id:
+          "legacy_white_label_test",
+
+        rewritten_text:
+          "AfriGreen24 recommande de renforcer le suivi de ses données ESG."
+      }
+    ]
+  };
+
+  var result =
+    applyESGRewriteSafetyFallback_(
+      input,
+      output,
+      {
+        organizationName:
+          "Organisation Test"
+      }
+    );
+
+  return {
+    success:
+      result
+        .fallback_ids
+        .length ===
+        1 &&
+      result
+        .fallback_ids[0] ===
+        "legacy_white_label_test" &&
+      result
+        .output
+        .texts[0]
+        .rewritten_text ===
+        input
+          .texts[0]
+          .text,
+
+    result:
+      result
+  };
+}
+
+
 function TEST_ESG_REWRITE_FACT_PROTECTION_LOCAL() {
   var tests = [];
 
