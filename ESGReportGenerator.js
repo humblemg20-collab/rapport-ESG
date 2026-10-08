@@ -225,10 +225,57 @@ function genererRapportESG(
    * QUALITY GATE WHITE-LABEL :
    * aucun nom de plateforme ou provider IA ne doit apparaître
    * dans l'artefact appartenant au porteur de projet.
+   *
+   * En cas d'échec, on ferme puis met le document temporaire
+   * à la corbeille afin de ne pas laisser d'artefact incohérent
+   * dans le dossier de rapports.
    */
-  validerWhiteLabelDocumentESG_(
-    document
-  );
+  try {
+    validerWhiteLabelDocumentESG_(
+      document
+    );
+  } catch (
+    whiteLabelError
+  ) {
+    try {
+      document.saveAndClose();
+    } catch (_) {}
+
+    try {
+      DriveApp
+        .getFileById(
+          documentId
+        )
+        .setTrashed(
+          true
+        );
+    } catch (
+      cleanupError
+    ) {
+      console.error(
+        JSON.stringify({
+          event:
+            "esg_report_failed_artifact_cleanup",
+
+          reportId:
+            identifiantRapport,
+
+          documentId:
+            documentId,
+
+          error:
+            cleanupError &&
+            cleanupError.message
+              ? cleanupError.message
+              : String(
+                  cleanupError
+                )
+        })
+      );
+    }
+
+    throw whiteLabelError;
+  }
 
   document.saveAndClose();
 
