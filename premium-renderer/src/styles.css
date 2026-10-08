@@ -525,6 +525,119 @@ body {
 }
 
 
+
+.editorial-narrative {
+  margin: 0 0 5mm;
+  padding: 4mm 4.5mm;
+  border-left: 2.2mm solid var(--gold);
+  background: color-mix(in srgb, var(--paper) 76%, white);
+  color: var(--ink-soft);
+  font-size: 9.1pt;
+  line-height: 1.5;
+  break-inside: avoid-page;
+}
+
+.stakeholder-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3mm;
+}
+
+.stakeholder-card {
+  min-height: 16mm;
+  padding: 3.5mm;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  break-inside: avoid-page;
+}
+
+.risk-matrix-wrap {
+  display: grid;
+  grid-template-columns: 10mm 1fr;
+  gap: 2mm;
+  align-items: stretch;
+}
+
+.risk-matrix-y {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  font-size: 7.5pt;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.risk-matrix {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border: 1px solid var(--line);
+}
+
+.risk-matrix-cell {
+  position: relative;
+  min-height: 15mm;
+  padding: 1.5mm;
+  border-right: 1px solid rgba(255,255,255,0.65);
+  border-bottom: 1px solid rgba(255,255,255,0.65);
+}
+
+.matrix-low { background: #E6F0EA; }
+.matrix-medium { background: #F2E8C9; }
+.matrix-high { background: #F3D6B5; }
+.matrix-critical { background: #EAC5C5; }
+
+.matrix-score {
+  color: rgba(13,27,30,0.52);
+  font-size: 6.7pt;
+}
+
+.matrix-dot {
+  display: inline-block;
+  width: 3mm;
+  height: 3mm;
+  margin: 1mm 0.6mm 0 0;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.matrix-axis {
+  margin: 2mm 0 0 12mm;
+  text-align: right;
+}
+
+.media-card {
+  margin: 4mm 0 6mm;
+  break-inside: avoid-page;
+}
+
+.media-card img {
+  display: block;
+  width: 100%;
+  max-height: 88mm;
+  object-fit: cover;
+  border-radius: 2mm;
+}
+
+.media-card figcaption {
+  margin-top: 2mm;
+  color: var(--ink-soft);
+  font-size: 7.6pt;
+}
+
+.report-page.density-compact .editorial-narrative {
+  margin-bottom: 3mm;
+  padding: 3mm 3.8mm;
+  font-size: 8.5pt;
+}
+
+.report-page.density-tight .editorial-narrative {
+  margin-bottom: 2.4mm;
+  padding: 2.6mm 3.4mm;
+  font-size: 8.1pt;
+  line-height: 1.42;
+}
+
 .data-quality-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) repeat(2, minmax(0, 1fr));
