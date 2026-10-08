@@ -80,6 +80,15 @@ function genererSnapshotPremiumESGV2(
   model.report.reportId =
     reportId;
 
+  var editorial =
+    preparerDocumentEditorialESGV2_(
+      model,
+      profil
+    );
+
+  model =
+    editorial.model;
+
   var renderer =
     appelerPremiumRendererESGV2_(
       model,
@@ -153,6 +162,35 @@ function genererSnapshotPremiumESGV2(
         .sections
         .length,
 
+    aiGeneration: {
+      providerUsed:
+        editorial
+          .narration
+          .providerUsed,
+
+      providerFallbackUsed:
+        editorial
+          .narration
+          .fallbackUsed ===
+          true,
+
+      deterministicFallbackUsed:
+        editorial
+          .narration
+          .deterministicFallbackUsed ===
+          true,
+
+      blockCount:
+        editorial
+          .narration
+          .blockCount,
+
+      attempts:
+        editorial
+          .narration
+          .attempts || []
+    },
+
     pdfId:
       pdfId,
 
@@ -177,6 +215,9 @@ function genererSnapshotPremiumESGV2(
 
       preRender:
         preRenderQC,
+
+      contentParity:
+        editorial.parity,
 
       rendererQA:
         renderer.qaStatus,
