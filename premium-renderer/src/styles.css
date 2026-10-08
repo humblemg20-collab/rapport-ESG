@@ -1252,6 +1252,124 @@ body {
     padding-bottom: 3.2mm;
   }
 
+  /*
+   * Rescue pass: used only when an otherwise-valid section would create a
+   * sparse physical continuation page. It preserves all content while shaving
+   * vertical space from high-cost components.
+   */
+  .report-page.density-rescue {
+    padding-top: 8mm;
+    padding-bottom: 9mm;
+  }
+
+  .report-page.density-rescue .page-shell {
+    padding-bottom: 6mm;
+  }
+
+  .report-page.density-rescue .section-heading {
+    margin-bottom: 2.8mm;
+  }
+
+  .report-page.density-rescue .section-title {
+    font-size: 18.2pt;
+  }
+
+  .report-page.density-rescue .section-number,
+  .report-page.density-rescue .kicker {
+    font-size: 7pt;
+  }
+
+  .report-page.density-rescue .pillar-head {
+    gap: 4mm;
+    margin-bottom: 3mm;
+  }
+
+  .report-page.density-rescue .pillar-score {
+    padding: 3mm;
+  }
+
+  .report-page.density-rescue .pillar-score strong {
+    font-size: 19pt;
+  }
+
+  .report-page.density-rescue .card {
+    padding: 2.5mm;
+    margin-bottom: 1.8mm;
+  }
+
+  .report-page.density-rescue .editorial-narrative {
+    padding: 2mm 2.8mm;
+    margin-bottom: 1.6mm;
+    font-size: 7.7pt;
+    line-height: 1.32;
+  }
+
+  .report-page.density-rescue .split-grid {
+    gap: 3mm;
+  }
+
+  .report-page.density-rescue .list-clean li {
+    padding-top: 0.9mm;
+    padding-bottom: 0.9mm;
+    font-size: 8.2pt;
+  }
+
+  .report-page.density-rescue .data-table {
+    margin-top: 1.2mm;
+    margin-bottom: 1.8mm;
+  }
+
+  .report-page.density-rescue .data-table th {
+    padding: 1.5mm 2mm;
+    font-size: 6.8pt;
+  }
+
+  .report-page.density-rescue .data-table td {
+    padding: 1.55mm 2mm;
+    font-size: 7.5pt;
+    line-height: 1.22;
+  }
+
+  .report-page.density-rescue .callout {
+    padding: 2mm 2.8mm;
+    margin: 1.6mm 0;
+    font-size: 7.4pt;
+  }
+
+  .report-page.density-rescue .risk-grid {
+    gap: 1.8mm;
+  }
+
+  .report-page.density-rescue .risk-card {
+    grid-template-columns: 1fr 20mm;
+    gap: 3mm;
+    padding: 2.5mm 3mm;
+  }
+
+  .report-page.density-rescue .risk-card + .risk-card {
+    margin-top: 1.8mm;
+  }
+
+  .report-page.density-rescue .risk-card strong {
+    font-size: 8.2pt;
+    line-height: 1.22;
+  }
+
+  .report-page.density-rescue .risk-card .muted.small {
+    margin-top: 1mm !important;
+    font-size: 7.1pt;
+    line-height: 1.25;
+  }
+
+  .report-page.density-rescue .risk-level {
+    padding: 1.2mm 1.5mm;
+    font-size: 7pt;
+  }
+
+  .report-page.density-rescue .roadmap-item {
+    padding-bottom: 2.6mm;
+  }
+
   a {
     color: inherit;
     text-decoration: none;
