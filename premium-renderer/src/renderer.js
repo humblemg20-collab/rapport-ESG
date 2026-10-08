@@ -43,6 +43,131 @@ function sanitizeFilename(value) {
     .slice(0, 100) || "rapport-esg";
 }
 
+async function runContentParityQa(page, spec) {
+  const manifest =
+    spec?.documentModel?.report?.presentation?.contentManifest ||
+    [];
+
+  const expected = manifest.length
+    ? manifest
+    : (spec?.documentModel?.report?.sections || []).flatMap(section =>
+        (section.blocks || []).map(block => ({
+          sectionId: section.sectionId,
+          blockId: block.blockId,
+          type: block.type,
+          required: block.required === true,
+          renderPolicy: block?.presentationContent?.renderPolicy || "RENDER",
+          narrativeRequired:
+            block?.presentationContent?.narrativeRequired === true
+        }))
+      );
+
+  const dom = await page.evaluate(() => {
+    const blocks = [...document.querySelectorAll("[data-block-id]")].map(node => ({
+      blockId: node.getAttribute("data-block-id") || "",
+      type: node.getAttribute("data-block-type") || "",
+      status: node.getAttribute("data-render-status") || "",
+      textLength: (node.innerText || "").trim().length
+    }));
+
+    const narratives = [...document.querySelectorAll("[data-narrative-for]")]
+      .map(node => ({
+        blockId: node.getAttribute("data-narrative-for") || "",
+        textLength: (node.innerText || "").trim().length
+      }));
+
+    return {
+      blocks,
+      narratives
+    };
+  });
+
+  const renderedById = new Map(
+    dom.blocks
+      .filter(item => item.blockId)
+      .map(item => [item.blockId, item])
+  );
+
+  const narrativeById = new Map(
+    dom.narratives
+      .filter(item => item.blockId)
+      .map(item => [item.blockId, item])
+  );
+
+  const missingBlocks = [];
+  const unsupportedBlocks = [];
+  const missingNarratives = [];
+  let omittedAllowed = 0;
+
+  for (const item of expected) {
+    if (!item.blockId) {
+      missingBlocks.push("BLOCK_ID_MISSING");
+      continue;
+    }
+
+    const actual = renderedById.get(item.blockId);
+
+    if (!actual) {
+      if (item.renderPolicy === "OMIT_ALLOWED") {
+        omittedAllowed += 1;
+        continue;
+      }
+
+      missingBlocks.push(item.blockId);
+      continue;
+    }
+
+    if (
+      item.renderPolicy === "RENDER" &&
+      actual.status !== "RENDERED"
+    ) {
+      unsupportedBlocks.push(item.blockId);
+    }
+
+    if (
+      item.renderPolicy === "RENDER" &&
+      actual.status === "RENDERED" &&
+      item.type !== "COVER_BLOCK" &&
+      actual.textLength === 0
+    ) {
+      unsupportedBlocks.push(item.blockId);
+    }
+
+    if (item.renderPolicy === "OMIT_ALLOWED") {
+      omittedAllowed += 1;
+    }
+
+    if (item.narrativeRequired === true) {
+      const narrative = narrativeById.get(item.blockId);
+
+      if (!narrative || narrative.textLength === 0) {
+        missingNarratives.push(item.blockId);
+      }
+    }
+  }
+
+  const duplicateDomIds = dom.blocks
+    .map(item => item.blockId)
+    .filter(Boolean)
+    .filter((value, index, array) => array.indexOf(value) !== index);
+
+  return {
+    pass:
+      missingBlocks.length === 0 &&
+      unsupportedBlocks.length === 0 &&
+      missingNarratives.length === 0 &&
+      duplicateDomIds.length === 0,
+
+    expectedBlockCount: expected.length,
+    representedBlockCount: dom.blocks.length,
+    omittedAllowed,
+    missingBlocks: [...new Set(missingBlocks)],
+    unsupportedBlocks: [...new Set(unsupportedBlocks)],
+    missingNarratives: [...new Set(missingNarratives)],
+    duplicateDomIds: [...new Set(duplicateDomIds)]
+  };
+}
+
 async function runVisualQa(page) {
   const browserQa = await page.evaluate(() => {
     const text = document.body.innerText || "";
@@ -126,7 +251,21 @@ export async function renderPdf(spec) {
         page
       );
 
-    const qa = await runVisualQa(page);
+    const contentParity =
+      await runContentParityQa(
+        page,
+        spec
+      );
+
+    const visualQa = await runVisualQa(page);
+
+    const qa = {
+      ...visualQa,
+      contentParity,
+      pass:
+        visualQa.pass === true &&
+        contentParity.pass === true
+    };
 
     if (!qa.pass) {
       const error = new Error(
@@ -136,7 +275,8 @@ export async function renderPdf(spec) {
           externalImages: qa.externalImages.length,
           brokenImages: qa.brokenImages.length,
           internalCodeLeaks: qa.internalCodeLeaks,
-          horizontalOverflow: qa.horizontalOverflow
+          horizontalOverflow: qa.horizontalOverflow,
+          contentParity: qa.contentParity
         })
       );
 
@@ -199,5 +339,6 @@ export async function closeRenderer() {
 
 export const _test = {
   sanitizeFilename,
-  runVisualQa
+  runVisualQa,
+  runContentParityQa
 };
