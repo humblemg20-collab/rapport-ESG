@@ -45,7 +45,7 @@ body {
   padding: 17mm 16mm 16mm;
   background: var(--surface);
   break-after: page;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .report-page:last-child {
@@ -72,6 +72,11 @@ body {
   position: relative;
   z-index: 2;
   margin-left: 4mm;
+  padding-bottom: 13mm;
+}
+
+.cover {
+  overflow: hidden;
 }
 
 .cover {
