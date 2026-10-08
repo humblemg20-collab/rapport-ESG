@@ -8,12 +8,14 @@ on:
       - "premium-renderer/**"
       - "ESGPresentationProfile.js"
       - "ESGPremiumRendererClient.js"
+      - "ESGPremiumReportEngine.js"
       - ".github/workflows/esg-presentation-engine-v2.yml"
   pull_request:
     paths:
       - "premium-renderer/**"
       - "ESGPresentationProfile.js"
       - "ESGPremiumRendererClient.js"
+      - "ESGPremiumReportEngine.js"
       - ".github/workflows/esg-presentation-engine-v2.yml"
 
 jobs:
