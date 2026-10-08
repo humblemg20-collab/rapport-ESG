@@ -102,6 +102,11 @@ function preparerDocumentEditorialESGV2_(
               block
             );
 
+          var blockParity =
+            construirePariteBlocEditorialESGV2_(
+              block
+            );
+
           block.presentationContent = {
             narrative:
               narrative,
@@ -111,6 +116,9 @@ function preparerDocumentEditorialESGV2_(
 
             renderPolicy:
               renderPolicy,
+
+            parity:
+              blockParity,
 
             engineVersion:
               ESG_EDITORIAL_CONTENT_ENGINE_VERSION_V2
@@ -134,7 +142,13 @@ function preparerDocumentEditorialESGV2_(
               renderPolicy,
 
             narrativeRequired:
-              narrativeRequired
+              narrativeRequired,
+
+            itemCounts:
+              blockParity.itemCounts,
+
+            criticalValues:
+              blockParity.criticalValues
           });
         }
       );
@@ -266,6 +280,320 @@ function obtenirPolitiqueRenduEditorialESGV2_(
 }
 
 
+function compterRisquesEligiblesMatriceESGV2_(
+  risks
+) {
+  return (
+    risks || []
+  ).filter(
+    function(risk) {
+      if (!risk) {
+        return false;
+      }
+
+      var likelihood =
+        Number(
+          risk.likelihood
+        );
+
+      var impact =
+        Number(
+          risk.impact
+        );
+
+      return (
+        risk.likelihood !==
+          null &&
+        risk.likelihood !==
+          undefined &&
+        risk.likelihood !==
+          "" &&
+        risk.impact !==
+          null &&
+        risk.impact !==
+          undefined &&
+        risk.impact !==
+          "" &&
+        isFinite(
+          likelihood
+        ) &&
+        isFinite(
+          impact
+        ) &&
+        likelihood >=
+          1 &&
+        likelihood <=
+          5 &&
+        impact >=
+          1 &&
+        impact <=
+          5
+      );
+    }
+  ).length;
+}
+
+
+function construirePariteBlocEditorialESGV2_(
+  block
+) {
+  var data =
+    block &&
+    block.data
+      ? block.data
+      : {};
+
+  var itemCounts = {};
+  var criticalValues = [];
+
+  function count_(
+    key,
+    list
+  ) {
+    var value =
+      Array.isArray(
+        list
+      )
+        ? list.length
+        : 0;
+
+    if (
+      value >
+      0
+    ) {
+      itemCounts[
+        key
+      ] =
+        value;
+    }
+  }
+
+  function critical_(
+    value
+  ) {
+    if (
+      value ===
+        null ||
+      value ===
+        undefined ||
+      value ===
+        ""
+    ) {
+      return;
+    }
+
+    criticalValues.push(
+      String(
+        value
+      )
+    );
+  }
+
+  switch (
+    block &&
+    block.type
+  ) {
+    case "COVER_BLOCK":
+      critical_(
+        data.organizationName
+      );
+      critical_(
+        data.reportTitle
+      );
+      critical_(
+        data.reportId
+      );
+      break;
+
+    case "SCORE_BLOCK":
+      critical_(
+        data.displayScore
+      );
+      critical_(
+        data.scores &&
+        data.scores.environmentScore
+      );
+      critical_(
+        data.scores &&
+        data.scores.socialScore
+      );
+      critical_(
+        data.scores &&
+        data.scores.governanceScore
+      );
+      critical_(
+        data.readinessScore
+      );
+      break;
+
+    case "EXECUTIVE_SUMMARY_BLOCK":
+      count_(
+        "strengths",
+        data.strengths
+      );
+      count_(
+        "gaps",
+        data.gaps
+      );
+      count_(
+        "risks",
+        data.risks
+      );
+      critical_(
+        data.overallScore
+      );
+      break;
+
+    case "ORGANIZATION_BLOCK":
+      if (
+        data.organization
+      ) {
+        critical_(
+          data.organization.name
+        );
+        critical_(
+          data.organization.sector
+        );
+        critical_(
+          data.organization.mainCountry
+        );
+      }
+      break;
+
+    case "MATERIALITY_BLOCK":
+      count_(
+        "topics",
+        data.topics
+      );
+      break;
+
+    case "STAKEHOLDER_BLOCK":
+      count_(
+        "stakeholders",
+        data.stakeholders
+      );
+      break;
+
+    case "PILLAR_BLOCK":
+      count_(
+        "strengths",
+        data.strengths
+      );
+      count_(
+        "gaps",
+        data.gaps
+      );
+      critical_(
+        data.score
+      );
+      critical_(
+        data.pillar
+      );
+      break;
+
+    case "KPI_DASHBOARD_BLOCK":
+      count_(
+        "kpis",
+        data.kpis
+      );
+      break;
+
+    case "TABLE_BLOCK":
+      count_(
+        "rows",
+        data.rows
+      );
+      break;
+
+    case "RISK_BLOCK":
+      count_(
+        "risks",
+        data.risks
+      );
+      break;
+
+    case "RISK_MATRIX_BLOCK":
+      var matrixCount =
+        compterRisquesEligiblesMatriceESGV2_(
+          data.risks
+        );
+
+      if (
+        matrixCount >
+        0
+      ) {
+        itemCounts
+          .matrixRisks =
+          matrixCount;
+      }
+      break;
+
+    case "RECOMMENDATION_BLOCK":
+      count_(
+        "recommendations",
+        data.recommendations
+      );
+      break;
+
+    case "ROADMAP_BLOCK":
+      var horizons =
+        data.horizons || {};
+
+      var roadmapCount =
+        [
+          "0_3_MONTHS",
+          "3_12_MONTHS",
+          "12_24_MONTHS"
+        ].reduce(
+          function(
+            total,
+            key
+          ) {
+            return (
+              total +
+              (
+                Array.isArray(
+                  horizons[
+                    key
+                  ]
+                )
+                  ? horizons[
+                      key
+                    ].length
+                  : 0
+              )
+            );
+          },
+          0
+        );
+
+      if (
+        roadmapCount >
+        0
+      ) {
+        itemCounts
+          .roadmapActions =
+          roadmapCount;
+      }
+      break;
+
+    case "DISCLAIMER_BLOCK":
+      critical_(
+        data.text
+      );
+      break;
+  }
+
+  return {
+    itemCounts:
+      itemCounts,
+
+    criticalValues:
+      criticalValues
+  };
+}
+
+
 function validerPariteContenuEditorialESGV2_(
   model
 ) {
@@ -339,6 +667,7 @@ function validerPariteContenuEditorialESGV2_(
   var narrativePresentCount = 0;
   var renderRequiredCount = 0;
   var omittedAllowedCount = 0;
+  var expectedItemCount = 0;
 
   manifest.forEach(
     function(item) {
@@ -399,6 +728,55 @@ function validerPariteContenuEditorialESGV2_(
           );
         }
       }
+
+      var expectedParity =
+        construirePariteBlocEditorialESGV2_(
+          block
+        );
+
+      var manifestItemCounts =
+        item.itemCounts ||
+        {};
+
+      Object.keys(
+        expectedParity.itemCounts
+      ).forEach(
+        function(key) {
+          var expectedCount =
+            Number(
+              expectedParity
+                .itemCounts[
+                  key
+                ] ||
+              0
+            );
+
+          var manifestCount =
+            Number(
+              manifestItemCounts[
+                key
+              ] ||
+              0
+            );
+
+          expectedItemCount +=
+            expectedCount;
+
+          if (
+            expectedCount !==
+              manifestCount
+          ) {
+            errors.push(
+              "CONTENT_ITEM_COUNT_MANIFEST_MISMATCH:" +
+              String(
+                item.blockId || ""
+              ) +
+              ":" +
+              key
+            );
+          }
+        }
+      );
     }
   );
 
@@ -437,6 +815,9 @@ function validerPariteContenuEditorialESGV2_(
 
     narrativePresentCount:
       narrativePresentCount,
+
+    expectedItemCount:
+      expectedItemCount,
 
     errors:
       errors,
