@@ -113,9 +113,21 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "KIVU_CANONICAL_FIXTURE_V2",
+      run:
+        TEST_ESG_KIVU_FIXTURE_V2_LOCAL
+    },
+    {
+      name:
         "EDITORIAL_CONTENT_ENGINE_V2",
       run:
         TEST_ESG_EDITORIAL_CONTENT_ENGINE_V2_LOCAL
+    },
+    {
+      name:
+        "PREMIUM_CONTENT_PARITY_KIVU_V2",
+      run:
+        TEST_ESG_PREMIUM_CONTENT_PARITY_KIVU_V2_LOCAL
     },
     {
       name:
