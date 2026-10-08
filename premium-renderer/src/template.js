@@ -534,7 +534,16 @@ function renderRoadmap(block) {
     .map(([key, label]) => ({ key, label, actions: Array.isArray(horizons[key]) ? horizons[key] : [] }))
     .filter(x => x.actions.length);
 
-  if (!visible.length) return "";
+  if (!visible.length) {
+    return `
+      <section class="card">
+        <div class="kicker">Feuille de route</div>
+        <div class="callout small">
+          Aucune action n’est encore positionnée dans un horizon validé. Les actions non classées restent conservées dans le modèle interne jusqu’à leur reclassification.
+        </div>
+      </section>
+    `;
+  }
 
   return `
     <section class="card">
