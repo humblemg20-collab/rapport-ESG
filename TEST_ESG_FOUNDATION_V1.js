@@ -41,6 +41,12 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "STRUCTURED_REPORT_DETERMINISTIC_IMPORT",
+      run:
+        TEST_ESG_STRUCTURED_REPORT_DETERMINISTIC_IMPORT_LOCAL
+    },
+    {
+      name:
         "DATA_STATUS",
       run:
         TEST_ESG_DATA_STATUS_V1_LOCAL
