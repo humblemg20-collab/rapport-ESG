@@ -323,16 +323,16 @@ function renderExecutive(block) {
     <section class="card">
       <div class="kicker">Lecture exécutive</div>
       ${renderNarrative(block)}
-      <div class="triple-grid">
-        <div>
+      <div class="triple-grid executive-grid">
+        <div class="executive-column" data-print-atom="executive-column">
           <h3 class="card-title">Forces</h3>
           ${renderList(strengths, "Non disponible", "strengths")}
         </div>
-        <div>
+        <div class="executive-column" data-print-atom="executive-column">
           <h3 class="card-title">Écarts</h3>
           ${renderList(gaps, "Non disponible", "gaps")}
         </div>
-        <div>
+        <div class="executive-column" data-print-atom="executive-column">
           <h3 class="card-title">Risques</h3>
           ${renderList(risks, "Non disponible", "risks")}
         </div>
@@ -379,7 +379,7 @@ function renderMateriality(block) {
         <thead><tr><th>Sujet</th><th>Pilier</th><th>Priorité / statut</th></tr></thead>
         <tbody>
           ${topics.map(topic => `
-            <tr data-parity-item="topics">
+            <tr data-parity-item="topics" data-print-atom="table-row">
               <td>${esc(itemLabel(topic))}</td>
               <td>${esc(topic?.pillar || "—")}</td>
               <td>${esc(clientLabel(topic?.priority || topic?.status || "—"))}</td>
@@ -387,7 +387,7 @@ function renderMateriality(block) {
           `).join("")}
         </tbody>
       </table>
-      ${data.disclaimer ? `<div class="callout small">${esc(data.disclaimer)}</div>` : ""}
+      ${data.disclaimer ? `<div class="callout small materiality-note" data-print-atom="materiality-note">${esc(data.disclaimer)}</div>` : ""}
     </section>
   `;
 }
@@ -442,7 +442,7 @@ function renderTable(block) {
         ${columns.length ? `<thead><tr>${columns.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead>` : ""}
         <tbody>
           ${rows.map(row => `
-            <tr data-parity-item="rows">${(row || []).map(cell => `<td>${esc(cell)}</td>`).join("")}</tr>
+            <tr data-parity-item="rows" data-print-atom="table-row">${(row || []).map(cell => `<td>${esc(cell)}</td>`).join("")}</tr>
           `).join("")}
         </tbody>
       </table>
@@ -484,7 +484,7 @@ function renderRisks(block) {
       <div class="kicker">Risques ESG prioritaires</div>
       <div class="risk-grid">
         ${risks.map(risk => `
-          <article class="risk-card" data-parity-item="risks">
+          <article class="risk-card" data-parity-item="risks" data-print-atom="risk-card">
             <div>
               <strong>${esc(itemLabel(risk))}</strong>
               ${Array.isArray(risk?.mitigationActions) && risk.mitigationActions[0]
@@ -510,7 +510,7 @@ function renderRecommendations(block) {
       <div class="kicker">Actions prioritaires</div>
       <div class="risk-grid">
         ${recommendations.map(item => `
-          <article class="risk-card" data-parity-item="recommendations" style="border-left-color:var(--accent)">
+          <article class="risk-card" data-parity-item="recommendations" data-print-atom="recommendation-card" style="border-left-color:var(--accent)">
             <div>
               <strong>${esc(item?.action || item?.title || itemLabel(item))}</strong>
               ${item?.topic ? `<div class="muted small" style="margin-top:1.5mm">${esc(item.topic)}</div>` : ""}
@@ -558,7 +558,7 @@ function renderRoadmap(block) {
       <div class="kicker">Feuille de route</div>
       <div class="roadmap">
         ${visible.map(group => `
-          <div class="roadmap-item">
+          <div class="roadmap-item" data-print-atom="roadmap-item">
             <div class="roadmap-horizon">${esc(group.label)}</div>
             <div>${renderList(group.actions.map(actionText), "Non disponible", "roadmapActions")}</div>
           </div>
@@ -581,7 +581,7 @@ function renderMethodology(block) {
 
 function renderDisclaimer(block) {
   return block?.data?.text
-    ? `<section class="small muted">${esc(block.data.text)}</section>`
+    ? `<section class="small muted" data-print-atom="disclaimer">${esc(block.data.text)}</section>`
     : "";
 }
 
