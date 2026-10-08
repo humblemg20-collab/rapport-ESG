@@ -60,7 +60,15 @@
                 "narrative": "",
                 "narrativeRequired": false,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {},
+                  "criticalValues": [
+                    "Kivu Solar Test",
+                    "RAPPORT ESG",
+                    "ESG-DEMO-001"
+                  ]
+                }
               }
             }
           ]
@@ -89,7 +97,17 @@
                 "narrative": "",
                 "narrativeRequired": false,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {},
+                  "criticalValues": [
+                    "17.78",
+                    "29.22",
+                    "20.13",
+                    "3.98",
+                    "53.13"
+                  ]
+                }
               }
             },
             {
@@ -110,7 +128,11 @@
                 "narrative": "",
                 "narrativeRequired": false,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {},
+                  "criticalValues": []
+                }
               }
             },
             {
@@ -156,7 +178,15 @@
                 "narrative": "Kivu Solar Test présente un score ESG global de 17.78 / 100. Les scores des piliers s’élèvent à 29.22 / 100 pour l’Environnement, 20.13 / 100 pour le Social et 3.98 / 100 pour la Gouvernance. La confiance dans les données est de 70 / 100 et la couverture par des preuves canoniques de 0 / 100. Les principaux écarts et risques identifiés doivent être traités selon la feuille de route du rapport.",
                 "narrativeRequired": true,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "strengths": 3,
+                    "gaps": 3,
+                    "risks": 3
+                  },
+                  "criticalValues": []
+                }
               }
             }
           ]
@@ -185,7 +215,15 @@
                 "narrative": "",
                 "narrativeRequired": false,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {},
+                  "criticalValues": [
+                    "Kivu Solar Test",
+                    "Énergie solaire",
+                    "RDC"
+                  ]
+                }
               }
             },
             {
@@ -218,7 +256,13 @@
                 "narrative": "",
                 "narrativeRequired": false,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "topics": 3
+                  },
+                  "criticalValues": []
+                }
               }
             }
           ]
@@ -262,7 +306,16 @@
                 "narrative": "Le pilier environnemental obtient un score de 29.22 / 100. L’analyse fait ressortir 3 points forts prioritaires et 3 écarts majeurs à traiter. Cette lecture repose uniquement sur les réponses, les statuts de données et les éléments disponibles dans le diagnostic.",
                 "narrativeRequired": true,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "strengths": 3,
+                    "gaps": 3
+                  },
+                  "criticalValues": [
+                    "29.22"
+                  ]
+                }
               }
             },
             {
@@ -303,7 +356,13 @@
                 "narrative": "",
                 "narrativeRequired": false,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "rows": 3
+                  },
+                  "criticalValues": []
+                }
               }
             }
           ]
@@ -347,7 +406,16 @@
                 "narrative": "Le pilier social obtient un score de 20.13 / 100. L’analyse fait ressortir 3 points forts prioritaires et 3 écarts majeurs à traiter. Cette lecture repose uniquement sur les réponses, les statuts de données et les éléments disponibles dans le diagnostic.",
                 "narrativeRequired": true,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "strengths": 3,
+                    "gaps": 3
+                  },
+                  "criticalValues": [
+                    "20.13"
+                  ]
+                }
               }
             },
             {
@@ -394,7 +462,13 @@
                 "narrative": "",
                 "narrativeRequired": false,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "rows": 4
+                  },
+                  "criticalValues": []
+                }
               }
             }
           ]
@@ -438,7 +512,16 @@
                 "narrative": "Le pilier de gouvernance obtient un score de 3.98 / 100. L’analyse fait ressortir 3 points forts prioritaires et 3 écarts majeurs à traiter. Cette lecture repose uniquement sur les réponses, les statuts de données et les éléments disponibles dans le diagnostic.",
                 "narrativeRequired": true,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "strengths": 3,
+                    "gaps": 3
+                  },
+                  "criticalValues": [
+                    "3.98"
+                  ]
+                }
               }
             },
             {
@@ -467,7 +550,13 @@
                 "narrative": "",
                 "narrativeRequired": false,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "rows": 1
+                  },
+                  "criticalValues": []
+                }
               }
             },
             {
@@ -498,7 +587,13 @@
                 "narrative": "",
                 "narrativeRequired": false,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "risks": 2
+                  },
+                  "criticalValues": []
+                }
               }
             }
           ]
@@ -530,7 +625,13 @@
                 "narrative": "",
                 "narrativeRequired": false,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "recommendations": 2
+                  },
+                  "criticalValues": []
+                }
               }
             },
             {
@@ -559,7 +660,13 @@
                 "narrative": "",
                 "narrativeRequired": false,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {
+                    "roadmapActions": 3
+                  },
+                  "criticalValues": []
+                }
               }
             },
             {
@@ -573,7 +680,11 @@
                 "narrative": "",
                 "narrativeRequired": false,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {},
+                  "criticalValues": []
+                }
               }
             },
             {
@@ -587,7 +698,13 @@
                 "narrative": "",
                 "narrativeRequired": false,
                 "renderPolicy": "RENDER",
-                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2"
+                "engineVersion": "ESG_EDITORIAL_CONTENT_ENGINE_V2",
+                "parity": {
+                  "itemCounts": {},
+                  "criticalValues": [
+                    "Ce rapport constitue une évaluation ESG fondée sur les informations disponibles à la date de l’analyse. Il ne constitue ni une certification, ni un audit indépendant, ni une garantie d’accès au financement."
+                  ]
+                }
               }
             }
           ]
@@ -602,7 +719,13 @@
             "type": "COVER_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": false
+            "narrativeRequired": false,
+            "itemCounts": {},
+            "criticalValues": [
+              "Kivu Solar Test",
+              "RAPPORT ESG",
+              "ESG-DEMO-001"
+            ]
           },
           {
             "sectionId": "SNAP-EXECUTIVE_ESG_SNAPSHOT",
@@ -610,7 +733,15 @@
             "type": "SCORE_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": false
+            "narrativeRequired": false,
+            "itemCounts": {},
+            "criticalValues": [
+              "17.78",
+              "29.22",
+              "20.13",
+              "3.98",
+              "53.13"
+            ]
           },
           {
             "sectionId": "SNAP-EXECUTIVE_ESG_SNAPSHOT",
@@ -618,7 +749,9 @@
             "type": "DATA_QUALITY_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": false
+            "narrativeRequired": false,
+            "itemCounts": {},
+            "criticalValues": []
           },
           {
             "sectionId": "SNAP-EXECUTIVE_ESG_SNAPSHOT",
@@ -626,7 +759,13 @@
             "type": "EXECUTIVE_SUMMARY_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": true
+            "narrativeRequired": true,
+            "itemCounts": {
+              "strengths": 3,
+              "gaps": 3,
+              "risks": 3
+            },
+            "criticalValues": []
           },
           {
             "sectionId": "SNAP-ORGANIZATION_MATERIAL_ISSUES",
@@ -634,7 +773,13 @@
             "type": "ORGANIZATION_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": false
+            "narrativeRequired": false,
+            "itemCounts": {},
+            "criticalValues": [
+              "Kivu Solar Test",
+              "Énergie solaire",
+              "RDC"
+            ]
           },
           {
             "sectionId": "SNAP-ORGANIZATION_MATERIAL_ISSUES",
@@ -642,7 +787,11 @@
             "type": "MATERIALITY_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": false
+            "narrativeRequired": false,
+            "itemCounts": {
+              "topics": 3
+            },
+            "criticalValues": []
           },
           {
             "sectionId": "SNAP-ENVIRONMENT",
@@ -650,7 +799,14 @@
             "type": "PILLAR_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": true
+            "narrativeRequired": true,
+            "itemCounts": {
+              "strengths": 3,
+              "gaps": 3
+            },
+            "criticalValues": [
+              "29.22"
+            ]
           },
           {
             "sectionId": "SNAP-ENVIRONMENT",
@@ -658,7 +814,11 @@
             "type": "TABLE_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": false
+            "narrativeRequired": false,
+            "itemCounts": {
+              "rows": 3
+            },
+            "criticalValues": []
           },
           {
             "sectionId": "SNAP-SOCIAL",
@@ -666,7 +826,14 @@
             "type": "PILLAR_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": true
+            "narrativeRequired": true,
+            "itemCounts": {
+              "strengths": 3,
+              "gaps": 3
+            },
+            "criticalValues": [
+              "20.13"
+            ]
           },
           {
             "sectionId": "SNAP-SOCIAL",
@@ -674,7 +841,11 @@
             "type": "TABLE_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": false
+            "narrativeRequired": false,
+            "itemCounts": {
+              "rows": 4
+            },
+            "criticalValues": []
           },
           {
             "sectionId": "SNAP-GOVERNANCE_RISKS",
@@ -682,7 +853,14 @@
             "type": "PILLAR_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": true
+            "narrativeRequired": true,
+            "itemCounts": {
+              "strengths": 3,
+              "gaps": 3
+            },
+            "criticalValues": [
+              "3.98"
+            ]
           },
           {
             "sectionId": "SNAP-GOVERNANCE_RISKS",
@@ -690,7 +868,11 @@
             "type": "TABLE_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": false
+            "narrativeRequired": false,
+            "itemCounts": {
+              "rows": 1
+            },
+            "criticalValues": []
           },
           {
             "sectionId": "SNAP-GOVERNANCE_RISKS",
@@ -698,7 +880,11 @@
             "type": "RISK_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": false
+            "narrativeRequired": false,
+            "itemCounts": {
+              "risks": 2
+            },
+            "criticalValues": []
           },
           {
             "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
@@ -706,7 +892,11 @@
             "type": "RECOMMENDATION_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": false
+            "narrativeRequired": false,
+            "itemCounts": {
+              "recommendations": 2
+            },
+            "criticalValues": []
           },
           {
             "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
@@ -714,7 +904,11 @@
             "type": "ROADMAP_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": false
+            "narrativeRequired": false,
+            "itemCounts": {
+              "roadmapActions": 3
+            },
+            "criticalValues": []
           },
           {
             "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
@@ -722,7 +916,9 @@
             "type": "METHODOLOGY_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": false
+            "narrativeRequired": false,
+            "itemCounts": {},
+            "criticalValues": []
           },
           {
             "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
@@ -730,10 +926,15 @@
             "type": "DISCLAIMER_BLOCK",
             "required": true,
             "renderPolicy": "RENDER",
-            "narrativeRequired": false
+            "narrativeRequired": false,
+            "itemCounts": {},
+            "criticalValues": [
+              "Ce rapport constitue une évaluation ESG fondée sur les informations disponibles à la date de l’analyse. Il ne constitue ni une certification, ni un audit indépendant, ni une garantie d’accès au financement."
+            ]
           }
         ]
       }
     }
-  }
+  },
+  "fixtureMode": "STATIC_RENDERER_ONLY"
 }
