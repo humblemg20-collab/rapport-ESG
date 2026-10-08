@@ -961,50 +961,54 @@ function construireBlocsPilierSnapshotESGV1_(
     );
 
   var gaps =
-    responses
-      .filter(
-        function(response) {
-          return (
-            response
-              .applicabilityStatus !==
-              ESG_APPLICABILITY_STATUS_V1
-                .NOT_APPLICABLE &&
-            (
-              response.dataStatus ===
-                ESG_DATA_STATUS_V1
-                  .NOT_AVAILABLE ||
-              Number(
-                response.score
-              ) <=
-                40
-            )
-          );
-        }
-      )
+    dedupliquerReponsesThemeSnapshotESGV1_(
+      responses
+        .filter(
+          function(response) {
+            return (
+              response
+                .applicabilityStatus !==
+                ESG_APPLICABILITY_STATUS_V1
+                  .NOT_APPLICABLE &&
+              (
+                response.dataStatus ===
+                  ESG_DATA_STATUS_V1
+                    .NOT_AVAILABLE ||
+                Number(
+                  response.score
+                ) <=
+                  40
+              )
+            );
+          }
+        )
+    )
       .slice(
         0,
         4
       );
 
   var strengths =
-    responses
-      .filter(
-        function(response) {
-          return (
-            response
-              .applicabilityStatus !==
-              ESG_APPLICABILITY_STATUS_V1
-                .NOT_APPLICABLE &&
-            response.dataStatus !==
-              ESG_DATA_STATUS_V1
-                .NOT_AVAILABLE &&
-            Number(
-              response.score
-            ) >=
-              80
-          );
-        }
-      )
+    dedupliquerReponsesThemeSnapshotESGV1_(
+      responses
+        .filter(
+          function(response) {
+            return (
+              response
+                .applicabilityStatus !==
+                ESG_APPLICABILITY_STATUS_V1
+                  .NOT_APPLICABLE &&
+              response.dataStatus !==
+                ESG_DATA_STATUS_V1
+                  .NOT_AVAILABLE &&
+              Number(
+                response.score
+              ) >=
+                80
+            );
+          }
+        )
+    )
       .slice(
         0,
         3
@@ -1142,6 +1146,47 @@ function construireBlocsPilierSnapshotESGV1_(
   }
 
   return blocks;
+}
+
+
+function dedupliquerReponsesThemeSnapshotESGV1_(
+  responses
+) {
+  var seen = {};
+
+  return (
+    responses || []
+  ).filter(
+    function(response) {
+      if (!response) {
+        return false;
+      }
+
+      var key =
+        String(
+          response.theme ||
+          response.subtheme ||
+          response.questionId ||
+          response.responseId ||
+          ""
+        )
+          .trim()
+          .toLowerCase();
+
+      if (!key) {
+        return true;
+      }
+
+      if (seen[key]) {
+        return false;
+      }
+
+      seen[key] =
+        true;
+
+      return true;
+    }
+  );
 }
 
 
