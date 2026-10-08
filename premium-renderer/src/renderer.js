@@ -326,6 +326,9 @@ export async function renderPdf(spec) {
       packedSections:
         pagination.packedSections,
 
+      rescueSections:
+        pagination.rescueSections,
+
       continuationSections:
         pagination.continuationSections,
 
