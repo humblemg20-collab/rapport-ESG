@@ -29,7 +29,8 @@ const EXACT_LABELS = Object.freeze({
   "ÉLEVÉ": "Élevé",
   MODERE: "Modéré",
   "MODÉRÉ": "Modéré",
-  FAIBLE: "Faible"
+  FAIBLE: "Faible",
+  PRIORITAIRE: "Prioritaire"
 });
 
 const INTERNAL_CODE_PATTERNS = Object.freeze([
