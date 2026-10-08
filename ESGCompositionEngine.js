@@ -206,7 +206,7 @@ function composerSnapshotESGV1_(
     creerSectionSnapshotESGV1_(
       2,
       "EXECUTIVE_ESG_SNAPSHOT",
-      "Executive ESG Snapshot",
+      "Synthèse ESG exécutive",
       [
         creerBlocESGV1_(
           "SNAP-P2-SCORE",
@@ -394,7 +394,7 @@ function composerSnapshotESGV1_(
               .risks
               .slice(
                 0,
-                5
+                3
               ),
 
           displayMode:
@@ -467,7 +467,7 @@ function composerSnapshotESGV1_(
                 []
               ).slice(
                 0,
-                5
+                4
               )
           }
         ),
@@ -1260,7 +1260,7 @@ function normaliserRoadmapSnapshotESGV1_(
       "0_3_MONTHS"
     ].slice(
       0,
-      5
+      3
     );
 
   result[
@@ -1270,7 +1270,7 @@ function normaliserRoadmapSnapshotESGV1_(
       "3_12_MONTHS"
     ].slice(
       0,
-      5
+      3
     );
 
   result[
@@ -1280,7 +1280,7 @@ function normaliserRoadmapSnapshotESGV1_(
       "12_24_MONTHS"
     ].slice(
       0,
-      5
+      3
     );
 
   return result;
@@ -1660,6 +1660,105 @@ function TEST_ESG_SNAPSHOT_COMPOSITION_V1_LOCAL() {
       "SNAPSHOT"
     );
 
+  var governanceSection =
+    result
+      .model
+      .report
+      .sections
+      .filter(
+        function(section) {
+          return (
+            section.sectionId ===
+            "SNAP-GOVERNANCE_RISKS"
+          );
+        }
+      )[0];
+
+  var riskBlock =
+    governanceSection
+      ? governanceSection
+          .blocks
+          .filter(
+            function(block) {
+              return (
+                block.type ===
+                "RISK_BLOCK"
+              );
+            }
+          )[0]
+      : null;
+
+  var roadmapSection =
+    result
+      .model
+      .report
+      .sections
+      .filter(
+        function(section) {
+          return (
+            section.sectionId ===
+            "SNAP-PRIORITY_ACTIONS_ROADMAP"
+          );
+        }
+      )[0];
+
+  var recommendationBlock =
+    roadmapSection
+      ? roadmapSection
+          .blocks
+          .filter(
+            function(block) {
+              return (
+                block.type ===
+                "RECOMMENDATION_BLOCK"
+              );
+            }
+          )[0]
+      : null;
+
+  var roadmapBlock =
+    roadmapSection
+      ? roadmapSection
+          .blocks
+          .filter(
+            function(block) {
+              return (
+                block.type ===
+                "ROADMAP_BLOCK"
+              );
+            }
+          )[0]
+      : null;
+
+  var roadmapCapsValid =
+    roadmapBlock &&
+    Object.keys(
+      roadmapBlock.data.horizons
+    )
+      .filter(
+        function(key) {
+          return (
+            key !==
+            "needsReclassification"
+          );
+        }
+      )
+      .every(
+        function(key) {
+          return (
+            (
+              roadmapBlock
+                .data
+                .horizons[
+                  key
+                ] ||
+              []
+            ).length <=
+            3
+          );
+        }
+      );
+
   return {
     success:
       result.success ===
@@ -1673,6 +1772,28 @@ function TEST_ESG_SNAPSHOT_COMPOSITION_V1_LOCAL() {
       result
         .validation
         .valid ===
+        true &&
+      (
+        !riskBlock ||
+        (
+          riskBlock
+            .data
+            .risks ||
+          []
+        ).length <=
+        3
+      ) &&
+      (
+        !recommendationBlock ||
+        (
+          recommendationBlock
+            .data
+            .recommendations ||
+          []
+        ).length <=
+        4
+      ) &&
+      roadmapCapsValid ===
         true,
 
     validation:
