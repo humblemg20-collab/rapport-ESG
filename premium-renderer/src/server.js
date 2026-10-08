@@ -151,6 +151,7 @@ const server = http.createServer(async (req, res) => {
       "X-ESG-QA-Status": result.qa.pass ? "PASS" : "FAIL",
       "X-ESG-Pagination-Compacted": String(result.pagination.compactedSections.length),
       "X-ESG-Pagination-Packed": String(result.pagination.packedSections.length),
+      "X-ESG-Pagination-Rescue": String(result.pagination.rescueSections.length),
       "X-ESG-Continuation-Sections": String(result.pagination.continuationSections.length),
       "X-ESG-Fragmentation-Risk-Sections": String(result.pagination.fragmentationRiskSections.length),
       "X-ESG-Orphan-Risk-Sections": String(result.pagination.orphanRiskSections.length),
@@ -169,6 +170,7 @@ const server = http.createServer(async (req, res) => {
       sectorProfile: spec.sectorProfile,
       compactedSections: result.pagination.compactedSections,
       packedSections: result.pagination.packedSections,
+      rescueSections: result.pagination.rescueSections,
       continuationSections: result.pagination.continuationSections,
       fragmentationRiskSections: result.pagination.fragmentationRiskSections,
       orphanRiskSections: result.pagination.orphanRiskSections
