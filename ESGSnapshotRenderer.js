@@ -2395,6 +2395,11 @@ function rendreRoadmapSnapshotESGV1_(
     )
   );
 
+  /*
+   * Les actions legacy encore ambiguës restent dans les logs/QC
+   * internes. Elles ne sont jamais exposées telles quelles au
+   * porteur de projet dans le rapport white-label.
+   */
   if (
     horizons
       .needsReclassification &&
@@ -2402,13 +2407,11 @@ function rendreRoadmapSnapshotESGV1_(
       .needsReclassification
       .length
   ) {
-    ajouterNoteSnapshotESGV1_(
-      body,
+    console.warn(
+      "SNAPSHOT_ROADMAP_RECLASSIFICATION_PENDING=" +
       horizons
         .needsReclassification
-        .length +
-        " action(s) historiques doivent encore être reclassées entre les horizons 3–12 et 12–24 mois.",
-      "WARNING"
+        .length
     );
   }
 }
