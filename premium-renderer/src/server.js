@@ -150,8 +150,10 @@ const server = http.createServer(async (req, res) => {
       "X-ESG-Renderer-Version": result.rendererVersion,
       "X-ESG-QA-Status": result.qa.pass ? "PASS" : "FAIL",
       "X-ESG-Pagination-Compacted": String(result.pagination.compactedSections.length),
+      "X-ESG-Pagination-Packed": String(result.pagination.packedSections.length),
       "X-ESG-Continuation-Sections": String(result.pagination.continuationSections.length),
       "X-ESG-Fragmentation-Risk-Sections": String(result.pagination.fragmentationRiskSections.length),
+      "X-ESG-Orphan-Risk-Sections": String(result.pagination.orphanRiskSections.length),
       "X-Request-Id": requestId
     });
 
@@ -166,8 +168,10 @@ const server = http.createServer(async (req, res) => {
       designProfile: spec.designProfile,
       sectorProfile: spec.sectorProfile,
       compactedSections: result.pagination.compactedSections,
+      packedSections: result.pagination.packedSections,
       continuationSections: result.pagination.continuationSections,
-      fragmentationRiskSections: result.pagination.fragmentationRiskSections
+      fragmentationRiskSections: result.pagination.fragmentationRiskSections,
+      orphanRiskSections: result.pagination.orphanRiskSections
     });
   } catch (error) {
     const code = String(error?.code || error?.message || "RENDER_FAILED")
