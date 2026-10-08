@@ -53,7 +53,14 @@ function fixture() {
             title: "Cover",
             blocks: [
               {
+                blockId: "SNAP-P1-COVER",
                 type: "COVER_BLOCK",
+                required: true,
+                presentationContent: {
+                  narrative: "",
+                  narrativeRequired: false,
+                  renderPolicy: "RENDER"
+                },
                 data: {
                   organizationName: "Kivu Solar Test",
                   reportTitle: "RAPPORT ESG",
@@ -72,7 +79,14 @@ function fixture() {
             title: "Environnement",
             blocks: [
               {
+                blockId: "SNAP-PILLAR-E",
                 type: "PILLAR_BLOCK",
+                required: true,
+                presentationContent: {
+                  narrative: "Le pilier environnemental obtient un score de 61 / 100.",
+                  narrativeRequired: true,
+                  renderPolicy: "RENDER"
+                },
                 data: {
                   pillar: "E",
                   score: 61,
@@ -164,4 +178,39 @@ test("premium HTML contains no internal vocabulary codes", () => {
   assert.equal(html.includes("AG24_DATA_QUALITY_V1"), false);
   assert.equal(html.includes("NOT_ASSESSED"), false);
   assert.deepEqual(findInternalClientLeaks(html), []);
+});
+
+
+test("renders editorial narrative without altering canonical block data", () => {
+  const spec = fixture();
+  const html = renderReportHtml(spec, css);
+
+  assert.equal(
+    html.includes("Le pilier environnemental obtient un score de 61 / 100."),
+    true
+  );
+
+  assert.equal(
+    html.includes('data-narrative-for="SNAP-PILLAR-E"'),
+    true
+  );
+
+  assert.equal(
+    spec.documentModel.report.sections[1].blocks[0].data.score,
+    61
+  );
+});
+
+test("emits block identity for content-parity QA", () => {
+  const html = renderReportHtml(fixture(), css);
+
+  assert.equal(
+    html.includes('data-block-id="SNAP-P1-COVER"'),
+    true
+  );
+
+  assert.equal(
+    html.includes('data-block-id="SNAP-PILLAR-E"'),
+    true
+  );
 });
