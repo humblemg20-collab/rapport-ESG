@@ -486,9 +486,6 @@ function construirePariteBlocEditorialESGV2_(
       critical_(
         data.score
       );
-      critical_(
-        data.pillar
-      );
       break;
 
     case "KPI_DASHBOARD_BLOCK":
