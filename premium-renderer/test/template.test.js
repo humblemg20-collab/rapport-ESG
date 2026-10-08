@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderReportHtml, _test as templateTest } from "../src/template.js";
+import { clientLabel, findInternalClientLeaks } from "../src/clientVocabulary.js";
 import { _test as rendererTest } from "../src/renderer.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -82,6 +83,21 @@ function fixture() {
                     { theme: "Mesure des émissions" }
                   ]
                 }
+              },
+              {
+                type: "DATA_QUALITY_BLOCK",
+                data: {
+                  dataQualityProfile: {
+                    methodologyVersion: "AG24_DATA_QUALITY_V1",
+                    warnings: []
+                  }
+                }
+              },
+              {
+                type: "METHODOLOGY_BLOCK",
+                data: {
+                  materialityStatus: "NOT_ASSESSED"
+                }
               }
             ]
           }
@@ -122,4 +138,30 @@ test("sanitizes generated PDF filenames", () => {
     rendererTest.sanitizeFilename("Rapport ESG — Kivu / Solar"),
     "Rapport-ESG-Kivu-Solar"
   );
+});
+
+
+test("translates internal client-facing vocabulary", () => {
+  assert.equal(
+    clientLabel("AG24_DATA_QUALITY_V1"),
+    "Méthode de qualité des données"
+  );
+
+  assert.equal(
+    clientLabel("NOT_ASSESSED"),
+    "Non évaluée"
+  );
+
+  assert.equal(
+    clientLabel("CRITICAL"),
+    "Critique"
+  );
+});
+
+test("premium HTML contains no internal vocabulary codes", () => {
+  const html = renderReportHtml(fixture(), css);
+
+  assert.equal(html.includes("AG24_DATA_QUALITY_V1"), false);
+  assert.equal(html.includes("NOT_ASSESSED"), false);
+  assert.deepEqual(findInternalClientLeaks(html), []);
 });
