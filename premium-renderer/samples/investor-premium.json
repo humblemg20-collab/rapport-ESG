@@ -1,0 +1,322 @@
+{
+  "contractVersion": "ESG_PRESENTATION_CONTRACT_V2",
+  "engineVersion": "ESG_PRESENTATION_ENGINE_V2",
+  "reportProfile": "SNAPSHOT",
+  "designProfile": "INVESTOR_PREMIUM_V1",
+  "sectorProfile": "ENERGY",
+  "language": "fr",
+  "brandProfile": {
+    "organizationName": "Kivu Solar Test",
+    "primaryColor": "#145C4D",
+    "secondaryColor": "#B79252",
+    "sector": "Énergie solaire",
+    "mainCountry": "RDC",
+    "whiteLabel": true
+  },
+  "documentModel": {
+    "schemaVersion": "ESG_REPORT_SCHEMA_V1",
+    "organization": {
+      "name": "Kivu Solar Test",
+      "legalType": "Entreprise",
+      "sector": "Énergie solaire",
+      "mainCountry": "RDC",
+      "employeeCount": 36,
+      "creationYear": 2021,
+      "interventionZone": "Afrique centrale"
+    },
+    "scores": {
+      "environmentScore": 29.22,
+      "socialScore": 20.13,
+      "governanceScore": 3.98,
+      "esgOverallScoreV2": 17.78,
+      "readinessScore": 53.13,
+      "dataConfidenceScore": 70,
+      "evidenceCoverageScore": 0
+    },
+    "report": {
+      "reportId": "ESG-DEMO-001",
+      "profile": "SNAPSHOT",
+      "language": "fr",
+      "sections": [
+        {
+          "sectionId": "SNAP-COVER",
+          "pageNumber": 1,
+          "title": "Cover",
+          "blocks": [
+            {
+              "type": "COVER_BLOCK",
+              "data": {
+                "organizationName": "Kivu Solar Test",
+                "reportTitle": "RAPPORT ESG",
+                "reportSubtitle": "Diagnostic environnemental, social et de gouvernance",
+                "reportId": "ESG-DEMO-001",
+                "scores": {
+                  "overall": 17.78
+                }
+              }
+            }
+          ]
+        },
+        {
+          "sectionId": "SNAP-EXECUTIVE_ESG_SNAPSHOT",
+          "pageNumber": 2,
+          "title": "Synthèse ESG exécutive",
+          "blocks": [
+            {
+              "type": "SCORE_BLOCK",
+              "data": {
+                "displayScore": 17.78,
+                "readinessScore": 53.13,
+                "scores": {
+                  "environmentScore": 29.22,
+                  "socialScore": 20.13,
+                  "governanceScore": 3.98,
+                  "dataConfidenceScore": 70,
+                  "evidenceCoverageScore": 0
+                }
+              }
+            },
+            {
+              "type": "DATA_QUALITY_BLOCK",
+              "data": {
+                "dataQualityProfile": {
+                  "dataConfidenceScore": 70,
+                  "evidenceCoverageScore": 0,
+                  "methodologyVersion": "AG24_DATA_QUALITY_V1",
+                  "warnings": [
+                    "Couverture de preuves canoniques faible."
+                  ]
+                }
+              }
+            },
+            {
+              "type": "EXECUTIVE_SUMMARY_BLOCK",
+              "data": {
+                "strengths": [
+                  { "theme": "Déchets" },
+                  { "theme": "Économie circulaire" },
+                  { "theme": "Santé et sécurité" }
+                ],
+                "gaps": [
+                  { "theme": "Politique environnementale" },
+                  { "theme": "Ressources" },
+                  { "theme": "Produits et services" }
+                ],
+                "risks": [
+                  { "description": "Prévention du travail des enfants insuffisamment démontrée." },
+                  { "description": "Structure juridique insuffisamment documentée." },
+                  { "description": "Obligations réglementaires insuffisamment suivies." }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "sectionId": "SNAP-ORGANIZATION_MATERIAL_ISSUES",
+          "pageNumber": 3,
+          "title": "Organisation & enjeux prioritaires",
+          "blocks": [
+            {
+              "type": "ORGANIZATION_BLOCK",
+              "data": {
+                "organization": {
+                  "name": "Kivu Solar Test",
+                  "legalType": "Entreprise",
+                  "sector": "Énergie solaire",
+                  "mainCountry": "RDC",
+                  "employeeCount": 36,
+                  "creationYear": 2021,
+                  "interventionZone": "Afrique centrale"
+                }
+              }
+            },
+            {
+              "type": "MATERIALITY_BLOCK",
+              "data": {
+                "mode": "PRELIMINARY_DIAGNOSTIC_TOPICS",
+                "matrixEligible": false,
+                "topics": [
+                  {
+                    "name": "Droits humains",
+                    "pillar": "S",
+                    "priority": "CRITIQUE"
+                  },
+                  {
+                    "name": "Structure juridique",
+                    "pillar": "G",
+                    "priority": "CRITIQUE"
+                  },
+                  {
+                    "name": "Pollution",
+                    "pillar": "E",
+                    "priority": "ÉLEVÉ"
+                  }
+                ],
+                "disclaimer": "Ces sujets sont des enjeux préliminaires issus du diagnostic. Ils ne constituent pas une analyse formelle de matérialité."
+              }
+            }
+          ]
+        },
+        {
+          "sectionId": "SNAP-ENVIRONMENT",
+          "pageNumber": 4,
+          "title": "Environnement",
+          "blocks": [
+            {
+              "type": "PILLAR_BLOCK",
+              "data": {
+                "pillar": "E",
+                "score": 29.22,
+                "strengths": [
+                  { "theme": "Eau" },
+                  { "theme": "Déchets" },
+                  { "theme": "Changement climatique" }
+                ],
+                "gaps": [
+                  { "theme": "Politique environnementale" },
+                  { "theme": "Énergie" },
+                  { "theme": "Ressources" }
+                ]
+              }
+            },
+            {
+              "type": "TABLE_BLOCK",
+              "data": {
+                "title": "Indicateurs à mettre en place",
+                "columns": ["Indicateur", "Unité", "Fréquence", "Responsable"],
+                "rows": [
+                  ["Émissions directes de GES", "tCO2e", "Annuelle", "Responsable opérations / environnement"],
+                  ["Consommation énergétique totale", "kWh ou GJ", "Mensuelle", "Responsable opérations"],
+                  ["Part d’énergie renouvelable", "%", "Annuelle", "Direction générale"]
+                ],
+                "disclaimer": "Ces indicateurs sont recommandés ; ils ne sont pas présentés comme des KPI déjà mesurés."
+              }
+            }
+          ]
+        },
+        {
+          "sectionId": "SNAP-SOCIAL",
+          "pageNumber": 5,
+          "title": "Social",
+          "blocks": [
+            {
+              "type": "PILLAR_BLOCK",
+              "data": {
+                "pillar": "S",
+                "score": 20.13,
+                "strengths": [
+                  { "theme": "Travail et emploi" },
+                  { "theme": "Santé et sécurité" },
+                  { "theme": "Rémunération" }
+                ],
+                "gaps": [
+                  { "theme": "Compétences" },
+                  { "theme": "Égalité de genre" },
+                  { "theme": "Droits humains" }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "sectionId": "SNAP-GOVERNANCE_RISKS",
+          "pageNumber": 6,
+          "title": "Gouvernance & risques ESG",
+          "blocks": [
+            {
+              "type": "PILLAR_BLOCK",
+              "data": {
+                "pillar": "G",
+                "score": 3.98,
+                "strengths": [
+                  { "theme": "Contrôle interne" },
+                  { "theme": "Éthique et intégrité" },
+                  { "theme": "Achats responsables" }
+                ],
+                "gaps": [
+                  { "theme": "Structure juridique" },
+                  { "theme": "Gouvernance" },
+                  { "theme": "Gestion des risques" }
+                ]
+              }
+            },
+            {
+              "type": "RISK_BLOCK",
+              "data": {
+                "risks": [
+                  {
+                    "description": "Prévention du travail des enfants insuffisamment démontrée.",
+                    "pillar": "S",
+                    "legacySeverity": "CRITIQUE",
+                    "mitigationActions": [
+                      "Mettre en place une interdiction formelle, des contrôles d’âge et un mécanisme de remédiation."
+                    ]
+                  },
+                  {
+                    "description": "Structure juridique et autorisations essentielles insuffisamment démontrées.",
+                    "pillar": "G",
+                    "legacySeverity": "CRITIQUE",
+                    "mitigationActions": [
+                      "Vérifier les statuts, licences et autorisations applicables."
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "sectionId": "SNAP-PRIORITY_ACTIONS_ROADMAP",
+          "pageNumber": 7,
+          "title": "Actions prioritaires & feuille de route",
+          "blocks": [
+            {
+              "type": "RECOMMENDATION_BLOCK",
+              "data": {
+                "recommendations": [
+                  {
+                    "action": "Adopter immédiatement une interdiction formelle et des contrôles adaptés.",
+                    "priority": "CRITIQUE",
+                    "pillar": "S"
+                  },
+                  {
+                    "action": "Vérifier les documents légaux et licences essentielles.",
+                    "priority": "CRITIQUE",
+                    "pillar": "G"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "ROADMAP_BLOCK",
+              "data": {
+                "horizons": {
+                  "0_3_MONTHS": [
+                    { "title": "Vérifier les documents légaux et licences essentielles." },
+                    { "title": "Formaliser les contrôles relatifs aux droits humains." }
+                  ],
+                  "3_12_MONTHS": [
+                    { "title": "Déployer les indicateurs ESG prioritaires." }
+                  ],
+                  "12_24_MONTHS": []
+                }
+              }
+            },
+            {
+              "type": "METHODOLOGY_BLOCK",
+              "data": {
+                "materialityStatus": "NOT_ASSESSED"
+              }
+            },
+            {
+              "type": "DISCLAIMER_BLOCK",
+              "data": {
+                "text": "Ce rapport constitue une évaluation ESG fondée sur les informations disponibles à la date de l’analyse. Il ne constitue ni une certification, ni un audit indépendant, ni une garantie d’accès au financement."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
