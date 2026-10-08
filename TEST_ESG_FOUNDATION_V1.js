@@ -149,6 +149,12 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "PREMIUM_ROUTER_FALLBACK_LOCAL",
+      run:
+        TEST_ESG_PREMIUM_ROUTER_FALLBACK_LOCAL
+    },
+    {
+      name:
         "REPORT_ENGINE_ROUTER",
       run:
         TEST_ESG_REPORT_ENGINE_ROUTER_LOCAL
