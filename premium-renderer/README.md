@@ -56,6 +56,16 @@ curl -X POST http://localhost:3000/v1/render \
 npm test
 ```
 
+The sample render also prints deterministic pagination telemetry:
+
+- sections automatically compacted;
+- sections still requiring continuation after compaction;
+- visual-QA status;
+- generated PDF byte size.
+
+Physical page count remains non-blocking. The quality objective is to avoid
+sparse/accidental continuation pages while preserving readable content.
+
 Tests cover:
 - contract validation
 - HTML escaping
