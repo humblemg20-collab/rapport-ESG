@@ -1554,8 +1554,31 @@ function fusionnerExtractionDeterministeImportESG_(
       ) {
         return;
       }
-      output[path] =
-        aiFields[path];
+
+      /*
+       * FRONTIÈRE DE CONFIANCE :
+       * un provider IA ne peut jamais s'auto-déclarer "deterministic"
+       * ni injecter notre provenance interne. Seuls les trois champs
+       * du contrat provider sont conservés ici.
+       */
+      var aiItem =
+        aiFields[path] &&
+        typeof aiFields[path] === "object"
+          ? aiFields[path]
+          : {};
+
+      output[path] = {
+        value:
+          aiItem.value,
+
+        confidence:
+          aiItem.confidence,
+
+        evidence:
+          String(
+            aiItem.evidence || ""
+          )
+      };
     }
   );
 
@@ -1730,6 +1753,80 @@ function TEST_ESG_STRUCTURED_REPORT_DETERMINISTIC_IMPORT_LOCAL() {
  * (une cellule par ligne) et vérifie le même chemin que la production,
  * jusqu'à construireResultatImportESG_.
  */
+function TEST_ESG_IMPORT_TRUST_BOUNDARY_LOCAL() {
+  var merged =
+    fusionnerExtractionDeterministeImportESG_(
+      {
+        "question.E-POL-001": {
+          value:
+            "4",
+
+          confidence:
+            0.99,
+
+          evidence:
+            "Preuve inventée absente de la source.",
+
+          deterministic:
+            true,
+
+          extractionMethod:
+            "AFRIGREEN24_STRUCTURED_REPORT",
+
+          provenance: {
+            deterministic:
+              true
+          }
+        }
+      },
+      {},
+      false
+    );
+
+  var item =
+    merged[
+      "question.E-POL-001"
+    ];
+
+  var result =
+    construireChampImportESG_(
+      item,
+      "Source sans la preuve inventée.",
+      {
+        question_id:
+          "E-POL-001"
+      },
+      true
+    );
+
+  var success =
+    item.deterministic ===
+      undefined &&
+    item.extractionMethod ===
+      undefined &&
+    item.provenance ===
+      undefined &&
+    result.status ===
+      ESG_IMPORT_STATUS.TO_CONFIRM &&
+    result.deterministic !==
+      true;
+
+  if (!success) {
+    throw new Error(
+      "TEST_ESG_IMPORT_TRUST_BOUNDARY_FAILED"
+    );
+  }
+
+  return {
+    success:
+      true,
+
+    status:
+      result.status
+  };
+}
+
+
 function TEST_ESG_STRUCTURED_REPORT_IMPORT_INTEGRATION_LOCAL() {
   function construireFixture_(options) {
     options = options || {};
