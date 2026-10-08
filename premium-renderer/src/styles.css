@@ -80,10 +80,13 @@ body {
 }
 
 .cover {
+  position: relative;
+  padding-top: 15mm;
+  padding-bottom: 15mm;
   background:
-    radial-gradient(circle at 85% 18%, color-mix(in srgb, var(--gold) 22%, transparent), transparent 28%),
-    radial-gradient(circle at 68% 62%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 35%),
-    linear-gradient(135deg, #071517 0%, var(--accent-deep) 64%, #143B36 100%);
+    radial-gradient(circle at 82% 16%, color-mix(in srgb, var(--gold) 17%, transparent), transparent 24%),
+    radial-gradient(circle at 70% 68%, color-mix(in srgb, var(--accent) 17%, transparent), transparent 36%),
+    linear-gradient(135deg, #071517 0%, var(--accent-deep) 62%, #143B36 100%);
   color: #FFFFFF;
 }
 
@@ -91,93 +94,168 @@ body {
   width: 0;
 }
 
+/*
+ * Investor Premium cover architecture.
+ * The former layout used margin-top:auto and anchored the hero to the bottom,
+ * which created an oversized empty upper half. The cover is now composed
+ * around an intentional upper-middle hero zone.
+ */
+.cover::after {
+  content: "";
+  position: absolute;
+  top: -28mm;
+  right: -38mm;
+  width: 132mm;
+  height: 132mm;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 18mm rgba(255,255,255,0.018),
+    0 0 0 36mm rgba(255,255,255,0.012);
+  pointer-events: none;
+}
+
 .cover .page-shell {
-  min-height: 264mm;
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  min-height: 267mm;
+  display: block;
+  padding-bottom: 0;
+}
+
+.cover .page-shell::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14mm;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.26),
+    rgba(255,255,255,0.05)
+  );
 }
 
 .cover-grid {
+  position: relative;
+  z-index: 2;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 64mm;
-  gap: 12mm;
-  align-items: end;
-  margin-top: auto;
-  margin-bottom: 19mm;
+  grid-template-columns: minmax(0, 1fr) 58mm;
+  gap: 14mm;
+  align-items: center;
+  margin-top: 46mm;
+  margin-bottom: 0;
+}
+
+.cover-grid::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -15mm;
+  width: 24mm;
+  height: 1.5px;
+  background: var(--gold);
 }
 
 .cover-eyebrow {
-  margin-bottom: 9mm;
+  margin-bottom: 7mm;
   color: rgba(255,255,255,0.72);
-  font-size: 9pt;
-  letter-spacing: 0.16em;
+  font-size: 8.6pt;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
 .cover-title {
-  max-width: 125mm;
+  max-width: 122mm;
   margin: 0;
-  font-size: 31pt;
-  line-height: 0.98;
-  letter-spacing: -0.035em;
-  font-weight: 720;
+  font-size: 34pt;
+  line-height: 0.96;
+  letter-spacing: -0.038em;
+  font-weight: 740;
 }
 
 .cover-subtitle {
-  max-width: 115mm;
-  margin: 7mm 0 0;
-  color: rgba(255,255,255,0.82);
-  font-size: 12pt;
+  max-width: 112mm;
+  margin: 6mm 0 0;
+  color: rgba(255,255,255,0.80);
+  font-size: 11.6pt;
+  line-height: 1.35;
 }
 
 .cover-org {
-  margin-top: 14mm;
-  font-size: 17pt;
-  font-weight: 650;
+  margin-top: 12mm;
+  font-size: 18pt;
+  font-weight: 680;
+  letter-spacing: -0.015em;
 }
 
 .cover-meta {
-  margin-top: 3mm;
-  color: rgba(255,255,255,0.66);
-  font-size: 9pt;
+  margin-top: 2.5mm;
+  color: rgba(255,255,255,0.64);
+  font-size: 8.7pt;
 }
 
 .cover-score {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 61mm;
-  min-height: 61mm;
-  border: 1px solid rgba(255,255,255,0.24);
-  background: rgba(255,255,255,0.08);
+  width: 58mm;
+  min-height: 58mm;
+  border: 1px solid rgba(255,255,255,0.26);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.11),
+      rgba(255,255,255,0.055)
+    );
+  box-shadow: 0 10mm 28mm rgba(0,0,0,0.16);
   backdrop-filter: blur(8px);
+}
+
+.cover-score::before {
+  content: "";
+  position: absolute;
+  top: 5mm;
+  left: 5mm;
+  width: 9mm;
+  height: 1px;
+  background: var(--gold);
 }
 
 .cover-score strong {
   display: block;
-  font-size: 29pt;
+  font-size: 30pt;
   line-height: 1;
 }
 
 .cover-score span {
-  margin-top: 2mm;
-  color: rgba(255,255,255,0.72);
-  font-size: 8pt;
-  letter-spacing: 0.12em;
+  margin-top: 2.4mm;
+  color: rgba(255,255,255,0.70);
+  font-size: 7.6pt;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
 }
 
 .cover-mark {
+  position: relative;
+  z-index: 3;
   display: flex;
   align-items: center;
-  min-height: 18mm;
-  margin-top: 2mm;
+  min-height: 15mm;
+  margin-top: 0;
+}
+
+.cover-mark:empty {
+  min-height: 0;
+  height: 0;
+  margin: 0;
 }
 
 .cover-logo {
   max-width: 42mm;
-  max-height: 15mm;
+  max-height: 14mm;
   object-fit: contain;
   object-position: left center;
 }
