@@ -209,6 +209,14 @@ function construireBrandProfileESGV2_(
     canonicalModel.organization ||
     {};
 
+  var logoFileId =
+    String(
+      profil.logoFileId ||
+      profil.logoDriveId ||
+      profil.organizationLogoFileId ||
+      ""
+    );
+
   return {
     organizationName:
       String(
@@ -219,11 +227,11 @@ function construireBrandProfileESGV2_(
       ),
 
     logoFileId:
-      String(
-        profil.logoFileId ||
-        profil.logoDriveId ||
-        profil.organizationLogoFileId ||
-        ""
+      logoFileId,
+
+    logoDataUrl:
+      construireLogoDataUrlESGV2_(
+        logoFileId
       ),
 
     primaryColor:
@@ -255,6 +263,69 @@ function construireBrandProfileESGV2_(
     whiteLabel:
       true
   };
+}
+
+
+function construireLogoDataUrlESGV2_(
+  logoFileId
+) {
+  logoFileId =
+    String(
+      logoFileId || ""
+    ).trim();
+
+  if (!logoFileId) {
+    return "";
+  }
+
+  try {
+    var blob =
+      DriveApp
+        .getFileById(
+          logoFileId
+        )
+        .getBlob();
+
+    var mimeType =
+      String(
+        blob.getContentType() ||
+        ""
+      ).toLowerCase();
+
+    if (
+      [
+        "image/png",
+        "image/jpeg",
+        "image/webp"
+      ].indexOf(
+        mimeType
+      ) === -1
+    ) {
+      console.warn(
+        "ESG_PRESENTATION_LOGO_UNSUPPORTED_MIME=" +
+        mimeType
+      );
+
+      return "";
+    }
+
+    return (
+      "data:" +
+      mimeType +
+      ";base64," +
+      Utilities.base64Encode(
+        blob.getBytes()
+      )
+    );
+  } catch (
+    error
+  ) {
+    console.warn(
+      "ESG_PRESENTATION_LOGO_LOAD_FAILED"
+    );
+
+    return "";
+  }
 }
 
 
