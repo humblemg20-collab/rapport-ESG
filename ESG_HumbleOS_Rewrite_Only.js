@@ -1929,7 +1929,112 @@ function fusionnerActionsESGRewrite_(
  * Test local gratuit : aucune requête HumbleOS.
  */
 function TEST_ESG_REWRITE_WHITE_LABEL_FALLBACK_LOCAL() {
-  var input = {
+  var forbiddenCases = [
+    {
+      id:
+        "legacy_white_label_afrigreen",
+
+      rewritten:
+        "AfriGreen24 recommande de renforcer le suivi ESG."
+    },
+    {
+      id:
+        "legacy_white_label_openai",
+
+      rewritten:
+        "OpenAI recommande de renforcer le suivi ESG."
+    },
+    {
+      id:
+        "legacy_white_label_humbleos",
+
+      rewritten:
+        "HumbleOS recommande de renforcer le suivi ESG."
+    }
+  ];
+
+  var failures = [];
+
+  forbiddenCases.forEach(
+    function(testCase) {
+      var source =
+        "L’organisation doit renforcer le suivi de ses données ESG.";
+
+      var input = {
+        schema_version:
+          ESG_REWRITE_CONFIG
+            .inputSchema,
+
+        language:
+          "fr",
+
+        texts: [
+          {
+            id:
+              testCase.id,
+
+            text:
+              source
+          }
+        ]
+      };
+
+      var output = {
+        schema_version:
+          ESG_REWRITE_CONFIG
+            .outputSchema,
+
+        texts: [
+          {
+            id:
+              testCase.id,
+
+            rewritten_text:
+              testCase.rewritten
+          }
+        ]
+      };
+
+      var result =
+        applyESGRewriteSafetyFallback_(
+          input,
+          output,
+          {
+            organizationName:
+              "Organisation Test"
+          }
+        );
+
+      var ok =
+        result
+          .fallback_ids
+          .length ===
+          1 &&
+        result
+          .fallback_ids[0] ===
+          testCase.id &&
+        result
+          .output
+          .texts[0]
+          .rewritten_text ===
+          source;
+
+      if (!ok) {
+        failures.push({
+          id:
+            testCase.id,
+
+          result:
+            result
+        });
+      }
+    }
+  );
+
+  /*
+   * Cas témoin : un texte sûr doit rester inchangé.
+   */
+  var safeInput = {
     schema_version:
       ESG_REWRITE_CONFIG
         .inputSchema,
@@ -1940,7 +2045,7 @@ function TEST_ESG_REWRITE_WHITE_LABEL_FALLBACK_LOCAL() {
     texts: [
       {
         id:
-          "legacy_white_label_test",
+          "legacy_white_label_safe",
 
         text:
           "L’organisation doit renforcer le suivi de ses données ESG."
@@ -1948,7 +2053,7 @@ function TEST_ESG_REWRITE_WHITE_LABEL_FALLBACK_LOCAL() {
     ]
   };
 
-  var output = {
+  var safeOutput = {
     schema_version:
       ESG_REWRITE_CONFIG
         .outputSchema,
@@ -1956,46 +2061,54 @@ function TEST_ESG_REWRITE_WHITE_LABEL_FALLBACK_LOCAL() {
     texts: [
       {
         id:
-          "legacy_white_label_test",
+          "legacy_white_label_safe",
 
         rewritten_text:
-          "AfriGreen24 recommande de renforcer le suivi de ses données ESG."
+          "L’organisation doit mieux structurer le suivi de ses données ESG."
       }
     ]
   };
 
-  var result =
+  var safeResult =
     applyESGRewriteSafetyFallback_(
-      input,
-      output,
+      safeInput,
+      safeOutput,
       {
         organizationName:
           "Organisation Test"
       }
     );
 
+  if (
+    safeResult
+      .fallback_ids
+      .length !==
+      0
+  ) {
+    failures.push({
+      id:
+        "legacy_white_label_safe",
+
+      result:
+        safeResult
+    });
+  }
+
   return {
     success:
-      result
-        .fallback_ids
-        .length ===
-        1 &&
-      result
-        .fallback_ids[0] ===
-        "legacy_white_label_test" &&
-      result
-        .output
-        .texts[0]
-        .rewritten_text ===
-        input
-          .texts[0]
-          .text,
+      failures.length ===
+      0,
 
-    result:
-      result
+    testedForbiddenTerms: [
+      "afrigreen24",
+      "openai",
+      "humbleos"
+    ],
+
+    failures:
+      failures
   };
 }
-
 
 function TEST_ESG_REWRITE_FACT_PROTECTION_LOCAL() {
   var tests = [];
