@@ -57,21 +57,54 @@ export async function applySmartPagination(page) {
       const usedContentHeight = Math.max(0, contentBottom - contentTop);
       const safeRatio = usedContentHeight / safeContentHeight;
 
-      /*
-       * Print fragmentation can push an indivisible child even when the
-       * section's outer box itself is <= A4. Keep a reserve so cards/tables
-       * are not forced wholesale onto the next physical page.
-       */
-      const fragmentationRisk = contentNodes.some(node => {
+      const atoms = [
+        ...element.querySelectorAll("[data-print-atom]")
+      ].map(node => {
         const rect = node.getBoundingClientRect();
-        return rect.bottom > safeBottom + 1;
+
+        return {
+          type: node.getAttribute("data-print-atom") || "",
+          top: rect.top,
+          bottom: rect.bottom,
+          height: rect.height,
+          crossesSafeBottom:
+            rect.top < safeBottom - 1 &&
+            rect.bottom > safeBottom + 1,
+          startsAfterSafeBottom:
+            rect.top >= safeBottom - 1
+        };
       });
+
+      const fragmentedAtoms = atoms.filter(atom =>
+        atom.crossesSafeBottom ||
+        atom.startsAfterSafeBottom
+      );
+
+      const orphanAtoms = fragmentedAtoms.filter(atom =>
+        atom.height <= safeContentHeight * 0.25
+      );
+
+      const orphanRisk =
+        fragmentedAtoms.length > 0 &&
+        orphanAtoms.length === fragmentedAtoms.length &&
+        orphanAtoms.reduce((sum, atom) => sum + atom.height, 0) <=
+          safeContentHeight * 0.28;
+
+      const fragmentationRisk =
+        fragmentedAtoms.length > 0 ||
+        contentNodes.some(node => {
+          const rect = node.getBoundingClientRect();
+          return rect.bottom > safeBottom + 1;
+        });
 
       return {
         height: elementRect.height,
         outerRatio: a4Height > 0 ? elementRect.height / a4Height : 1,
         safeRatio,
-        fragmentationRisk
+        fragmentationRisk,
+        orphanRisk,
+        fragmentedAtomCount: fragmentedAtoms.length,
+        orphanAtomCount: orphanAtoms.length
       };
     };
 
@@ -79,13 +112,10 @@ export async function applySmartPagination(page) {
       const initial = measure(element);
       let density = "normal";
 
-      /*
-       * Target a real printable area rather than only the outer 297mm box.
-       * 94% leaves enough room for browser fragmentation and the footer.
-       */
       if (
         initial.safeRatio > 0.94 ||
-        initial.fragmentationRisk
+        initial.fragmentationRisk ||
+        initial.orphanRisk
       ) {
         element.classList.add("density-compact");
         density = "compact";
@@ -95,19 +125,36 @@ export async function applySmartPagination(page) {
 
       if (
         afterCompact.safeRatio > 0.97 ||
-        afterCompact.fragmentationRisk
+        afterCompact.fragmentationRisk ||
+        afterCompact.orphanRisk
       ) {
         element.classList.add("density-tight");
         density = "tight";
       }
 
+      const afterTight = measure(element);
+
+      if (
+        afterTight.orphanRisk ||
+        (
+          afterTight.fragmentationRisk &&
+          afterTight.safeRatio <= 1.08
+        )
+      ) {
+        element.classList.add("density-packed");
+        density = "packed";
+      }
+
       const final = measure(element);
+
       const continuationRequired =
         final.safeRatio > 1.02 &&
-        final.fragmentationRisk;
+        final.fragmentationRisk &&
+        final.orphanRisk === false;
 
       element.dataset.paginationDensity = density;
       element.dataset.continuationRequired = String(continuationRequired);
+      element.dataset.orphanRisk = String(final.orphanRisk);
 
       results.push({
         sectionId: element.dataset.sectionId || "",
@@ -116,6 +163,10 @@ export async function applySmartPagination(page) {
         density,
         fragmentationRiskBefore: initial.fragmentationRisk,
         fragmentationRiskAfter: final.fragmentationRisk,
+        orphanRiskBefore: initial.orphanRisk,
+        orphanRiskAfter: final.orphanRisk,
+        fragmentedAtomCountBefore: initial.fragmentedAtomCount,
+        fragmentedAtomCountAfter: final.fragmentedAtomCount,
         continuationRequired
       });
     }
@@ -126,11 +177,17 @@ export async function applySmartPagination(page) {
       compactedSections: results
         .filter(item => item.density !== "normal")
         .map(item => item.sectionId),
+      packedSections: results
+        .filter(item => item.density === "packed")
+        .map(item => item.sectionId),
       continuationSections: results
         .filter(item => item.continuationRequired)
         .map(item => item.sectionId),
       fragmentationRiskSections: results
         .filter(item => item.fragmentationRiskAfter)
+        .map(item => item.sectionId),
+      orphanRiskSections: results
+        .filter(item => item.orphanRiskAfter)
         .map(item => item.sectionId)
     };
   });
