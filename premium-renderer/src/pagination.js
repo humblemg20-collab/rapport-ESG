@@ -84,11 +84,48 @@ export async function applySmartPagination(page) {
         atom.height <= safeContentHeight * 0.25
       );
 
+      const atomSegments = {};
+
+      atoms.forEach(atom => {
+        const relativeTop = Math.max(0, atom.top - elementRect.top);
+        const segmentIndex = Math.floor(relativeTop / a4Height);
+
+        if (!atomSegments[segmentIndex]) {
+          atomSegments[segmentIndex] = [];
+        }
+
+        atomSegments[segmentIndex].push(atom);
+      });
+
+      const continuationSegments = Object.entries(atomSegments)
+        .filter(([index]) => Number(index) >= 1)
+        .map(([index, segmentAtoms]) => {
+          const occupiedHeight = segmentAtoms.reduce(
+            (sum, atom) => sum + Math.min(atom.height, safeContentHeight),
+            0
+          );
+
+          return {
+            index: Number(index),
+            atomCount: segmentAtoms.length,
+            occupiedRatio: occupiedHeight / safeContentHeight
+          };
+        });
+
+      const sparseContinuationSegments = continuationSegments
+        .filter(segment =>
+          segment.atomCount > 0 &&
+          segment.occupiedRatio < 0.34
+        );
+
       const orphanRisk =
-        fragmentedAtoms.length > 0 &&
-        orphanAtoms.length === fragmentedAtoms.length &&
-        orphanAtoms.reduce((sum, atom) => sum + atom.height, 0) <=
-          safeContentHeight * 0.28;
+        (
+          fragmentedAtoms.length > 0 &&
+          orphanAtoms.length === fragmentedAtoms.length &&
+          orphanAtoms.reduce((sum, atom) => sum + atom.height, 0) <=
+            safeContentHeight * 0.28
+        ) ||
+        sparseContinuationSegments.length > 0;
 
       const fragmentationRisk =
         fragmentedAtoms.length > 0 ||
@@ -104,7 +141,9 @@ export async function applySmartPagination(page) {
         fragmentationRisk,
         orphanRisk,
         fragmentedAtomCount: fragmentedAtoms.length,
-        orphanAtomCount: orphanAtoms.length
+        orphanAtomCount: orphanAtoms.length,
+        continuationSegments,
+        sparseContinuationSegments
       };
     };
 
@@ -145,6 +184,19 @@ export async function applySmartPagination(page) {
         density = "packed";
       }
 
+      const afterPacked = measure(element);
+
+      if (
+        afterPacked.orphanRisk ||
+        (
+          afterPacked.fragmentationRisk &&
+          afterPacked.safeRatio <= 1.14
+        )
+      ) {
+        element.classList.add("density-rescue");
+        density = "rescue";
+      }
+
       const final = measure(element);
 
       const continuationRequired =
@@ -167,6 +219,8 @@ export async function applySmartPagination(page) {
         orphanRiskAfter: final.orphanRisk,
         fragmentedAtomCountBefore: initial.fragmentedAtomCount,
         fragmentedAtomCountAfter: final.fragmentedAtomCount,
+        continuationSegmentsAfter: final.continuationSegments,
+        sparseContinuationSegmentsAfter: final.sparseContinuationSegments,
         continuationRequired
       });
     }
@@ -179,6 +233,9 @@ export async function applySmartPagination(page) {
         .map(item => item.sectionId),
       packedSections: results
         .filter(item => item.density === "packed")
+        .map(item => item.sectionId),
+      rescueSections: results
+        .filter(item => item.density === "rescue")
         .map(item => item.sectionId),
       continuationSections: results
         .filter(item => item.continuationRequired)
