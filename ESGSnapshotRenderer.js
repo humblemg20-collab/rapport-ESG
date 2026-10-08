@@ -2345,6 +2345,140 @@ function rendreRecommendationsSnapshotESGV1_(
 }
 
 
+function construireLignesRoadmapAffichablesSnapshotESGV1_(
+  horizons
+) {
+  horizons =
+    horizons || {};
+
+  var rows = [
+    [
+      "Horizon",
+      "Actions"
+    ]
+  ];
+
+  [
+    {
+      key:
+        "0_3_MONTHS",
+
+      label:
+        "0–3 mois"
+    },
+    {
+      key:
+        "3_12_MONTHS",
+
+      label:
+        "3–12 mois"
+    },
+    {
+      key:
+        "12_24_MONTHS",
+
+      label:
+        "12–24 mois"
+    }
+  ].forEach(
+    function(config) {
+      var actions =
+        Array.isArray(
+          horizons[
+            config.key
+          ]
+        )
+          ? horizons[
+              config.key
+            ]
+          : [];
+
+      /*
+       * Un horizon vide n'est pas rendu.
+       * On évite ainsi d'exposer une faiblesse de migration
+       * ou de donner l'impression d'une absence stratégique.
+       */
+      if (!actions.length) {
+        return;
+      }
+
+      rows.push([
+        config.label,
+
+        formaterActionsRoadmapSnapshotESGV1_(
+          actions
+        )
+      ]);
+    }
+  );
+
+  return rows;
+}
+
+
+function TEST_ESG_ROADMAP_VISIBLE_ROWS_LOCAL() {
+  var rows =
+    construireLignesRoadmapAffichablesSnapshotESGV1_({
+      "0_3_MONTHS": [
+        {
+          title:
+            "Action immédiate"
+        }
+      ],
+
+      "3_12_MONTHS": [
+        {
+          title:
+            "Action structurante"
+        }
+      ],
+
+      "12_24_MONTHS":
+        [],
+
+      needsReclassification: [
+        {
+          title:
+            "Action legacy ambiguë"
+        }
+      ]
+    });
+
+  return {
+    success:
+      rows.length ===
+        3 &&
+      rows.some(
+        function(row) {
+          return (
+            row[0] ===
+            "0–3 mois"
+          );
+        }
+      ) &&
+      rows.some(
+        function(row) {
+          return (
+            row[0] ===
+            "3–12 mois"
+          );
+        }
+      ) &&
+      !rows.some(
+        function(row) {
+          return (
+            row[0] ===
+            "12–24 mois"
+          );
+        }
+      ),
+
+    rows:
+      rows
+  };
+}
+
+
 function rendreRoadmapSnapshotESGV1_(
   body,
   block
@@ -2358,42 +2492,27 @@ function rendreRoadmapSnapshotESGV1_(
     "Feuille de route"
   );
 
-  var rows = [
-    [
-      "Horizon",
-      "Actions"
-    ],
-    [
-      "0–3 mois",
-      formaterActionsRoadmapSnapshotESGV1_(
-        horizons[
-          "0_3_MONTHS"
-        ]
-      )
-    ],
-    [
-      "3–12 mois",
-      formaterActionsRoadmapSnapshotESGV1_(
-        horizons[
-          "3_12_MONTHS"
-        ]
-      )
-    ],
-    [
-      "12–24 mois",
-      formaterActionsRoadmapSnapshotESGV1_(
-        horizons[
-          "12_24_MONTHS"
-        ]
-      )
-    ]
-  ];
+  var rows =
+    construireLignesRoadmapAffichablesSnapshotESGV1_(
+      horizons
+    );
 
-  styliserTableauDeuxColonnesSnapshotESGV1_(
-    body.appendTable(
-      rows
-    )
-  );
+  if (
+    rows.length >
+    1
+  ) {
+    styliserTableauDeuxColonnesSnapshotESGV1_(
+      body.appendTable(
+        rows
+      )
+    );
+  } else {
+    ajouterNoteSnapshotESGV1_(
+      body,
+      "Aucune action prioritaire n’est actuellement classée dans la feuille de route.",
+      "INFO"
+    );
+  }
 
   /*
    * Les actions legacy encore ambiguës restent dans les logs/QC
