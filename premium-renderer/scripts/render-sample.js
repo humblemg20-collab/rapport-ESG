@@ -4,7 +4,12 @@ import { fileURLToPath } from "node:url";
 import { closeRenderer, renderPdf } from "../src/renderer.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const samplePath = path.join(__dirname, "../samples/investor-premium.json");
+const defaultSamplePath = path.join(__dirname, "../samples/investor-premium.json");
+
+const samplePath = process.env.ESG_PRESENTATION_SPEC_FILE
+  ? path.resolve(process.env.ESG_PRESENTATION_SPEC_FILE)
+  : defaultSamplePath;
+
 const preferredOutputPath = path.resolve(process.cwd(), "sample-investor-premium.pdf");
 
 const spec = JSON.parse(await fs.readFile(samplePath, "utf8"));
@@ -59,6 +64,11 @@ try {
     JSON.stringify(
       {
         success: true,
+        inputPath: samplePath,
+        inputMode:
+          samplePath === defaultSamplePath
+            ? "STATIC_RENDERER_FIXTURE"
+            : "EXTERNAL_PRESENTATION_SPEC",
         outputPath: written.outputPath,
         outputFallbackUsed: written.fallbackUsed,
         outputFallbackReason: written.reason,
