@@ -53,6 +53,12 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "STRUCTURED_REPORT_PARTIAL_FALLBACK",
+      run:
+        TEST_ESG_STRUCTURED_PARTIAL_FALLBACK_LOCAL
+    },
+    {
+      name:
         "STRUCTURED_FACT_GUARD",
       run:
         TEST_ESG_STRUCTURED_FACT_GUARD_LOCAL
