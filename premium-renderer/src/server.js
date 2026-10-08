@@ -149,6 +149,8 @@ const server = http.createServer(async (req, res) => {
       "Cache-Control": "no-store",
       "X-ESG-Renderer-Version": result.rendererVersion,
       "X-ESG-QA-Status": result.qa.pass ? "PASS" : "FAIL",
+      "X-ESG-Pagination-Compacted": String(result.pagination.compactedSections.length),
+      "X-ESG-Continuation-Sections": String(result.pagination.continuationSections.length),
       "X-Request-Id": requestId
     });
 
@@ -161,7 +163,9 @@ const server = http.createServer(async (req, res) => {
       bytes: result.pdf.length,
       latencyMs: Date.now() - startedAt,
       designProfile: spec.designProfile,
-      sectorProfile: spec.sectorProfile
+      sectorProfile: spec.sectorProfile,
+      compactedSections: result.pagination.compactedSections,
+      continuationSections: result.pagination.continuationSections
     });
   } catch (error) {
     const code = String(error?.code || error?.message || "RENDER_FAILED")
