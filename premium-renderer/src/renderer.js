@@ -43,6 +43,145 @@ function sanitizeFilename(value) {
     .slice(0, 100) || "rapport-esg";
 }
 
+function countChromiumPdfPages(pdfBuffer) {
+  const source = Buffer.from(pdfBuffer).toString("latin1");
+  const matches = source.match(/\/Type\s*\/Page(?!s)\b/g);
+  return matches ? matches.length : 0;
+}
+
+async function renderSingleSectionPageCount(page, sectionId) {
+  const state = await page.evaluate(targetSectionId => {
+    const sections = [...document.querySelectorAll(".report-page")];
+
+    const snapshot = {
+      bodyStyle: document.body.getAttribute("style"),
+      sections: sections.map(section => ({
+        sectionId: section.dataset.sectionId || "",
+        style: section.getAttribute("style")
+      }))
+    };
+
+    sections.forEach(section => {
+      const active = (section.dataset.sectionId || "") === targetSectionId;
+
+      if (active) {
+        section.style.display = "block";
+        section.style.breakAfter = "auto";
+        section.style.pageBreakAfter = "auto";
+      } else {
+        section.style.display = "none";
+      }
+    });
+
+    document.body.style.margin = "0";
+    document.body.style.padding = "0";
+
+    return snapshot;
+  }, sectionId);
+
+  try {
+    const pdf = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      preferCSSPageSize: true,
+      margin: {
+        top: "0",
+        right: "0",
+        bottom: "0",
+        left: "0"
+      }
+    });
+
+    return Math.max(1, countChromiumPdfPages(pdf));
+  } finally {
+    await page.evaluate(snapshot => {
+      if (snapshot.bodyStyle === null) {
+        document.body.removeAttribute("style");
+      } else {
+        document.body.setAttribute("style", snapshot.bodyStyle);
+      }
+
+      const byId = new Map(
+        snapshot.sections.map(item => [item.sectionId, item.style])
+      );
+
+      [...document.querySelectorAll(".report-page")]
+        .forEach(section => {
+          const key = section.dataset.sectionId || "";
+          const previousStyle = byId.get(key);
+
+          if (previousStyle === null || previousStyle === undefined) {
+            section.removeAttribute("style");
+          } else {
+            section.setAttribute("style", previousStyle);
+          }
+        });
+    }, state);
+  }
+}
+
+async function runPhysicalSectionPreflight(page, spec) {
+  if (String(spec?.reportProfile || "").toUpperCase() !== "SNAPSHOT") {
+    return {
+      enabled: false,
+      sections: [],
+      rescuedSections: [],
+      unresolvedSections: []
+    };
+  }
+
+  const sectionIds = await page.evaluate(() =>
+    [...document.querySelectorAll(".report-page:not(.cover)")]
+      .map(section => section.dataset.sectionId || "")
+      .filter(Boolean)
+  );
+
+  const results = [];
+  const rescuedSections = [];
+  const unresolvedSections = [];
+
+  for (const sectionId of sectionIds) {
+    const before = await renderSingleSectionPageCount(page, sectionId);
+    let after = before;
+    let rescueApplied = false;
+
+    if (before > 1) {
+      await page.evaluate(targetSectionId => {
+        const section = [...document.querySelectorAll(".report-page")]
+          .find(item => (item.dataset.sectionId || "") === targetSectionId);
+
+        if (section) {
+          section.classList.add("density-rescue");
+          section.dataset.physicalPreflightRescue = "true";
+        }
+      }, sectionId);
+
+      rescueApplied = true;
+      rescuedSections.push(sectionId);
+      after = await renderSingleSectionPageCount(page, sectionId);
+    }
+
+    if (after > 1) {
+      unresolvedSections.push(sectionId);
+    }
+
+    results.push({
+      sectionId,
+      pagesBefore: before,
+      pagesAfter: after,
+      rescueApplied,
+      resolvedToSinglePage: after === 1
+    });
+  }
+
+  return {
+    enabled: true,
+    sections: results,
+    rescuedSections,
+    unresolvedSections
+  };
+}
+
 async function runContentParityQa(page, spec) {
   const manifest =
     spec?.documentModel?.report?.presentation?.contentManifest ||
@@ -311,6 +450,12 @@ export async function renderPdf(spec) {
         page
       );
 
+    const physicalPreflight =
+      await runPhysicalSectionPreflight(
+        page,
+        spec
+      );
+
     const contentParity =
       await runContentParityQa(
         page,
@@ -336,7 +481,9 @@ export async function renderPdf(spec) {
         pagination.fragmentationRiskSections,
 
       orphanRiskSections:
-        pagination.orphanRiskSections
+        pagination.orphanRiskSections,
+
+      physicalPreflight
     };
 
     const qa = {
@@ -379,6 +526,11 @@ export async function renderPdf(spec) {
       }
     });
 
+    const physicalPageCount =
+      countChromiumPdfPages(
+        pdf
+      );
+
     if (!pdf || pdf.length < 1000) {
       const error = new Error("PDF_EMPTY_OR_TOO_SMALL");
       error.code = "PDF_EMPTY_OR_TOO_SMALL";
@@ -397,7 +549,11 @@ export async function renderPdf(spec) {
     return {
       pdf,
       qa,
-      pagination,
+      pagination: {
+        ...pagination,
+        physicalPreflight,
+        physicalPageCount
+      },
       rendererVersion: ENGINE_VERSION,
       filename:
         sanitizeFilename(
@@ -423,5 +579,7 @@ export async function closeRenderer() {
 export const _test = {
   sanitizeFilename,
   runVisualQa,
-  runContentParityQa
+  runContentParityQa,
+  countChromiumPdfPages,
+  runPhysicalSectionPreflight
 };
