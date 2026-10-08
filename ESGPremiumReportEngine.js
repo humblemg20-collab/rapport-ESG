@@ -14,7 +14,7 @@ var ESG_PREMIUM_REPORT_ENGINE_VERSION_V2 =
   "ESG_PREMIUM_REPORT_ENGINE_V2";
 
 
-function genererSnapshotPremiumESGV2(
+function preparerSnapshotPremiumESGV2_(
   canonicalModel,
   profil,
   options
@@ -83,11 +83,78 @@ function genererSnapshotPremiumESGV2(
   var editorial =
     preparerDocumentEditorialESGV2_(
       model,
-      profil
+      profil,
+      {
+        narrativeMode:
+          options.narrativeMode ||
+          ""
+      }
     );
 
   model =
     editorial.model;
+
+  var presentationSpec =
+    construirePresentationSpecESGV2_(
+      model,
+      profil,
+      options
+    );
+
+  return {
+    success:
+      true,
+
+    reportId:
+      reportId,
+
+    model:
+      model,
+
+    presentationSpec:
+      presentationSpec,
+
+    validation:
+      validation,
+
+    composition:
+      composition,
+
+    preRenderQC:
+      preRenderQC,
+
+    editorial:
+      editorial
+  };
+}
+
+
+function genererSnapshotPremiumESGV2(
+  canonicalModel,
+  profil,
+  options
+) {
+  profil =
+    profil || {};
+
+  options =
+    options || {};
+
+  var prepared =
+    preparerSnapshotPremiumESGV2_(
+      canonicalModel,
+      profil,
+      options
+    );
+
+  var model =
+    prepared.model;
+
+  var reportId =
+    prepared.reportId;
+
+  var editorial =
+    prepared.editorial;
 
   var renderer =
     appelerPremiumRendererESGV2_(
@@ -211,10 +278,13 @@ function genererSnapshotPremiumESGV2(
         "PASS",
 
       composition:
-        composition.validation,
+        prepared
+          .composition
+          .validation,
 
       preRender:
-        preRenderQC,
+        prepared
+          .preRenderQC,
 
       contentParity:
         editorial.parity,
@@ -235,6 +305,310 @@ function genererSnapshotPremiumESGV2(
     rendererLatencyMs:
       renderer.latencyMs
   };
+}
+
+
+function TEST_ESG_PREMIUM_CONTENT_PARITY_KIVU_V2_LOCAL() {
+  var fixture =
+    construireFixtureKivuSolarESGV2_();
+
+  var prepared =
+    preparerSnapshotPremiumESGV2_(
+      fixture.model,
+      fixture.profil,
+      {
+        narrativeMode:
+          "DETERMINISTIC_ONLY"
+      }
+    );
+
+  var manifest =
+    prepared
+      .model
+      .report
+      .presentation
+      .contentManifest || [];
+
+  var riskManifest =
+    manifest.filter(
+      function(item) {
+        return (
+          item.type ===
+          "RISK_BLOCK"
+        );
+      }
+    )[0];
+
+  var recommendationManifest =
+    manifest.filter(
+      function(item) {
+        return (
+          item.type ===
+          "RECOMMENDATION_BLOCK"
+        );
+      }
+    )[0];
+
+  var tableRows =
+    manifest
+      .filter(
+        function(item) {
+          return (
+            item.type ===
+            "TABLE_BLOCK"
+          );
+        }
+      )
+      .reduce(
+        function(
+          total,
+          item
+        ) {
+          return (
+            total +
+            Number(
+              item.itemCounts &&
+              item.itemCounts.rows
+                ? item.itemCounts.rows
+                : 0
+            )
+          );
+        },
+        0
+      );
+
+  var expectedRiskCount =
+    Math.min(
+      (
+        fixture.model.risks ||
+        []
+      ).length,
+      3
+    );
+
+  var expectedRecommendationCount =
+    Math.min(
+      (
+        fixture.model
+          .recommendations ||
+        []
+      ).length,
+      4
+    );
+
+  var actualRiskCount =
+    Number(
+      riskManifest &&
+      riskManifest.itemCounts &&
+      riskManifest
+        .itemCounts
+        .risks
+        ? riskManifest
+            .itemCounts
+            .risks
+        : 0
+    );
+
+  var actualRecommendationCount =
+    Number(
+      recommendationManifest &&
+      recommendationManifest.itemCounts &&
+      recommendationManifest
+        .itemCounts
+        .recommendations
+        ? recommendationManifest
+            .itemCounts
+            .recommendations
+        : 0
+    );
+
+  return {
+    success:
+      prepared
+        .editorial
+        .parity
+        .success ===
+        true &&
+      actualRiskCount ===
+        expectedRiskCount &&
+      actualRecommendationCount ===
+        expectedRecommendationCount &&
+      prepared
+        .editorial
+        .parity
+        .narrativeRequiredCount ===
+      prepared
+        .editorial
+        .parity
+        .narrativePresentCount,
+
+    reportId:
+      prepared.reportId,
+
+    sectionCount:
+      prepared
+        .model
+        .report
+        .sections
+        .length,
+
+    blockCount:
+      manifest.length,
+
+    expectedItemCount:
+      prepared
+        .editorial
+        .parity
+        .expectedItemCount,
+
+    risks: {
+      canonical:
+        (
+          fixture.model.risks ||
+          []
+        ).length,
+
+      selectedExpected:
+        expectedRiskCount,
+
+      manifested:
+        actualRiskCount
+    },
+
+    recommendations: {
+      canonical:
+        (
+          fixture.model
+            .recommendations ||
+          []
+        ).length,
+
+      selectedExpected:
+        expectedRecommendationCount,
+
+      manifested:
+        actualRecommendationCount
+    },
+
+    recommendedIndicatorRows:
+      tableRows,
+
+    narratives: {
+      required:
+        prepared
+          .editorial
+          .parity
+          .narrativeRequiredCount,
+
+      present:
+        prepared
+          .editorial
+          .parity
+          .narrativePresentCount
+    },
+
+    parity:
+      prepared
+        .editorial
+        .parity
+  };
+}
+
+
+function EXPORT_ESG_PREMIUM_SPEC_KIVU_V2() {
+  var fixture =
+    construireFixtureKivuSolarESGV2_();
+
+  var prepared =
+    preparerSnapshotPremiumESGV2_(
+      fixture.model,
+      fixture.profil,
+      {
+        narrativeMode:
+          "DETERMINISTIC_ONLY",
+
+        designProfile:
+          ESG_DESIGN_PROFILE_V2
+            .INVESTOR_PREMIUM
+      }
+    );
+
+  var fileName =
+    "ESG Premium Presentation Spec - Kivu Solar Test - " +
+    prepared.reportId +
+    ".json";
+
+  var blob =
+    Utilities.newBlob(
+      JSON.stringify(
+        prepared.presentationSpec,
+        null,
+        2
+      ),
+      "application/json",
+      fileName
+    );
+
+  var dossier =
+    obtenirOuCreerDossierRapportsESG_();
+
+  var file =
+    dossier.createFile(
+      blob
+    );
+
+  var result = {
+    success:
+      true,
+
+    reportId:
+      prepared.reportId,
+
+    fileId:
+      file.getId(),
+
+    fileName:
+      fileName,
+
+    fileUrl:
+      file.getUrl(),
+
+    sectionCount:
+      prepared
+        .model
+        .report
+        .sections
+        .length,
+
+    blockCount:
+      prepared
+        .model
+        .report
+        .presentation
+        .contentManifest
+        .length,
+
+    expectedItemCount:
+      prepared
+        .editorial
+        .parity
+        .expectedItemCount,
+
+    contentParity:
+      prepared
+        .editorial
+        .parity
+  };
+
+  Logger.log(
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+  return result;
 }
 
 
