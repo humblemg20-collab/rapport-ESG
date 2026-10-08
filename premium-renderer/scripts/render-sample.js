@@ -20,6 +20,7 @@ try {
         outputPath,
         bytes: result.pdf.length,
         qa: result.qa,
+        pagination: result.pagination,
         rendererVersion: result.rendererVersion
       },
       null,
