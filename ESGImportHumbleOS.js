@@ -165,17 +165,54 @@ function analyserFichierESGImporte(payload) {
       );
 
     /*
-     * Un rapport AfriGreen24 structuré est sa propre source de vérité
-     * pour les 50 questions. L'IA ne reçoit donc que les définitions de
-     * profil dans ce cas ; les questions absentes restent MISSING au lieu
-     * d'être complétées par une inférence probabiliste.
+     * FALLBACK PAR CHAMP, PAS PAR FORMAT.
+     *
+     * Une détection de section structurée ne suffit PAS à supprimer les
+     * 50 questions de l'IA. La conversion PDF -> Google Docs peut rendre
+     * certaines lignes illisibles par le parser déterministe.
+     *
+     * Seuls les chemins réellement extraits et validés de manière
+     * déterministe sont retirés du contrat IA. Les autres restent
+     * disponibles pour le fallback OpenAI/HumbleOS.
      */
     var definitionsForAI =
-      structuredDeterministic.detected === true
-        ? definitions.filter(function(definition) {
-            return String(definition.path || "").indexOf("question.") !== 0;
-          })
-        : definitions;
+      construireDefinitionsIAImportESG_(
+        definitions,
+        structuredDeterministic.fields
+      );
+
+    console.log(
+      JSON.stringify({
+        event:
+          "esg_import_field_fallback_plan",
+
+        structuredFormatDetected:
+          structuredDeterministic.detected ===
+          true,
+
+        deterministicQuestionCount:
+          structuredDeterministic.questionCount,
+
+        definitionsTotal:
+          definitions.length,
+
+        definitionsForAI:
+          definitionsForAI.length,
+
+        questionDefinitionsForAI:
+          definitionsForAI.filter(
+            function(definition) {
+              return (
+                String(
+                  definition.path || ""
+                ).indexOf(
+                  "question."
+                ) === 0
+              );
+            }
+          ).length
+      })
+    );
 
     /*
      * ----------------------------------------------------------
@@ -199,8 +236,7 @@ function analyserFichierESGImporte(payload) {
     fields =
       fusionnerExtractionDeterministeImportESG_(
         fields,
-        structuredDeterministic.fields,
-        structuredDeterministic.detected === true
+        structuredDeterministic.fields
       );
 
 
@@ -1537,10 +1573,45 @@ function trouverDerniereOccurrenceRegexESG_(source, regex) {
 }
 
 
+function construireDefinitionsIAImportESG_(
+  definitions,
+  deterministicFields
+) {
+  var deterministicPaths = {};
+
+  Object.keys(
+    deterministicFields || {}
+  ).forEach(
+    function(path) {
+      deterministicPaths[
+        String(path)
+      ] = true;
+    }
+  );
+
+  return (
+    definitions || []
+  ).filter(
+    function(definition) {
+      var path =
+        String(
+          definition &&
+          definition.path ||
+          ""
+        );
+
+      return (
+        deterministicPaths[path] !==
+        true
+      );
+    }
+  );
+}
+
+
 function fusionnerExtractionDeterministeImportESG_(
   aiFields,
-  deterministicFields,
-  structuredDetected
+  deterministicFields
 ) {
   var output = {};
 
@@ -1548,13 +1619,6 @@ function fusionnerExtractionDeterministeImportESG_(
     aiFields || {}
   ).forEach(
     function(path) {
-      if (
-        structuredDetected === true &&
-        String(path || "").indexOf("question.") === 0
-      ) {
-        return;
-      }
-
       /*
        * FRONTIÈRE DE CONFIANCE :
        * un provider IA ne peut jamais s'auto-déclarer "deterministic"
@@ -1823,6 +1887,210 @@ function TEST_ESG_IMPORT_TRUST_BOUNDARY_LOCAL() {
 
     status:
       result.status
+  };
+}
+
+
+function TEST_ESG_STRUCTURED_PARTIAL_FALLBACK_LOCAL() {
+  var definitions =
+    construireDefinitionsChampsESG_();
+
+  var deterministicFields = {
+    "question.E-POL-001": {
+      value:
+        4,
+
+      confidence:
+        1,
+
+      evidence:
+        "Question déterministe",
+
+      extractionMethod:
+        "AFRIGREEN24_STRUCTURED_REPORT",
+
+      deterministic:
+        true
+    }
+  };
+
+  var definitionsForAI =
+    construireDefinitionsIAImportESG_(
+      definitions,
+      deterministicFields
+    );
+
+  var pathsForAI =
+    definitionsForAI.map(
+      function(definition) {
+        return String(
+          definition.path || ""
+        );
+      }
+    );
+
+  var errors = [];
+
+  if (
+    definitions.length !==
+    65
+  ) {
+    errors.push(
+      "Le contrat complet doit contenir 65 définitions."
+    );
+  }
+
+  if (
+    definitionsForAI.length !==
+    64
+  ) {
+    errors.push(
+      "Une seule question déterministe doit retirer une seule définition IA."
+    );
+  }
+
+  if (
+    pathsForAI.indexOf(
+      "question.E-POL-001"
+    ) !==
+    -1
+  ) {
+    errors.push(
+      "La question déjà déterministe ne doit pas être envoyée à l'IA."
+    );
+  }
+
+  var questionDefinitionsForAI =
+    definitionsForAI.filter(
+      function(definition) {
+        return (
+          String(
+            definition.path || ""
+          ).indexOf(
+            "question."
+          ) === 0
+        );
+      }
+    );
+
+  if (
+    questionDefinitionsForAI.length !==
+    49
+  ) {
+    errors.push(
+      "Les 49 questions non déterministes doivent rester disponibles au fallback IA."
+    );
+  }
+
+  var allDefinitionsForAI =
+    construireDefinitionsIAImportESG_(
+      definitions,
+      {}
+    );
+
+  if (
+    allDefinitionsForAI.length !==
+    65
+  ) {
+    errors.push(
+      "Si le parser ne récupère aucune question, les 65 définitions doivent rester disponibles à l'IA."
+    );
+  }
+
+  var merged =
+    fusionnerExtractionDeterministeImportESG_(
+      {
+        "question.E-POL-001": {
+          value:
+            "1",
+
+          confidence:
+            0.9,
+
+          evidence:
+            "Valeur IA qui doit être écrasée"
+        },
+
+        "question.S-HR-001": {
+          value:
+            "3",
+
+          confidence:
+            0.91,
+
+          evidence:
+            "Valeur IA conservée"
+        }
+      },
+      deterministicFields
+    );
+
+  if (
+    !merged[
+      "question.E-POL-001"
+    ] ||
+    merged[
+      "question.E-POL-001"
+    ].deterministic !==
+      true ||
+    Number(
+      merged[
+        "question.E-POL-001"
+      ].value
+    ) !==
+      4
+  ) {
+    errors.push(
+      "La valeur déterministe doit toujours gagner sur l'IA."
+    );
+  }
+
+  if (
+    !merged[
+      "question.S-HR-001"
+    ] ||
+    merged[
+      "question.S-HR-001"
+    ].deterministic ===
+      true ||
+    String(
+      merged[
+        "question.S-HR-001"
+      ].value
+    ) !==
+      "3"
+  ) {
+    errors.push(
+      "Une question non déterministe extraite par l'IA doit être conservée."
+    );
+  }
+
+  if (
+    errors.length
+  ) {
+    throw new Error(
+      "TEST_ESG_STRUCTURED_PARTIAL_FALLBACK_FAILED: " +
+      errors.join(
+        " | "
+      )
+    );
+  }
+
+  return {
+    success:
+      true,
+
+    definitionsTotal:
+      definitions.length,
+
+    definitionsForAI:
+      definitionsForAI.length,
+
+    questionDefinitionsForAI:
+      questionDefinitionsForAI.length,
+
+    zeroDeterministicDefinitionsForAI:
+      allDefinitionsForAI.length
   };
 }
 
