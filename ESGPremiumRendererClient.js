@@ -340,6 +340,17 @@ function appelerPremiumRendererESGV2_(
       0
     );
 
+  var packedSections =
+    Number(
+      headers[
+        "X-ESG-Pagination-Packed"
+      ] ||
+      headers[
+        "x-esg-pagination-packed"
+      ] ||
+      0
+    );
+
   var continuationSections =
     Number(
       headers[
@@ -358,6 +369,17 @@ function appelerPremiumRendererESGV2_(
       ] ||
       headers[
         "x-esg-fragmentation-risk-sections"
+      ] ||
+      0
+    );
+
+  var orphanRiskSections =
+    Number(
+      headers[
+        "X-ESG-Orphan-Risk-Sections"
+      ] ||
+      headers[
+        "x-esg-orphan-risk-sections"
       ] ||
       0
     );
@@ -389,6 +411,13 @@ function appelerPremiumRendererESGV2_(
           ? compactedSections
           : 0,
 
+      packedSections:
+        isFinite(
+          packedSections
+        )
+          ? packedSections
+          : 0,
+
       continuationSections:
         isFinite(
           continuationSections
@@ -401,6 +430,13 @@ function appelerPremiumRendererESGV2_(
           fragmentationRiskSections
         )
           ? fragmentationRiskSections
+          : 0,
+
+      orphanRiskSections:
+        isFinite(
+          orphanRiskSections
+        )
+          ? orphanRiskSections
           : 0
     },
 
