@@ -1266,30 +1266,39 @@ function extraireQuestionsRapportAfriGreen24Deterministe_(
     return resultat;
   }
 
+  var sourceLower =
+    source.toLowerCase();
+
+  /*
+   * IMPORTANT :
+   * le sommaire contient déjà "Annexe B" puis "Annexe C".
+   * indexOf() prenait donc la mention du sommaire et produisait
+   * une "annexe" de quelques caractères seulement.
+   *
+   * On prend la DERNIÈRE occurrence de l'Annexe B, qui correspond
+   * au vrai titre de l'annexe technique dans notre rapport.
+   */
   var annexStart =
-    source
-      .toLowerCase()
-      .indexOf(
+    sourceLower
+      .lastIndexOf(
         "annexe b. diagnostic technique détaillé"
       );
 
   if (annexStart < 0) {
     annexStart =
-      source
-        .toLowerCase()
-        .indexOf(
+      sourceLower
+        .lastIndexOf(
           "annexe b. diagnostic technique detaille"
         );
   }
 
   var annexEnd =
-    source
-      .toLowerCase()
+    sourceLower
       .indexOf(
         "annexe c.",
         Math.max(
           0,
-          annexStart
+          annexStart + 1
         )
       );
 
@@ -1468,6 +1477,14 @@ function fusionnerExtractionDeterministeImportESG_(
 
 function TEST_ESG_STRUCTURED_REPORT_DETERMINISTIC_IMPORT_LOCAL() {
   var lines = [
+    "Sommaire",
+    "Annexe B. Diagnostic technique détaillé",
+    "Annexe C. Transparence numérique ESG",
+    "",
+    "Annexe A. Méthodologie et limites",
+    "Questions analysées 50",
+    "Données manquantes 0",
+    "",
     "Annexe B. Diagnostic technique détaillé",
     "N° Thème / sous-thème Score Preuve Statut",
     "Environnement"
