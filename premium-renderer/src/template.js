@@ -81,7 +81,7 @@ function renderStakeholders(block) {
       <div class="kicker">Parties prenantes</div>
       <div class="stakeholder-grid">
         ${stakeholders.map(item => `
-          <div class="stakeholder-card">
+          <div class="stakeholder-card" data-parity-item="stakeholders">
             <strong>${esc(item?.name || item?.label || item?.stakeholder || itemLabel(item))}</strong>
             ${item?.relationship ? `<div class="muted small">${esc(item.relationship)}</div>` : ""}
           </div>
@@ -127,7 +127,7 @@ function renderRiskMatrix(block) {
         <div class="risk-matrix-cell ${className}">
           <span class="matrix-score">${likelihood}×${impact}</span>
           ${matches.map(risk => `
-            <span class="matrix-dot" title="${esc(itemLabel(risk))}"></span>
+            <span class="matrix-dot" data-parity-item="matrixRisks" title="${esc(itemLabel(risk))}"></span>
           `).join("")}
         </div>
       `);
@@ -191,16 +191,20 @@ function renderMetric(label, value, note = "") {
   `;
 }
 
-function renderList(items, empty = "Non disponible") {
+function renderList(items, empty = "Non disponible", parityKey = "") {
   const values = (items || []).map(itemLabel).filter(Boolean);
 
   if (!values.length) {
     return `<div class="muted small">${esc(empty)}</div>`;
   }
 
+  const parityAttr = parityKey
+    ? ` data-parity-item="${esc(parityKey)}"`
+    : "";
+
   return `
     <ul class="list-clean">
-      ${values.map(v => `<li>${esc(v)}</li>`).join("")}
+      ${values.map(v => `<li${parityAttr}>${esc(v)}</li>`).join("")}
     </ul>
   `;
 }
@@ -236,7 +240,7 @@ function renderCover(block, spec, sectorProfile) {
   const model = spec.documentModel;
   const logo = brand.logoDataUrl
     ? `<img class="cover-logo" alt="" src="${esc(brand.logoDataUrl)}">`
-    : `<div class="cover-eyebrow">${esc(sectorProfile.eyebrow)}</div>`;
+    : "";
 
   const metadata = [
     brand.sector || model?.organization?.sector,
@@ -322,15 +326,15 @@ function renderExecutive(block) {
       <div class="triple-grid">
         <div>
           <h3 class="card-title">Forces</h3>
-          ${renderList(strengths)}
+          ${renderList(strengths, "Non disponible", "strengths")}
         </div>
         <div>
           <h3 class="card-title">Écarts</h3>
-          ${renderList(gaps)}
+          ${renderList(gaps, "Non disponible", "gaps")}
         </div>
         <div>
           <h3 class="card-title">Risques</h3>
-          ${renderList(risks)}
+          ${renderList(risks, "Non disponible", "risks")}
         </div>
       </div>
     </section>
@@ -375,7 +379,7 @@ function renderMateriality(block) {
         <thead><tr><th>Sujet</th><th>Pilier</th><th>Priorité / statut</th></tr></thead>
         <tbody>
           ${topics.map(topic => `
-            <tr>
+            <tr data-parity-item="topics">
               <td>${esc(itemLabel(topic))}</td>
               <td>${esc(topic?.pillar || "—")}</td>
               <td>${esc(clientLabel(topic?.priority || topic?.status || "—"))}</td>
@@ -415,11 +419,11 @@ function renderPillar(block) {
       <div class="split-grid">
         <div class="card">
           <h3 class="card-title">Points forts</h3>
-          ${renderList(strengths)}
+          ${renderList(strengths, "Non disponible", "strengths")}
         </div>
         <div class="card">
           <h3 class="card-title">Écarts prioritaires</h3>
-          ${renderList(gaps)}
+          ${renderList(gaps, "Non disponible", "gaps")}
         </div>
       </div>
     </section>
@@ -438,7 +442,7 @@ function renderTable(block) {
         ${columns.length ? `<thead><tr>${columns.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead>` : ""}
         <tbody>
           ${rows.map(row => `
-            <tr>${(row || []).map(cell => `<td>${esc(cell)}</td>`).join("")}</tr>
+            <tr data-parity-item="rows">${(row || []).map(cell => `<td>${esc(cell)}</td>`).join("")}</tr>
           `).join("")}
         </tbody>
       </table>
@@ -454,15 +458,19 @@ function renderKpis(block) {
     <section class="card">
       <div class="kicker">Indicateurs clés</div>
       <div class="metric-grid">
-        ${kpis.map(kpi => renderMetric(
-          kpi?.name || "KPI",
-          kpi?.currentValue === null || kpi?.currentValue === undefined
-            ? "Non disponible"
-            : `${kpi.currentValue}${kpi.unit ? ` ${kpi.unit}` : ""}`,
-          kpi?.targetValue !== null && kpi?.targetValue !== undefined
-            ? `Cible : ${kpi.targetValue}${kpi.unit ? ` ${kpi.unit}` : ""}`
-            : ""
-        )).join("")}
+        ${kpis.map(kpi => `
+          <div data-parity-item="kpis">
+            ${renderMetric(
+              kpi?.name || "KPI",
+              kpi?.currentValue === null || kpi?.currentValue === undefined
+                ? "Non disponible"
+                : `${kpi.currentValue}${kpi.unit ? ` ${kpi.unit}` : ""}`,
+              kpi?.targetValue !== null && kpi?.targetValue !== undefined
+                ? `Cible : ${kpi.targetValue}${kpi.unit ? ` ${kpi.unit}` : ""}`
+                : ""
+            )}
+          </div>
+        `).join("")}
       </div>
     </section>
   `;
@@ -476,7 +484,7 @@ function renderRisks(block) {
       <div class="kicker">Risques ESG prioritaires</div>
       <div class="risk-grid">
         ${risks.map(risk => `
-          <article class="risk-card">
+          <article class="risk-card" data-parity-item="risks">
             <div>
               <strong>${esc(itemLabel(risk))}</strong>
               ${Array.isArray(risk?.mitigationActions) && risk.mitigationActions[0]
@@ -502,7 +510,7 @@ function renderRecommendations(block) {
       <div class="kicker">Actions prioritaires</div>
       <div class="risk-grid">
         ${recommendations.map(item => `
-          <article class="risk-card" style="border-left-color:var(--accent)">
+          <article class="risk-card" data-parity-item="recommendations" style="border-left-color:var(--accent)">
             <div>
               <strong>${esc(item?.action || item?.title || itemLabel(item))}</strong>
               ${item?.topic ? `<div class="muted small" style="margin-top:1.5mm">${esc(item.topic)}</div>` : ""}
@@ -552,7 +560,7 @@ function renderRoadmap(block) {
         ${visible.map(group => `
           <div class="roadmap-item">
             <div class="roadmap-horizon">${esc(group.label)}</div>
-            <div>${renderList(group.actions.map(actionText))}</div>
+            <div>${renderList(group.actions.map(actionText), "Non disponible", "roadmapActions")}</div>
           </div>
         `).join("")}
       </div>
