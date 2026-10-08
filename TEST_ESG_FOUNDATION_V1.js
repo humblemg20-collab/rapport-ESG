@@ -71,6 +71,12 @@ function TEST_ESG_FOUNDATION_V1_LOCAL() {
     },
     {
       name:
+        "SNAPSHOT_WHITE_LABEL_NARRATIVE_FALLBACK",
+      run:
+        TEST_ESG_SNAPSHOT_WHITE_LABEL_NARRATIVE_FALLBACK_LOCAL
+    },
+    {
+      name:
         "EVIDENCE_REPOSITORY_HASH",
       run:
         TEST_ESG_EVIDENCE_REPOSITORY_HASH_LOCAL
