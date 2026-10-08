@@ -3,6 +3,7 @@ import {
   resolveDesignProfile,
   resolveSectorProfile
 } from "./profiles.js";
+import { clientLabel } from "./clientVocabulary.js";
 
 function esc(value) {
   return String(value ?? "")
@@ -43,13 +44,14 @@ function itemLabel(item) {
 }
 
 function severityLabel(item) {
-  return String(
+  return clientLabel(
     item?.legacySeverity ||
     item?.priority ||
     item?.level ||
     item?.severity ||
     item?.inherentScore ||
-    "PRIORITAIRE"
+    "PRIORITAIRE",
+    "Prioritaire"
   );
 }
 
@@ -145,7 +147,7 @@ function renderCover(block, spec, sectorProfile) {
       </div>
       <div class="cover-score">
         <strong>${esc(scoreText(data?.scores?.overall || model?.scores?.esgOverallScoreV2).replace(" / 100", ""))}</strong>
-        <span>ESG Overall Score</span>
+        <span>Score ESG global</span>
       </div>
     </div>
   `;
@@ -164,7 +166,7 @@ function renderScoreBlock(block) {
         ${renderMetric("Environnement", scoreText(scores.environmentScore))}
         ${renderMetric("Social", scoreText(scores.socialScore))}
         ${renderMetric("Gouvernance", scoreText(scores.governanceScore))}
-        ${renderMetric("Readiness", scoreText(block?.data?.readinessScore))}
+        ${renderMetric("Préparation ESG", scoreText(block?.data?.readinessScore))}
         ${renderMetric("Confiance données", scoreText(scores.dataConfidenceScore))}
         ${renderMetric("Couverture preuves", scoreText(scores.evidenceCoverageScore))}
       </div>
@@ -175,13 +177,20 @@ function renderScoreBlock(block) {
 function renderDataQuality(block) {
   const q = block?.data?.dataQualityProfile || {};
 
+  const optionalMetrics = [
+    ["Complétude", q.completenessScore ?? q.completeness],
+    ["Revue utilisateur", q.userReviewScore ?? q.userReview]
+  ].filter(([, value]) => value !== null && value !== undefined && value !== "");
+
   return `
-    <section class="card">
+    <section class="card data-quality-card">
       <div class="kicker">Qualité des données</div>
-      <div class="triple-grid">
-        ${renderMetric("Confiance", scoreText(q.dataConfidenceScore))}
-        ${renderMetric("Couverture preuves", scoreText(q.evidenceCoverageScore))}
-        ${renderMetric("Méthode", q.methodologyVersion || "—")}
+      <div class="data-quality-grid">
+        <div class="method-card">
+          <div class="metric-label">Méthode</div>
+          <div class="method-value">${esc(clientLabel(q.methodologyVersion, "Méthode de qualité des données"))}</div>
+        </div>
+        ${optionalMetrics.map(([label, value]) => renderMetric(label, scoreText(value))).join("")}
       </div>
       ${Array.isArray(q.warnings) && q.warnings.length
         ? `<div class="callout warning small">${esc(q.warnings.join(" • "))}</div>`
@@ -230,10 +239,15 @@ function renderOrganization(block) {
   ].filter(([, value]) => value !== null && value !== undefined && String(value) !== "");
 
   return `
-    <section class="card">
+    <section class="card organization-card">
       <div class="kicker">Profil de l’organisation</div>
-      <div class="split-grid">
-        ${rows.map(([label, value]) => renderMetric(label, String(value))).join("")}
+      <div class="profile-grid">
+        ${rows.map(([label, value]) => `
+          <div class="profile-item">
+            <div class="metric-label">${esc(label)}</div>
+            <div class="profile-value">${esc(String(value))}</div>
+          </div>
+        `).join("")}
       </div>
     </section>
   `;
@@ -253,7 +267,7 @@ function renderMateriality(block) {
             <tr>
               <td>${esc(itemLabel(topic))}</td>
               <td>${esc(topic?.pillar || "—")}</td>
-              <td>${esc(topic?.priority || topic?.status || "—")}</td>
+              <td>${esc(clientLabel(topic?.priority || topic?.status || "—"))}</td>
             </tr>
           `).join("")}
         </tbody>
@@ -382,7 +396,7 @@ function renderRecommendations(block) {
               ${item?.topic ? `<div class="muted small" style="margin-top:1.5mm">${esc(item.topic)}</div>` : ""}
             </div>
             <div>
-              <div class="risk-level" style="color:var(--accent);background:var(--accent-soft)">${esc(item?.priority || "PRIORITAIRE")}</div>
+              <div class="risk-level" style="color:var(--accent);background:var(--accent-soft)">${esc(clientLabel(item?.priority || "PRIORITAIRE", "Prioritaire"))}</div>
               <div class="muted small" style="margin-top:2mm;text-align:center">${esc(item?.pillar || "")}</div>
             </div>
           </article>
@@ -431,7 +445,7 @@ function renderMethodology(block) {
     <section class="callout small">
       <strong>Méthodologie.</strong>
       Diagnostic fondé sur des règles de scoring déterministes, des statuts de données explicites et une séparation entre informations déclarées, preuves canoniques et confiance des données.
-      ${data.materialityStatus ? ` Matérialité : ${esc(data.materialityStatus)}.` : ""}
+      ${data.materialityStatus ? ` Matérialité : ${esc(clientLabel(data.materialityStatus))}.` : ""}
     </section>
   `;
 }
@@ -502,7 +516,7 @@ export function renderReportHtml(spec, baseCss) {
     if (isCover) {
       const coverBlock = blocks.find(b => b.type === "COVER_BLOCK") || { data: {} };
       return `
-        <section class="report-page cover">
+        <section class="report-page cover" data-section-id="${esc(section.sectionId || "COVER")}">
           <div class="page-shell">
             ${renderCover(coverBlock, spec, sector)}
           </div>
@@ -513,10 +527,14 @@ export function renderReportHtml(spec, baseCss) {
     const visibleBlocks = blocks.filter(b => b.type !== "IMAGE_BLOCK" && b.type !== "RISK_MATRIX_BLOCK");
 
     return `
-      <section class="report-page">
+      <section class="report-page" data-section-id="${esc(section.sectionId || "")}">
         <div class="page-shell">
           ${renderSectionHeading(section, index)}
-          ${visibleBlocks.map(renderBlock).join("")}
+          ${visibleBlocks.map(block => `
+            <div class="report-block" data-block-type="${esc(block?.type || "")}">
+              ${renderBlock(block)}
+            </div>
+          `).join("")}
         </div>
         ${renderFooter(model)}
       </section>
@@ -545,5 +563,6 @@ export const _test = {
   itemLabel,
   score,
   scoreText,
-  validatePresentationSpec
+  validatePresentationSpec,
+  severityLabel
 };
